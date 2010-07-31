@@ -28,10 +28,15 @@ int main()
     
                     //    Q^2,r,z
     REAL Qsqr=1,r=0.3,z=0.5;
+    cout << JPsi << endl;
      
     Nucleus nuke(197);
-    cout << nuke << endl;
+    //cout << nuke << endl;
     DipXS* dsigmadb = new DipXS_IPNonSat(nuke);
+    cout << (*dsigmadb) << endl;
+    
+    Vec v(1,2);
+    //cout << v;
      
      REAL b = 1;
      cout << dsigmadb->DipXSection_b(0.3, bjorkx, b) << endl;

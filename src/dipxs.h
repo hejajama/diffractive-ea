@@ -25,5 +25,7 @@ class DipXS
 
 };
 
+std::ostream& operator<<(std::ostream& os, DipXS& ic);
+
 
 #endif

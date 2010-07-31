@@ -80,4 +80,10 @@ REAL Vec::Len()
     return sqrt(LenSqr());
 }
 
+std::ostream& operator<<(std::ostream& os, Vec& ic)
+{
+    return os << "Vector (" << ic.GetX() << ", " << ic.GetY() <<
+        ", " << ic.GetZ() << "), |vec| = " << ic.Len() << " ";
+}
+
 

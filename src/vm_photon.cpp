@@ -161,3 +161,13 @@ REAL VM_Photon::Psi_L_D2R(REAL r, REAL z)
     return (z-1)*z/gsl_pow_4(R_L) * (SQR(R_L)-SQR(r)) * N_L * gsl_sf_exp(-SQR(r)/(2.0*SQR(R_L)));
 }
 
+std::ostream& operator<<(std::ostream& os, const VM_Photon& ic)
+{
+    return os << " Vector meson and photon wave function overlap. ";
+    /*e_f = "
+    << e_f << ", m_f = " << m_f << ", M_V = " << M_V << ", N_T = "
+    << N_T << ", N_L = " << N_L << ", R_T = " << R_T << ", R_L = " << R_L
+    << ", delta = " << delta << " ";
+    */
+}
+

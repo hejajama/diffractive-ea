@@ -10,6 +10,7 @@
 
 #include "dipole.h"
 #include "wave_function.h"
+#include <iostream>
 
 /* Overlap functions are taken from an article written by Kowalski, Motyka 
  * and Watt, see arXiv: hep-ph/0606272v2
@@ -37,6 +38,7 @@ class VM_Photon : public WaveFunction {
         REAL Psi_L_DR(REAL r, REAL z); 
         REAL Psi_L_D2R(REAL r, REAL z); // \partial^2_r Psi_L
         
+        
     private:
         // Parameters
         REAL e_f;   // Charge
@@ -47,8 +49,8 @@ class VM_Photon : public WaveFunction {
                     // delta=0 or delta=1
         
         
-        
-        
 };
+
+std::ostream& operator<<(std::ostream& os, const VM_Photon& ic);
 
 #endif // VM_PHOTON_H

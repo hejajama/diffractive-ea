@@ -24,3 +24,10 @@ REAL DipXS::Mu2(REAL rsqr)
 {
     return 4/rsqr + mu2_0;
 }
+
+std::ostream& operator<<(std::ostream& os, DipXS& ic)
+{
+    return os << " DipXS object ";
+
+}
+

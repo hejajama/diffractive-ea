@@ -8,6 +8,7 @@
  */
  
 #include "dipole.h"
+#include <iostream>
 
 class Vec
 {
@@ -35,6 +36,8 @@ class Vec
     private:
         REAL x,y,z;
 };
+
+std::ostream& operator<<(std::ostream& os, const Vec& ic);
 
 
 #endif //VEC_H

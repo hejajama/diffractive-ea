@@ -9,6 +9,7 @@
  */
 
 #include "dipole.h"
+#include <iostream>
  
  
 class GDist
@@ -33,6 +34,9 @@ class GDist_Toy : public GDist
         REAL gluedist(REAL bjorkx, REAL rsqr);
 
 };
+
+std::ostream& operator<<(std::ostream& os, GDist& ic);
+
 
 #endif
 
