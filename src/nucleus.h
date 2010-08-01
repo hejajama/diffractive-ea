@@ -12,6 +12,7 @@
 #include "dipole.h"
 #include "gdist.h"
 #include <iostream>
+#include <vector>
  
 class Nucleus 
 {
@@ -21,16 +22,28 @@ class Nucleus
         int Intialize();
         int GetA();
         void SetA(int A_);
+        
+        // W-S distribution
         REAL WS(REAL r);
+        REAL WS_unnorm(REAL r); // Unnormalized WS
+        REAL T_WS(REAL b);
+        REAL T_WS(Vec b);
+        REAL T_WS_unnorm(REAL b); // Unnormalized T_WS
+        
+        // Nucleon configuration
+        std::vector<Vec> RandomNucleonConfiguration(REAL mindist, REAL maxdist);
+        
         REAL GetWS_RA();
         REAL GetWS_delta();
         
         // Proton shape
         REAL Tp(REAL r);
-        REAL Tp(Vec b);
+        REAL Tp(Vec b); // b = |b|
         
         GDist* GetGDist();
         void SetGDist(GDist* gdist_);
+        
+        REAL MaxR();    // Integrate up to this limit
         
         
     private:
@@ -38,12 +51,17 @@ class Nucleus
         
         // Woods-Saxon parameters
         static const REAL WS_delta=0.54*FMGEV;
-        REAL WS_N;
         REAL WS_RA;
         GDist* gdist;
+    
+        // Normalization
+        REAL WS_N;
+        REAL T_WS_N;
+        REAL T_WS_0;    // T_WS(0)
         
         // Proton shape
         static const REAL B_G=4;
+
 
 };
 

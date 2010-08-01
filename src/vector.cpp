@@ -12,6 +12,7 @@
 Vec::Vec() { x=0; y=0; z=0; }
 Vec::Vec(REAL x_, REAL y_) { x=x_; y=y_; z=0; }
 Vec::Vec(REAL x_, REAL y_, REAL z_) { x=x_; y=y_, z=z_;}
+//Vec::Vec(Vec& v) { x=v.GetX(); y=v.GetY(); z=v.GetZ(); }
 
 void Vec::SetX(REAL x_) { x=x_; }
 void Vec::SetY(REAL y_) { y=y_; }
@@ -67,7 +68,8 @@ void Vec::operator*=(REAL c)
 
 Vec Vec::operator*(REAL c)
 {
-    return Vec(x*c,y*c,z*c);
+    Vec tmp(x*c,y*c,z*c);
+    return tmp;
 }
 
 REAL Vec::LenSqr()

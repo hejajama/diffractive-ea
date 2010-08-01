@@ -1,8 +1,8 @@
-CXXFLAGS = `gsl-config --cflags`
+CXXFLAGS = `gsl-config --cflags` -g
 LDFLAGS = `gsl-config --libs` 
 
 SOURCES = src/main.cpp src/dipole.cpp src/vm_photon.cpp src/vector.cpp src/nucleus.cpp \
-	src/dipxs_ipnonsat.cpp src/dipxs.cpp src/gdist.cpp
+	src/dipxs_ipnonsat.cpp src/dipxs.cpp src/gdist.cpp src/mersenne/mersenne_inline.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
 
 #OBJECTS  = src/main.o src/dipole.o

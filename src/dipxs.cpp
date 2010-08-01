@@ -25,9 +25,16 @@ REAL DipXS::Mu2(REAL rsqr)
     return 4/rsqr + mu2_0;
 }
 
+REAL DipXS::Sigmap(REAL r, REAL xbjork)
+{
+    return SQR(M_PI)/NC*SQR(r)*Alphas_r(r)
+        *nucleus.GetGDist()->gluedist(xbjork,SQR(r));
+}
+
 std::ostream& operator<<(std::ostream& os, DipXS& ic)
 {
     return os << " DipXS object ";
 
 }
+
 

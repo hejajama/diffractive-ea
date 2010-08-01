@@ -5,7 +5,6 @@
  * Heikki Mäntysaari <heikki.mantysaari@jyu.fi>, 2010
  */
 
-#include "nucleus.h"
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_sf_bessel.h>
 #include <gsl/gsl_integration.h>
@@ -13,16 +12,30 @@
 #include <gsl/gsl_sf_exp.h>
 #include <iostream>
 
+#include "nucleus.h"
+#include "mersenne/mersenne.h"
+
+using std::cout; using std::endl;
+
 const REAL WSINTACCURACY=0.00001;
+const REAL ZINTLIMIT=99;    // z integral in T_WS is from -ZINTLIM to +ZINTLIM
 
 // Integral helpers 
 
 struct wsinthelper{
     Nucleus *nuke;
+    REAL b;    // For z integral in T_WS where b is constant
 };
 
-REAL  wsinthelperf(REAL r, void * p){
+// 3 dimensional integral of WS
+REAL  wsinthelperf3d(REAL r, void * p){
   return (4*M_PI*SQR(r)*((wsinthelper*)p)->nuke->WS(r));
+}
+
+// 1 dimensional integral of WS
+REAL wsinthelperf1d(REAL z, void* p){
+    return ((wsinthelper*)p)->nuke->WS(sqrt(SQR(z)
+        + SQR(((wsinthelper*)p)->   b)));
 }
 
 Nucleus::Nucleus()
@@ -69,10 +82,10 @@ int Nucleus::Intialize()
     param.nuke=this;
     
     gsl_function int_helper;
-    int_helper.function=&wsinthelperf;
+    int_helper.function=&wsinthelperf3d;
     int_helper.params=&param;
     
-    int status = gsl_integration_qng(&int_helper, 0,90, WSINTACCURACY, WSINTACCURACY, 
+    int status = gsl_integration_qng(&int_helper, 0,MaxR(), WSINTACCURACY, WSINTACCURACY, 
         &result, &abserr, &eval);
     if (status) { 
         std::cerr << "WS integral in Nucleus constructor failed with code " 
@@ -81,6 +94,8 @@ int Nucleus::Intialize()
     }
         
     WS_N = 1/result;
+    T_WS_0=T_WS(0);
+    
     return 0;
 
 }
@@ -103,8 +118,57 @@ GDist* Nucleus::GetGDist()
 REAL Nucleus::WS(REAL r)
 {
     return WS_N/(1+gsl_sf_exp((r-WS_RA)/WS_delta));
+}
+
+/*
+ * Unnormalized distributions
+ * Returns the propability to find a nucleon with radius r
+ */
+REAL Nucleus::WS_unnorm(REAL r)
+{
+    return WS(r)/WS_N;
+}
+
+REAL Nucleus::T_WS_unnorm(REAL r)
+{
+    return T_WS(r)/T_WS_0;
+}
+
+/*
+ * Integrated density distribution
+ */
+REAL Nucleus::T_WS(REAL b)
+{
+    REAL result,abserr;
+    size_t eval;
+    
+    wsinthelper param;
+    param.nuke=this;
+    param.b=b;
+    
+    gsl_function int_helper;
+    int_helper.function=&wsinthelperf1d;
+    int_helper.params=&param;
+    
+    int status = gsl_integration_qng(&int_helper, -ZINTLIMIT,ZINTLIMIT, 
+            WSINTACCURACY, WSINTACCURACY, &result, &abserr, &eval);
+    if (status) { 
+        std::cerr << "WS integral in Nucleus constructor failed with code " 
+            << gsl_strerror(status) << std::endl;
+        return -1;
+    }
+    return result;
 
 }
+
+REAL Nucleus::T_WS(Vec b)
+{
+    // NOTE: There is one unecessary sqrt() as b.Len() is squared in
+    // T_WS, optimize?
+    return T_WS(b.Len());
+}
+
+
 
 /*
  * Proton shape
@@ -119,7 +183,62 @@ REAL Nucleus::Tp(Vec b)
     return Tp(b.Len());
 }
 
+/*
+ * Nucleon configuration
+ * Nucleon positions are generated from W-S distributio
+ * mindist and maxdist are smallest and largest distance allowed 
+ * between nucleons
+ */
+std::vector<Vec> Nucleus::RandomNucleonConfiguration(REAL mindist, REAL maxdist)
+{
+    std::vector<Vec> nucleons; 
+    REAL smallestdist=999; REAL largestdist=0;
+    REAL tmpdist;
+    do
+    {
+        nucleons.clear();
+        for (int i=0; i<A; i++)
+        {
+            Vec tmp;
+            do {
+                Vec tmpvec (2.0*(mersenne()-0.5)*MaxR(),
+                            2.0*(mersenne()-0.5)*MaxR(),
+                            2.0*(mersenne()-0.5)*MaxR());
+                tmp=tmpvec;
+            } while (mersenne() > T_WS_unnorm(tmp.Len())); // WS distribution!
+            nucleons.push_back(tmp);
+        }
+         
+            
+        // Check smallestdist and largest dist
+        for (int i=0; i<A; i++)
+            for (int j=0; j<i; j++)
+            {
+               tmpdist = sqrt( SQR(nucleons[j].GetX() - nucleons[i].GetX())
+                    + SQR(nucleons[j].GetY() - nucleons[i].GetY()) 
+                    + SQR(nucleons[j].GetZ()-nucleons[i].GetZ())); 
+               if (tmpdist < smallestdist) smallestdist=tmpdist;
+               if (tmpdist > largestdist) largestdist=tmpdist;    
+        }
+        
+            
+            // Try again if smallestdist/largestdist does not match the limits
+    } while (smallestdist < mindist or largestdist > maxdist);
+    //cout << "Smallest dist: " << smallestdist << " , largest: " << largestdist << endl;
+    return nucleons;
 
+}
+
+/*
+ * Maximum radius
+ * This is used e.g. as a upper limit of the integrals
+ */
+REAL Nucleus::MaxR()
+{
+    return WS_RA+4.0*WS_delta;
+}
+
+/* Some trivial functions */
 
 int Nucleus::GetA() { return A; }
 REAL Nucleus::GetWS_RA() { return WS_RA; }

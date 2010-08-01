@@ -37,7 +37,7 @@ class Vec
         REAL x,y,z;
 };
 
-std::ostream& operator<<(std::ostream& os, const Vec& ic);
+std::ostream& operator<<(std::ostream& os, Vec& ic);
 
 
 #endif //VEC_H

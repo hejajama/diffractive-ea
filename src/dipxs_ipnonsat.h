@@ -9,15 +9,20 @@
  
 #include "dipxs.h"
 #include "nucleus.h"
+#include <vector>
  
 class DipXS_IPNonSat : public DipXS
 {
     public:
         DipXS_IPNonSat(Nucleus nucleus_);
-        REAL DipXSection_b(REAL r, REAL xbj, Vec b ); // Impact parameter representation
-        REAL DipXSection_b(REAL r, REAL xbj, REAL b ); // b=|b|
+        REAL DipXSection_b(REAL r, REAL xbjork, Vec b ); // Impact parameter representation
+        REAL DipXSection_b(REAL r, REAL xbjork, REAL b ); // b=|b|
+        
+        REAL DipXSectoin_b_nonaveraged(REAL r, REAL xbjork, Vec b, 
+            std::vector<Vec> nucleons); // Non-averaged dipole cross section
     
     private:
+        static const REAL B_p=4.0; 
 
 };
 
