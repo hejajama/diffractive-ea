@@ -40,9 +40,9 @@ int main(int argc, char* argv[])
     //cout << nuke << endl;
     //DipXS* dsigmadb = new DipXS_IPNonSat(nuke);
     DipXS_IPNonSat dsigmadb(nuke);
-    
-    cout << "Generating 100 random nucleon configurations " << endl;
-    dsigmadb.GetNucleus().GenerateRandomNucleonConfigurations(100,0,100);
+    int rndn=300;
+    cout << "Generating " << rndn << " random nucleon configurations " << endl;
+    dsigmadb.GetNucleus().GenerateRandomNucleonConfigurations(rndn,0,100);
     cout << "Done!"<< endl;
     
      Vec b(0,1); Vec b2(1,1);
@@ -53,31 +53,38 @@ int main(int argc, char* argv[])
      //cout << c << endl;
      //cout << dsigmadb->DipXSection_b(0.3, bjorkx, b) << endl;
    // delete dsigmadb;
-    
-    /*cout << "Random nucleon: " << endl;
-    vector<Vec> nucleons = dsigmadb.GetNucleus().RandomNucleonConfiguration();
+   /* 
+    cout << "Random nucleon: " << endl;
     //cout << "A = " << nucleons.size() << endl;
+    
+    vector<Vec> nucleons = dsigmadb.GetNucleus().RandomNucleonConfiguration();
     for (int i=0; i<nucleons.size(); i++)
     {
         cout << nucleons[i].GetX() << " " << nucleons[i].GetY() << endl;
-    }*/
+    }
+    */
+  
     
     // Speedtest
-    REAL sum=0;
+    /*REAL sum=0;
     for (int i=1; i<1e4; i++)
     {
         sum+=dsigmadb.DipXSection_b_sqr(r, r, Vec(i/100.0,0), Vec(0,i/100.0-40),xbjork);
     
     }
     cout << sum << endl;
-    
+    */
     //cout << dsigmadb.DipXSection_b_sqr(r, r, b, b2, xbjork ) << endl;
-    //cout << "delta=0 cross section with r=0.3 : " << dsigmadb.DipXSection_delta(0.3, 0.3, xbjork, Vec(0,0)) << endl;
+    cout << "delta=0 cross section with r=0.3 : " << dsigmadb.DipXSection_delta(0.3, 0.3, xbjork, Vec(0,0)) << endl;
     
-    //for (int i=1; i<1e8; i*=10)
-    //    cout << "exp(-" << i << ") = " << exp(-(REAL)i) << endl;
-    
-   
+    /*REAL MaxR=dsigmadb.GetNucleus().MaxR();
+    Vec tmpvec (2.0*(mersenne()-0.5)*MaxR,
+                                2.0*(mersenne()-0.5)*MaxR);
+    for (int i=0; i<100; i++)
+    {
+        
+         std::cout << dsigmadb.DipXSection_b_sqr(r,r,tmpvec,tmpvec,xbjork) << endl;
+    }*/
 
     return 0;
 }

@@ -16,8 +16,8 @@
 #include "dipole.h"
 #include "cubature/cubature.h" // Multi dimensional integral
 
-const int AVERAGE_INTEGRAL_ITERATIONS=80;
-const int MONTE_CARLO_ITERATIONS=10000;
+const int AVERAGE_INTEGRAL_ITERATIONS=130;
+const int MONTE_CARLO_ITERATIONS=5000;
 const REAL MAXB=30;
 
 using std::cout; using std::endl; using std::cerr;
@@ -102,7 +102,7 @@ REAL DipXS_IPNonSat::DipXSection_delta(REAL r1, REAL r2, REAL xbjork, Vec delta)
     inthelper_param params;
     params.r1=r1; params.r2=r2; params.xbjork=xbjork;
     params.dipxs=this;
-    const int MAX_ITERATIONS=50000;
+    const int MAX_ITERATIONS=10000;
     adapt_integrate(1, inthelperf_cuba, &params, 4, xl, xu, MAX_ITERATIONS,
         1e-5,1e-5,&result,&error);
         
@@ -175,11 +175,11 @@ REAL DipXS_IPNonSat::DipXSection_b_sqr(REAL r, REAL r2, Vec b, Vec b2, REAL xbjo
     REAL result=0;
     for (int i=0; i<AVERAGE_INTEGRAL_ITERATIONS; i++)
     {
-        
-        std::vector<Vec> nucleons = nucleus.RandomNucleonConfiguration(); 
                 // TODO: Define mindist and maxdist somewhere 
-        result+=DipXSection_b_nonaveraged(r,xbjork,b,nucleons)
-               * DipXSection_b_nonaveraged(r2,xbjork,b2,nucleons);         
+        result+=DipXSection_b_nonaveraged(r,xbjork,b,
+                nucleus.RandomNucleonConfiguration())
+                * DipXSection_b_nonaveraged(r2,xbjork,b2, 
+                nucleus.RandomNucleonConfiguration());         
      }
      result*=1.0/AVERAGE_INTEGRAL_ITERATIONS;
      return result;
@@ -202,8 +202,7 @@ REAL DipXS_IPNonSat::DipXSection_b_nonaveraged(REAL r, REAL xbjork, Vec b,
     REAL result=0;
     for (int i=0; i<nucleons.size(); i++)
     {
-        Vec nucleon2d(nucleons[i].GetX(), nucleons[i].GetY());
-        Vec tmp = b-nucleon2d;
+        Vec tmp(b.GetX()-nucleons[i].GetX(),b.GetY()-nucleons[i].GetY());
 //        cout << "tmp.LenSqr(): " << 
         result += exp(-tmp.LenSqr()/(2*B_p));
     }

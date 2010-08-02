@@ -268,10 +268,11 @@ std::vector<Vec>& Nucleus::RandomNucleonConfiguration()
             std::vector<Vec> *zero = new std::vector<Vec>; (*zero).push_back(Vec()); 
             return *zero;
     }
+    next_config++;
     if (next_config >= nucleon_configs.size())
         next_config=0;
+
     return nucleon_configs[next_config];
-    next_config++;
 }
 /*
 std::vector<Vec>& Nucleus::RandomNucleonConfiguration2d()

@@ -1,4 +1,4 @@
-CXXFLAGS = `gsl-config --cflags` -g
+CXXFLAGS = `gsl-config --cflags` -g -pg
 LDFLAGS = `gsl-config --libs` 
 
 SOURCES = src/main.cpp src/dipole.cpp src/vm_photon.cpp src/vector.cpp src/nucleus.cpp \
@@ -14,7 +14,7 @@ OBJECTS=$(SOURCES:.cpp=.o)
 all: dipole 
 
 dipole: $(OBJECTS)
-	g++ $(LDFLAGS) $(OBJECTS) -o dipole 
+	g++ $(CXXFLAGS) $(LDFLAGS) $(OBJECTS) -o dipole 
 
 .cpp.o:
 	g++ $(CXXFLAGS) $< -c -o $@
