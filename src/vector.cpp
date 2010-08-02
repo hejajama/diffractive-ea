@@ -36,11 +36,12 @@ void Vec::operator-=(Vec& v)
     z-=v.GetZ();
 } 
 
-void Vec::operator=(Vec& v)
+Vec& Vec::operator=(const Vec& v)
 {
-    x=v.GetX();
-    y=v.GetY();
-    z=v.GetZ();
+    x=v.x;
+    y=v.y;
+    z=v.z;
+    return *this;
 } 
 
 Vec Vec::operator+(Vec& v)

@@ -17,6 +17,8 @@
 
 // *** Macros ***
 #define SQR(x) ((x)*(x))
+#define ABS(val) ((val) < 0 ? -(val) : (val))
+
 
 // *** Constants ***
 const int NC=3;
@@ -33,6 +35,10 @@ const REAL LAMBDAQCD2=0.04;   // 0.2 GeV^2
 REAL epsfun(REAL z, REAL Qsqr, REAL msqr);
 REAL epsfunsqr(REAL z, REAL Qsqr, REAL msqr); // eps^2
 REAL Alpha_s(REAL Qsqr); // Strong coupling constant as a function of Q^2
+
+// Wrapper for gsl_sf_exp to handle underflows
+// Or just use exp() from gsl/gsl_math.h
+REAL exp_wrap(REAL x);   
 
 // *** Classes ***
 

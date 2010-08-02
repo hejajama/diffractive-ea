@@ -8,9 +8,10 @@
  * Heikki Mäntysaari <heikki.mantysaari@jyu.fi>, 2010
  */
  
-#include "vector.h"
+
 #include "dipole.h"
 #include "gdist.h"
+#include "vector.h"
 #include <iostream>
 #include <vector>
  
@@ -19,6 +20,7 @@ class Nucleus
     public:
         Nucleus();
         Nucleus(int A_);
+        ~Nucleus();
         int Intialize();
         int GetA();
         void SetA(int A_);
@@ -31,7 +33,10 @@ class Nucleus
         REAL T_WS_unnorm(REAL b); // Unnormalized T_WS
         
         // Nucleon configuration
-        std::vector<Vec> RandomNucleonConfiguration(REAL mindist, REAL maxdist);
+        std::vector<Vec>& RandomNucleonConfiguration();
+        //std::vector<Vec>& RandomNucleonConfiguration2d();
+        
+        int GenerateRandomNucleonConfigurations(int n,REAL mindist, REAL maxdist);
         
         REAL GetWS_RA();
         REAL GetWS_delta();
@@ -61,6 +66,10 @@ class Nucleus
         
         // Proton shape
         static const REAL B_G=4;
+        
+        // Generated random nucleon configurations
+        std::vector< std::vector<Vec> > nucleon_configs;
+        int next_config;  // id of the configuration to give out next
 
 
 };

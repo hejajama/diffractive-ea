@@ -31,10 +31,16 @@ REAL DipXS::Sigmap(REAL r, REAL xbjork)
         *nucleus.GetGDist()->gluedist(xbjork,SQR(r));
 }
 
+Nucleus& DipXS::GetNucleus()
+{
+    return nucleus;
+}
+
 std::ostream& operator<<(std::ostream& os, DipXS& ic)
 {
     return os << " DipXS object ";
 
 }
+
 
 

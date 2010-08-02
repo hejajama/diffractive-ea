@@ -24,7 +24,7 @@ class Vec
         void SetZ(REAL z_);
         void operator+=(Vec& v);
         void operator-=(Vec& v);
-        void operator=(Vec& v);
+        Vec& operator=(const Vec& v);
         Vec operator+(Vec& v);
         Vec operator-(Vec& v);
         void operator*=(REAL c);

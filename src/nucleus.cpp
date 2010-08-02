@@ -15,7 +15,7 @@
 #include "nucleus.h"
 #include "mersenne/mersenne.h"
 
-using std::cout; using std::endl;
+using std::cout; using std::endl; using std::cerr;
 
 const REAL WSINTACCURACY=0.00001;
 const REAL ZINTLIMIT=99;    // z integral in T_WS is from -ZINTLIM to +ZINTLIM
@@ -47,6 +47,14 @@ Nucleus::Nucleus(int A_)
 {
     A=A_; gdist=0;
     Intialize();
+}
+
+Nucleus::~Nucleus()
+{
+/*    for (int i=0; i<nucleon_configs.size(); i++) { 
+        (*nucleon_configs)[i].clear(); 
+    }
+    delete nucleon_configs;*/
 }
 
 void Nucleus::SetA(int A_)
@@ -95,6 +103,8 @@ int Nucleus::Intialize()
         
     WS_N = 1/result;
     T_WS_0=T_WS(0);
+    
+    next_config=-1;
     
     return 0;
 
@@ -188,46 +198,90 @@ REAL Nucleus::Tp(Vec b)
  * Nucleon positions are generated from W-S distributio
  * mindist and maxdist are smallest and largest distance allowed 
  * between nucleons
+ * 
+ * Configuration is saved in private vector nucleon_configs
+ * n is the number of configurations to generate
+ *
+ * Returns -1 in case of an error, 0 otherwise
  */
-std::vector<Vec> Nucleus::RandomNucleonConfiguration(REAL mindist, REAL maxdist)
+
+int Nucleus::GenerateRandomNucleonConfigurations(int n, REAL mindist, REAL maxdist)
 {
-    std::vector<Vec> nucleons; 
-    REAL smallestdist=999; REAL largestdist=0;
-    REAL tmpdist;
-    do
+    if (n<1) return -1;
+    
+    next_config=0;
+    for (int i=0; i<nucleon_configs.size(); i++) { 
+        nucleon_configs[i].clear(); 
+    }
+   
+    nucleon_configs.clear();
+    
+    for (int i=0; i<n; i++)
     {
-        nucleons.clear();
-        for (int i=0; i<A; i++)
+        std::vector<Vec> nucleons; 
+        REAL smallestdist=999; REAL largestdist=0;
+        REAL tmpdist;
+        do
         {
-            Vec tmp;
-            do {
-                Vec tmpvec (2.0*(mersenne()-0.5)*MaxR(),
-                            2.0*(mersenne()-0.5)*MaxR(),
-                            2.0*(mersenne()-0.5)*MaxR());
-                tmp=tmpvec;
-            } while (mersenne() > T_WS_unnorm(tmp.Len())); // WS distribution!
-            nucleons.push_back(tmp);
-        }
-         
-            
-        // Check smallestdist and largest dist
-        for (int i=0; i<A; i++)
-            for (int j=0; j<i; j++)
+            nucleons.clear(); smallestdist=999; largestdist=0;
+            for (int i=0; i<A; i++)
             {
-               tmpdist = sqrt( SQR(nucleons[j].GetX() - nucleons[i].GetX())
-                    + SQR(nucleons[j].GetY() - nucleons[i].GetY()) 
-                    + SQR(nucleons[j].GetZ()-nucleons[i].GetZ())); 
-               if (tmpdist < smallestdist) smallestdist=tmpdist;
-               if (tmpdist > largestdist) largestdist=tmpdist;    
-        }
-        
+                Vec tmp;
+                do {
+                    Vec tmpvec (2.0*(mersenne()-0.5)*MaxR(),
+                                2.0*(mersenne()-0.5)*MaxR(),
+                                2.0*(mersenne()-0.5)*MaxR());
+                    tmp=tmpvec;
+                } while (mersenne() > WS_unnorm(tmp.Len())); // WS distribution!
+                nucleons.push_back(tmp);
+            }
+             
+                
+            // Check smallestdist and largest dist
+            for (int i=0; i<A; i++)
+                for (int j=0; j<i; j++)
+                {
+                   tmpdist = sqrt( SQR(nucleons[j].GetX() - nucleons[i].GetX())
+                        + SQR(nucleons[j].GetY() - nucleons[i].GetY()) 
+                        + SQR(nucleons[j].GetZ()-nucleons[i].GetZ())); 
+                   if (tmpdist < smallestdist) smallestdist=tmpdist;
+                   if (tmpdist > largestdist) largestdist=tmpdist;    
+            }
             
             // Try again if smallestdist/largestdist does not match the limits
-    } while (smallestdist < mindist or largestdist > maxdist);
-    //cout << "Smallest dist: " << smallestdist << " , largest: " << largestdist << endl;
-    return nucleons;
+            if (smallestdist < mindist or largestdist > maxdist)
+                  cout << "Again... Smallest dist: " << smallestdist << " , largest: " << largestdist << endl;
+        } while (smallestdist < mindist or largestdist > maxdist);
+        
+        nucleon_configs.push_back(nucleons);    
+    }
+
+    return 0;
 
 }
+ 
+std::vector<Vec>& Nucleus::RandomNucleonConfiguration()
+{
+    if (next_config<0) {
+       cerr << "Random nucleon configuration asked before anything was " 
+            << "generated, returning zero config" << endl;
+            std::vector<Vec> *zero = new std::vector<Vec>; (*zero).push_back(Vec()); 
+            return *zero;
+    }
+    if (next_config >= nucleon_configs.size())
+        next_config=0;
+    return nucleon_configs[next_config];
+    next_config++;
+}
+/*
+std::vector<Vec>& Nucleus::RandomNucleonConfiguration2d()
+{
+    std::vector<Vec> nucleons = RandomNucleonConfiguration();
+    // 2d = integrated over z, so just move all nucleons to z=0
+    for (int i=0; i<nucleons.size(); i++) nucleons[i].SetZ(0);
+    return nucleons;
+
+}*/
 
 /*
  * Maximum radius
