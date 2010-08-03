@@ -1,5 +1,5 @@
 /*
- * Dipole cross section in IP non sat model
+ * Dipole cross section in IP sat model
  *
  * Heikki Mäntysaari <heikki.mantysaari@jyu.fi>, 2010
  */
@@ -12,18 +12,18 @@
 #include <gsl/gsl_sf_exp.h>
 #include <vector>
 
-#include "dipxs_ipnonsat.h"
+#include "dipxs_ipsat.h"
 #include "dipole.h"
 #include "cubature/cubature.h" // Multi dimensional integral
 
-const int AVERAGE_INTEGRAL_ITERATIONS=5;
+const int AVERAGE_INTEGRAL_ITERATIONS=15;
 const int MONTE_CARLO_ITERATIONS=1000;
- const int MAX_ITERATIONS=500000;
+const int MAX_ITERATIONS=80000;
 const REAL MAXB=60;
 
 using std::cout; using std::endl; using std::cerr;
 
-DipXS_IPNonSat::DipXS_IPNonSat(Nucleus nucleus_) :
+DipXS_IPSat::DipXS_IPSat(Nucleus nucleus_) :
     DipXS(nucleus_)
 {
     // Nothing to do here
@@ -31,7 +31,7 @@ DipXS_IPNonSat::DipXS_IPNonSat(Nucleus nucleus_) :
 /*
 struct inthelper
 {
-    DipXS_IPNonSat* dipxs;
+    DipXS_IPSat* dipxs;
     REAL b;
 }
 
@@ -64,55 +64,58 @@ REAL inthelperf_b1(REAL b, void* params)
 }
 */
 
-struct inthelper_param 
+struct inthelper_param_sat
 { 
-    DipXS_IPNonSat* dipxs;
-    REAL r1sqr,r2sqr,xbjork; 
+    DipXS_IPSat* dipxs;
+    REAL r1,r2,xbjork; 
 };
 
-REAL inthelperf(REAL x[], size_t dim, void* p)
+REAL inthelperf_sat(REAL x[], size_t dim, void* p)
 {
-    inthelper_param* fp = (inthelper_param*)p;
+    inthelper_param_sat* fp = (inthelper_param_sat*)p;
     if (dim!=4) { cerr << "Dimension is not 4 " << endl; return 0; }
     
     Vec b1(x[0],x[1]); Vec b2(x[2],x[3]);
-    REAL result = fp->dipxs->DipXSection_avg_sqr(fp->r1sqr,fp->r2sqr,b1,b2,fp->xbjork);
+    REAL result = fp->dipxs->DipXSection_b_sqr(fp->r1,fp->r2,b1,b2,fp->xbjork);
     return result;
 
 }
 
 
-void inthelperf_cuba(unsigned int ndim, const double x[], void* fdata, 
+void inthelperf_cuba_sat(unsigned int ndim, const double x[], void* fdata, 
     unsigned int fdim, REAL *fval)
 {
-    inthelper_param* fp = (inthelper_param*)fdata;
+    inthelper_param_sat* fp = (inthelper_param_sat*)fdata;
     if (ndim!=4) { cerr << "Dimension is not 4 " << endl; return; }
     
     Vec b1(x[0],x[1]); Vec b2(x[2],x[3]);
-   fval[0] = fp->dipxs->DipXSection_avg_sqr(fp->r1sqr,fp->r2sqr,b1,b2,fp->xbjork);
+   fval[0] = fp->dipxs->DipXSection_b_sqr(fp->r1,fp->r2,b1,b2,fp->xbjork);
 }
 
-struct inthelper_param2
+struct inthelper_param2_sat
 {
-    DipXS_IPNonSat* dipxs;
+    DipXS_IPSat* dipxs;
     REAL r1sqr,r2sqr,xbjork;
+    Vec* delta;
     std::vector<Vec>* nucleons;
 };
 
-void inthelperf2_cuba(unsigned int ndim, const double x[], void* fdata, 
+void inthelperf2_cuba_sat(unsigned int ndim, const double x[], void* fdata, 
     unsigned int fdim, REAL *fval)
 {
     // To calculate \int d^2 b d^2 b' dsgima/db(r,b_i) dsigma/db(r',b_i')
-    inthelper_param2* fp = (inthelper_param2*)fdata;
-    Vec b1(x[0],x[1]); Vec b2(x[2],x[3]);
-    fval[0]=fp->dipxs->DipXSection_b_nonaveraged(fp->r1sqr, fp->xbjork, b1, *(fp->nucleons))
-           *fp->dipxs->DipXSection_b_nonaveraged(fp->r2sqr, fp->xbjork, b2, *(fp->nucleons));
+    inthelper_param2_sat* fp = (inthelper_param2_sat*)fdata;
+    Vec b1(x[0],x[1]); Vec b2(x[2],x[3]); Vec& delta = *(fp->delta);
+    fval[0]=fp->dipxs->DipXSection(fp->r1sqr, fp->xbjork, b1, *(fp->nucleons))
+           *fp->dipxs->DipXSection(fp->r2sqr, fp->xbjork, b2, *(fp->nucleons));
+    fval[0]*=cos(x[0]*delta.GetX())*cos(x[1]*delta.GetY())
+            *cos(x[2]*delta.GetX())*cos(x[3]*delta.GetY());
     }
 
 /* 
  * Dipole nucleus cross section as a function of delta
  */
-REAL DipXS_IPNonSat::DipXSection_delta(REAL r1sqr, REAL r2sqr, REAL xbjork, Vec delta)
+REAL DipXS_IPSat::DipXSection_delta(REAL r1sqr, REAL r2sqr, REAL xbjork, Vec delta)
 {
     REAL xl[4]={-MAXB,-MAXB,-MAXB,-MAXB};
     REAL xu[4]={MAXB,MAXB,MAXB,MAXB};
@@ -123,12 +126,13 @@ REAL DipXS_IPNonSat::DipXSection_delta(REAL r1sqr, REAL r2sqr, REAL xbjork, Vec 
     for (int i=0; i<AVERAGE_INTEGRAL_ITERATIONS; i++)
     {
         REAL result,error;
-        inthelper_param2 params;
+        inthelper_param2_sat params;
         params.r1sqr=r1sqr; params.r2sqr=r2sqr; params.xbjork=xbjork;
         params.nucleons=&nucleus.RandomNucleonConfiguration();
         params.dipxs=this;
+        params.delta=&delta;
        
-        adapt_integrate(1, inthelperf2_cuba, &params, 4, xl, xu, MAX_ITERATIONS,
+        adapt_integrate(1, inthelperf2_cuba_sat, &params, 4, xl, xu, MAX_ITERATIONS,
             1e-5,1e-5,&result,&error);
         cout << "Average " << i << " / " << AVERAGE_INTEGRAL_ITERATIONS << " gave " << result << endl;
         sum+=result; errorsum+=error;
@@ -169,42 +173,18 @@ REAL DipXS_IPNonSat::DipXSection_delta(REAL r1sqr, REAL r2sqr, REAL xbjork, Vec 
 
 /*
  * Dipole cross section in impact parameter reprsesentation
- * _NOT_ Averaged over nucleon connfigurations
+ * Averaged over all initial configurations
  */
-REAL DipXS_IPNonSat::DipXSection(REAL rsqr, REAL xbjork, Vec b, 
-                std::vector<Vec>& nucleons)
-{
-    if (nucleons.size() != nucleus.GetA())
-    {
-        std::cerr << "Got list of " << nucleons.size() << " nucleons but "
-            << "there should be " << nucleus.GetA() << " of them..." << endl;
-            return -1;
-    }
-    REAL result=0;
-    Vec tmp;
-    for (int i=0; i<nucleons.size(); i++)
-    {
-        tmp.SetX(b.GetX()-nucleons[i].GetX());
-        tmp.SetY(b.GetY()-nucleons[i].GetY());
-        result += exp_wrap(-tmp.LenSqr()/(2*B_p));
-    }
-    result *= Sigmap(rsqr,xbjork)/(2*M_PI*B_p);
-    return result;
-} 
-
- 
-REAL DipXS_IPNonSat::DipXSection(REAL rsqr, REAL xbjork, REAL b )
+REAL DipXS_IPSat::DipXSection_b(REAL r, REAL xbjork, REAL b )
 {
     // Dipol-proton only for now
-    return Sigmap(rsqr,xbjork)*nucleus.Tp(b);
+    return Sigmap(r,xbjork)*nucleus.Tp(b);
 }
-
-// TODO: Better name
 
 /*
  * Averaged dipole nucleus cross section squared
  */
-REAL DipXS_IPNonSat::DipXSection_avg_sqr(REAL rsqr, REAL r2sqr, Vec b, Vec b2, REAL xbjork )
+REAL DipXS_IPSat::DipXSection_b_sqr(REAL rsqr, REAL r2sqr, Vec b, Vec b2, REAL xbjork )
 {
     if (nucleus.GetA()==1) // Dipole-proton
         return Sigmap(rsqr,xbjork)*nucleus.Tp(b.Len());
@@ -230,9 +210,9 @@ REAL DipXS_IPNonSat::DipXSection_avg_sqr(REAL rsqr, REAL r2sqr, Vec b, Vec b2, R
     for (int i=0; i<AVERAGE_INTEGRAL_ITERATIONS; i++)
     {
                 // TODO: Define mindist and maxdist somewhere 
-        result+=DipXSection_b_nonaveraged(rsqr,xbjork,b,
+        result+=DipXSection(rsqr,xbjork,b,
                 nucleus.RandomNucleonConfiguration())
-                * DipXSection_b_nonaveraged(r2sqr,xbjork,b2, 
+                * DipXSection(r2sqr,xbjork,b2, 
                 nucleus.RandomNucleonConfiguration());         
      }
      result*=1.0/AVERAGE_INTEGRAL_ITERATIONS;
@@ -244,7 +224,7 @@ REAL DipXS_IPNonSat::DipXSection_avg_sqr(REAL rsqr, REAL r2sqr, Vec b, Vec b2, R
  * Non-averaged dipole cross section as a function of
  * nucleon transversial positions 
  */
-REAL DipXS_IPNonSat::DipXSection_b_nonaveraged(REAL rsqr, REAL xbjork, Vec b, 
+REAL DipXS_IPSat::DipXSection(REAL rsqr, REAL xbjork, Vec b, 
             std::vector<Vec> &nucleons)
 {
     if (nucleons.size() != nucleus.GetA())
@@ -253,16 +233,17 @@ REAL DipXS_IPNonSat::DipXSection_b_nonaveraged(REAL rsqr, REAL xbjork, Vec b,
             << "there should be " << nucleus.GetA() << " of them...";
             return -1;
     }
-    REAL result=0;
-    Vec tmp;
+    REAL result=0; REAL ex=0;
+    Vec tmp(0,0,0);
     for (int i=0; i<nucleons.size(); i++)
     {
         tmp.SetX(b.GetX()-nucleons[i].GetX());
         tmp.SetY(b.GetY()-nucleons[i].GetY());
-//        cout << "tmp.LenSqr(): " << 
-        result += exp_wrap(-tmp.LenSqr()/(2*B_p));
+        ex+=nucleus.Tp(tmp);        
     }
-    result *= Sigmap(rsqr,xbjork)/(2*M_PI*B_p);
+    result = 2.0*(1.0-exp(-Sigmap(rsqr,xbjork)/2.0*ex));
     return result;
 }
+
+
 

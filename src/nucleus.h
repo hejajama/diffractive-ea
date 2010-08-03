@@ -42,7 +42,7 @@ class Nucleus
         REAL GetWS_delta();
         
         // Proton shape
-        REAL Tp(REAL r);
+        REAL Tp(REAL rsqr);
         REAL Tp(Vec b); // b = |b|
         
         GDist* GetGDist();

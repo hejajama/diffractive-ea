@@ -18,9 +18,9 @@ void Vec::SetX(REAL x_) { x=x_; }
 void Vec::SetY(REAL y_) { y=y_; }
 void Vec::SetZ(REAL z_) { z=z_; }
 
-inline REAL Vec::GetX() { return x; }
-inline REAL Vec::GetY() { return y; }
-inline REAL Vec::GetZ() { return z; }
+REAL Vec::GetX() { return x; }
+REAL Vec::GetY() { return y; }
+REAL Vec::GetZ() { return z; }
 
 void Vec::operator+=(Vec& v)
 {

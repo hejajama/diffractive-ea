@@ -9,14 +9,17 @@
 
 
 #include <gsl/gsl_math.h>
+#include <complex>
 
 
 // *** Datatypes ***
 // REAL = double
 #define REAL double
+#define COMPLEX std::complex<REAL>
 
 // *** Macros ***
 #define SQR(x) ((x)*(x))
+#define CUBE(x) ((x)*(x)*(x))
 #define ABS(val) ((val) < 0 ? -(val) : (val))
 
 
@@ -26,6 +29,7 @@ const REAL ALPHA_e = 1.0/137.0;
 const REAL e = sqrt(4*M_PI*ALPHA_e);
 const REAL mu2_0 = 0.8; // \mu_0^2 = 0.8 GeV^2
 const REAL LAMBDAQCD2=0.04;   // 0.2 GeV^2
+const REAL FOURPI = (4.0*M_PI);
 #define FMGEV 5.068       // fm * GeV
 
 

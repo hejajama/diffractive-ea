@@ -183,14 +183,14 @@ REAL Nucleus::T_WS(Vec b)
 /*
  * Proton shape
  */
-REAL Nucleus::Tp(REAL r)
+REAL Nucleus::Tp(REAL rsqr)
 {
-    return gsl_sf_exp(-SQR(r)/(2.0*B_G))/(2*M_PI*B_G);
+    return exp(-rsqr/(2.0*B_G))/(2*M_PI*B_G);
 }
 
 REAL Nucleus::Tp(Vec b)
 {
-    return Tp(b.Len());
+    return Tp(b.LenSqr());
 }
 
 /*
