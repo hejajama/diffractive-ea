@@ -168,12 +168,14 @@ REAL DipXS_IPNonSat::DipXSection_delta(REAL r1sqr, REAL r2sqr, REAL xbjork, Vec 
 }
 
 /*
- * Dipole cross section in impact parameter reprsesentation
+ * Dipole cross section in impact parameter reprsesentation as a 
+ * function of nucleon transversal positions
  * _NOT_ Averaged over nucleon connfigurations
  */
 REAL DipXS_IPNonSat::DipXSection(REAL rsqr, REAL xbjork, Vec b, 
                 std::vector<Vec>& nucleons)
 {
+    REAL x=b.GetX(); REAL y=b.GetY();
     if (nucleons.size() != nucleus.GetA())
     {
         std::cerr << "Got list of " << nucleons.size() << " nucleons but "
@@ -184,9 +186,9 @@ REAL DipXS_IPNonSat::DipXSection(REAL rsqr, REAL xbjork, Vec b,
     Vec tmp;
     for (int i=0; i<nucleons.size(); i++)
     {
-        tmp.SetX(b.GetX()-nucleons[i].GetX());
-        tmp.SetY(b.GetY()-nucleons[i].GetY());
-        result += exp_wrap(-tmp.LenSqr()/(2*B_p));
+        tmp.SetX(;);
+        tmp.SetY(y-nucleons[i].GetY());
+        result += exp(-tmp.LenSqr()/(2*B_p));
     }
     result *= Sigmap(rsqr,xbjork)/(2*M_PI*B_p);
     return result;

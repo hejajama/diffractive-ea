@@ -5,10 +5,11 @@
  * 
  * Heikki Mäntysaari <heikki.mantysaari@jyu.fi>, 2010
  *
- * Most of the code is written by Tuomas Lappi under non-specified license
+ * Most of this code is written by Tuomas Lappi under non-specified license
  * Changes made to that code:
  * - Removed parts not needed here
- * - Takes into account the specified nucleon configuration 
+ * - Ported to use DipXS class
+ * - Takes into account and averages over nucleon configurations
  */
  
 #include <gsl/gsl_integration.h>
@@ -55,7 +56,7 @@ using std::cout; using std::cerr; using std::endl;
 #define AVGDIPXSACCLIMIT 0.01 // swich tactics for accuracy better than this
 
 #define MINQ 0.01 // q smaller than this treat as zero for Fourier integrals
-#define MAXR (4.0/MINQ)
+#define MAXR (1.0/MINQ)     // TODO: This shouldn't be hardcoded?
 
 #define INT_NPOINTS 10000
 // #define gslL 100.0 // interval size; required by gsl, but not used
@@ -64,7 +65,10 @@ using std::cout; using std::cerr; using std::endl;
 // This option does not affect the 1dim (cylindrical Bessel) integals.
 
 // Number of integrals to calculate to average over different nucleon configurations
-const int NUCLEON_CONFIG_INTEGRALS = 3;
+const int NUCLEON_CONFIG_INTEGRALS = 1;
+
+// Number of integrals to calculate to average over angular dependence
+const int ANGULAR_INTEGRALS = 1;
 
 
 
@@ -164,7 +168,7 @@ double ccyintegrand(double y, void *p){
   int_helper.function = &ccxintegrand;
   int_helper.params = (void *)(&xintpara);
   
-  if( abs(((struct yintparastruct *)p) ->qx  ) > MINQ){
+  if( ABS(((struct yintparastruct *)p) ->qx  ) > MINQ){
 #ifdef MAXR_IN_FT
     status = gsl_integration_qawo(&int_helper, 0.0 ,ACCURACY,ACCURACY, WORKSPACE,
 				  ((struct yintparastruct *)p)-> xworkspace, 
@@ -177,6 +181,7 @@ double ccyintegrand(double y, void *p){
 				  ((struct yintparastruct *)p)-> xwf,
 				  &result, &abserr);
 #endif
+    
   } else { // qx = 0, do not treat as oscillatory
     double maxr = MAXR;
     status = gsl_integration_qag(&int_helper, 0.0 ,maxr,ACCURACY,ACCURACY, 
@@ -216,7 +221,7 @@ double ssyintegrand(double y, void *p){
   int_helper.function = &ssxintegrand;
   int_helper.params = (void *)(&xintpara);
   
-  if( abs(((struct yintparastruct *)p) ->qx  ) > MINQ){
+  if( ABS(((struct yintparastruct *)p) ->qx  ) > MINQ){
 #ifdef MAXR_IN_FT
     status = gsl_integration_qawo(&int_helper, 0.0 ,ACCURACY,ACCURACY, WORKSPACE,
 				  ((struct yintparastruct *)p)-> xworkspace, 
@@ -229,10 +234,11 @@ double ssyintegrand(double y, void *p){
 				  ((struct yintparastruct *)p)-> xwf,
 				  &result, &abserr);
 #endif
+    
   } else { // qx = 0, do not treat as oscillatory
     status = 0;
     result = 0;
-    abserr =  abs(((struct yintparastruct *)p) ->qx  );
+    abserr =  ABS(((struct yintparastruct *)p) ->qx  );
   }
   if(status){cerr<< "ss integral over x failed with code " 
 		 << gsl_strerror(status) << endl;}
@@ -261,7 +267,7 @@ double csyintegrand(double y, void *p){
   int_helper.function = &csxintegrand;
   int_helper.params = (void *)(&xintpara);
   
-  if( abs(((struct yintparastruct *)p) ->qx  ) > MINQ){
+  if( ABS(((struct yintparastruct *)p) ->qx  ) > MINQ){
 #ifdef MAXR_IN_FT
     status = gsl_integration_qawo(&int_helper, 0.0 ,ACCURACY,ACCURACY, WORKSPACE,
 				  ((struct yintparastruct *)p)-> xworkspace, 
@@ -294,6 +300,7 @@ double scyintegrand(double y, void *p){
   xintpara.rsqr = ((struct yintparastruct *)p)->rsqr;
   xintpara.xbj = ((struct yintparastruct *)p)->xbj;
   xintpara.y = y;
+  xintpara.nucleons = ((struct yintparastruct *)p)->nucleons;
   
   double abserr,result;
   gsl_function int_helper;
@@ -308,7 +315,7 @@ double scyintegrand(double y, void *p){
   int_helper.function = &scxintegrand;
   int_helper.params = (void *)(&xintpara);
   
-  if( abs(((struct yintparastruct *)p) ->qx  ) > MINQ){
+  if( ABS(((struct yintparastruct *)p) ->qx  ) > MINQ){
 #ifdef MAXR_IN_FT
     status = gsl_integration_qawo(&int_helper, 0.0 ,ACCURACY,ACCURACY, WORKSPACE,
 				  ((struct yintparastruct *)p)-> xworkspace, 
@@ -324,7 +331,7 @@ double scyintegrand(double y, void *p){
   } else { // qx = 0, do not treat as oscillatory
     status = 0;
     result = 0;
-    abserr =  abs(((struct yintparastruct *)p) ->qx  );
+    abserr =  ABS(((struct yintparastruct *)p) ->qx  );
   }
   if(status){cerr<< "sc integral over x failed with code " 
 		 << gsl_strerror(status) << endl;}
@@ -360,10 +367,12 @@ COMPLEX DipXS::FTDipXSection(REAL rsquare,REAL xbjorken, REAL qx, REAL qy,
   gsl_set_error_handler_off();
   int status;
   // First ccintegral
+  // Set weight function to cos(qy*x)
   gsl_integration_qawo_table_set(gsl_yqawotable, qy, MaxB(),  GSL_INTEG_COSINE);
   int_helper.function = &ccyintegrand;
   int_helper.params = (void *)(&yintpara);
-  if(abs(qy) > MINQ){
+  
+  if(ABS(qy) > MINQ){
 #ifdef MAXR_IN_FT
 	status = gsl_integration_qawo(&int_helper, 0.0 ,ACCURACY,ACCURACY, WORKSPACE, 
 				      gsl_yworkspace, 
@@ -389,7 +398,7 @@ COMPLEX DipXS::FTDipXSection(REAL rsquare,REAL xbjorken, REAL qx, REAL qy,
   gsl_integration_qawo_table_set(gsl_yqawotable, qy, MaxB(),  GSL_INTEG_SINE);
   int_helper.function = &ssyintegrand;
   int_helper.params = (void *)(&yintpara);
-  if(abs(qy) > MINQ){
+  if(ABS(qy) > MINQ){
 #ifdef MAXR_IN_FT
     status = gsl_integration_qawo(&int_helper, 0.0 ,ACCURACY,ACCURACY, WORKSPACE, gsl_yworkspace, 
 				  gsl_yqawotable, &ssint, &abserr);
@@ -400,7 +409,7 @@ COMPLEX DipXS::FTDipXSection(REAL rsquare,REAL xbjorken, REAL qx, REAL qy,
   }else{
     status=0;
     ssint=0;
-    abserr = abs(qy);
+    abserr = ABS(qy);
   }
   
   if(status){cerr<< "cc integral over y failed with code " 
@@ -409,7 +418,7 @@ COMPLEX DipXS::FTDipXSection(REAL rsquare,REAL xbjorken, REAL qx, REAL qy,
   gsl_integration_qawo_table_set(gsl_yqawotable, qy, MaxB(),  GSL_INTEG_SINE);
   int_helper.function = &csyintegrand;
   int_helper.params = (void *)(&yintpara);
-  if(abs(qy) > MINQ){
+  if(ABS(qy) > MINQ){
  #ifdef MAXR_IN_FT
   status = gsl_integration_qawo(&int_helper, 0.0 ,ACCURACY,ACCURACY, WORKSPACE, gsl_yworkspace, 
 				  gsl_yqawotable, &csint, &abserr);
@@ -420,7 +429,7 @@ COMPLEX DipXS::FTDipXSection(REAL rsquare,REAL xbjorken, REAL qx, REAL qy,
  }else{
     status=0;
     csint=0;
-    abserr = abs(qy);
+    abserr = ABS(qy);
   }
   if(status){cerr<< "cs integral over y failed with code " 
 		 << gsl_strerror(status) << endl;}
@@ -429,7 +438,7 @@ COMPLEX DipXS::FTDipXSection(REAL rsquare,REAL xbjorken, REAL qx, REAL qy,
   gsl_integration_qawo_table_set(gsl_yqawotable, qy, MaxB(),  GSL_INTEG_COSINE);
   int_helper.function = &scyintegrand;
   int_helper.params = (void *)(&yintpara);
-  if(abs(qy) > MINQ){
+  if(ABS(qy) > MINQ){
 #ifdef MAXR_IN_FT
    status = gsl_integration_qawo(&int_helper, 0.0 ,ACCURACY,ACCURACY, WORKSPACE, gsl_yworkspace, 
 				   gsl_yqawotable, &scint, &abserr);
@@ -453,7 +462,7 @@ COMPLEX DipXS::FTDipXSection(REAL rsquare,REAL xbjorken, REAL qx, REAL qy,
 
 
 /* 
- * Averaged Fourier transformation
+ * Averaged Fourier transformation squared as a function of r1 and r2
  *
  * Averages the result of FTDipXSection over different
  * random nucleon configuratons and the angular dependence on \delta
@@ -474,24 +483,39 @@ COMPLEX DipXS::FTDipXSection(REAL rsquare,REAL xbjorken, REAL qx, REAL qy,
 
 REAL DipXS::FTDipXSection_sqr_avg(REAL r1sqr, REAL r2sqr, REAL xbjork, REAL delta)
 {
-    int npoints=1;  // Number of points to use to average over angular depend.
+    int npoints=ANGULAR_INTEGRALS;  // Number of points to use to average over angular depend.
     if (delta < MINQ) npoints=1;
     REAL result=0;
-    REAL deltaphi = 2*M_PI/npoints;
+    REAL deltaphi = 2.0*M_PI/npoints;
     
-    for (int j=0; j<npoints; j++)    // Angular part
+    cout << "Averaging over " << NUCLEON_CONFIG_INTEGRALS << " nucleon "
+        << "configurations and " << npoints << " angles " << endl;
+    
+    // Note: trivial to parallerize
+    #pragma omp parallel for
+    for (int i=0; i<NUCLEON_CONFIG_INTEGRALS; i++)
     {
-        REAL qx = delta*cos(j*deltaphi);
-        REAL qy = delta*sin(j*deltaphi);
-        COMPLEX xs(0,0);
-        for (int i=0; i<NUCLEON_CONFIG_INTEGRALS; i++)  // Different configs
+        std::vector<Vec> &config = nucleus.RandomNucleonConfiguration();
+        REAL angular_result=0;
+        for (int j=0; j<npoints; j++)    // Angular part
         {
-            std::vector<Vec> &config = nucleus.RandomNucleonConfiguration();
-            xs += FTDipXSection(r1sqr,xbjork, qx, qy, config)
-                *FTDipXSection(r2sqr,xbjork, qx, qy, config);
-            cout << "Average integral " << i << " gave " << xs << " abs" << std::abs(xs) << endl;
+            REAL qx = delta*cos(j*deltaphi);
+            REAL qy = delta*sin(j*deltaphi);
+            COMPLEX xs(0,0);
+            if (r1sqr==r2sqr)
+                xs = std::norm(FTDipXSection(r1sqr,xbjork, qx, qy, config));
+            else
+                xs = FTDipXSection(r1sqr,xbjork, qx, qy, config)
+                    *std::conj(FTDipXSection(r2sqr,xbjork, qx, qy, config));
+            
+            angular_result += std::abs(xs);
+            
+            REAL foo = 1.0/(16.0*M_PI);
+            cout << "Average integral " << i << " angular integral (" <<qx << " , " << qy << ") = " 
+                << xs << " => res " << std::abs(xs)*foo << endl; 
         }
-        result+=std::abs(xs);
+        result+=angular_result;
+        cout << "Average result after " << i+1 << " average integrals: " << result/((i+1)*npoints*16*M_PI) << endl;
     }
     //cout << "Sum: " << result << endl;
     result*=1.0/(npoints*NUCLEON_CONFIG_INTEGRALS);

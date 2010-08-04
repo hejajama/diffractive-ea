@@ -45,13 +45,7 @@ int main(int argc, char* argv[])
     cout << "Generating " << rndn << " random nucleon configurations " << endl;
     dsigmadb.GetNucleus().GenerateRandomNucleonConfigurations(rndn,0,100);
     cout << "Done!"<< endl;
-    
-     Vec b(0,1); Vec b2(1,1);
-     Vec c;
-     c=b;
-     cout << c << endl;
 
-     //cout << c << endl;
      //cout << dsigmadb->DipXSection_b(0.3, bjorkx, b) << endl;
    // delete dsigmadb;
    /* 
@@ -76,7 +70,7 @@ int main(int argc, char* argv[])
     cout << sum << endl;
     */
     //cout << dsigmadb.DipXSection_b_sqr(r, r, b, b2, xbjork ) << endl;
-    cout << "delta=0 cross section with r=0.3 : " << dsigmadb.FTDipXSection_sqr_avg(rsqr, rsqr, xbjork, 0)/(16.0*M_PI) << endl;
+    cout << "delta=0 cross section with r=0.3 : " << dsigmadb.FTDipXSection_sqr_avg(rsqr, rsqr, xbjork, 1)/(16.0*M_PI) << endl;
     
     /*REAL MaxR=dsigmadb.GetNucleus().MaxR();
     Vec tmpvec (2.0*(mersenne()-0.5)*MaxR,
