@@ -9,78 +9,126 @@
 #include <vector>
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_sf_exp.h>
+#include <gsl/gsl_integration.h>
 
 #include "dipole.h"
 #include "vm_photon.h"
 #include "vector.h"
 #include "nucleus.h"
-#include "dipxs_ipnonsat.h"
+//#include "dipxs_ipnonsat.h"
 #include "dipxs_ipsat.h"
 #include "mersenne/mersenne.h"
 
 using namespace std;
- 
+
+// Integration settings
+const REAL MAXR=4;
+const REAL MINR=0.05;   // r=0 doesn't work, K_{0,1}(0)=inf
+const REAL RINTACCURACY=0.001;
+
+// Integral helpers for outern r integral
+struct inthelper_r
+{
+    Dipxs* amplitude;
+    VM_Photon* vm;  // Vector meson wave function
+    REAL r;         // r for inner r' integral, not used in outern inthelperf_r1
+    REAL Qsqr;
+    REAL bjorkx;
+    REAL delta;
+};
+
+REAL inthelperf_r1(REAL r, void* p);
+
+// For inner r' integral
+REAL inthelperf_r2(REAL r2, void* p);
+
 int main(int argc, char* argv[])
 {    
 
     // Parameters
-    double xbjork=1e-4;
-    REAL x;
+    REAL bjorkx=1e-4;
+    REAL x=1e-4;
+    REAL Qsqr=0;
     
     // Intialize random number generator
     seed_mersenne(std::time(NULL));
-    cout << time(NULL) << endl;
     
-    // J/Psi:      e_f, N_T, N_L, R_T, R_L, m_f, M_V, delta
+    // J/Psi wave function:  e_f, N_T, N_L, R_T, R_L, m_f, M_V, delta
     VM_Photon JPsi(2.0/3.0, 1.23, 0.83, sqrt(6.5), sqrt(3.0), 1.4, 3.097, 0);
     
-                    //    Q^2,r,z
-    REAL Qsqr=1,rsqr=SQR(0.3),z=0.5;
-    
+    // Intialize Dipxs and Nucleus
     Nucleus nuke(197);
-    //cout << nuke << endl;
-    //DipXS* dsigmadb = new DipXS_IPNonSat(nuke);
-    DipXS_IPNonSat dsigmadb(nuke);
-    int rndn=100;
-    cout << "Generating " << rndn << " random nucleon configurations " << endl;
-    dsigmadb.GetNucleus().GenerateRandomNucleonConfigurations(rndn,0,100);
-    cout << "Done!"<< endl;
-
-     //cout << dsigmadb->DipXSection_b(0.3, bjorkx, b) << endl;
-   // delete dsigmadb;
-   /* 
-    cout << "Random nucleon: " << endl;
-    //cout << "A = " << nucleons.size() << endl;
+    GDist *gdist = new GDist_Toy();
+    nuke.SetGDist(gdist);    
+    Dipxs* dsigmadb = new Dipxs_IPSat(nuke);
     
-    vector<Vec> nucleons = dsigmadb.GetNucleus().RandomNucleonConfiguration();
-    for (int i=0; i<nucleons.size(); i++)
+    /******************
+     * Dipole-nucleus cross section for a fixed r 
+     */
+    /*REAL Rsqr=SQR(0.5);
+    REAL maxt=2.0;
+    int points=200;
+    for (REAL delta=0; SQR(delta)<maxt; delta+=sqrt(maxt)/points)
     {
-        cout << nucleons[i].GetX() << " " << nucleons[i].GetY() << endl;
-    }
-    */
-  
-    
-    // Speedtest
-    /*REAL sum=0;
-    for (int i=1; i<1e4; i++)
-    {
-        sum+=dsigmadb.DipXSection_b_sqr(r, r, Vec(i/100.0,0), Vec(0,i/100.0-40),xbjork);
-    
-    }
-    cout << sum << endl;
-    */
-    //cout << dsigmadb.DipXSection_b_sqr(r, r, b, b2, xbjork ) << endl;
-    cout << "delta=0 cross section with r=0.3 : " << dsigmadb.FTDipXSection_sqr_avg(rsqr, rsqr, xbjork, 1)/(16.0*M_PI) << endl;
-    
-    /*REAL MaxR=dsigmadb.GetNucleus().MaxR();
-    Vec tmpvec (2.0*(mersenne()-0.5)*MaxR,
-                                2.0*(mersenne()-0.5)*MaxR);
-    for (int i=0; i<100; i++)
-    {
-        
-         std::cout << dsigmadb.DipXSection_b_sqr(r,r,tmpvec,tmpvec,xbjork) << endl;
+        REAL tmpxs=1.0/(16.0*M_PI)*dsigmadb->Dipxsection_sqr_avg(rsqr, rsqr, x, delta);
+        cout << SQR(delta) << " " << tmpxs << endl;
     }*/
+    
+    /*******************
+     * \gamma^* N -> J/\Psi N cross section
+     * Calculates
+     * \int d^2 r d^2 r' (jpsi)(r)*(jpsi)(r')*qqamplitude_sqr(r,delta)
+     * Here (jpsi) is the inner product between \gamma^* and J/\Psi wave 
+     * functions integrated over z \in [0,1]
+     */
+    REAL maxt=0.3; int points=50;
+    for (REAL delta=0; SQR(delta)<maxt; delta+=sqrt(maxt)/points)
+    {
+        gsl_function fun;
+        inthelper_r inthelp;
+        inthelp.amplitude=dsigmadb;
+        inthelp.vm=&JPsi; inthelp.bjorkx=bjorkx;
+        inthelp.delta=delta; inthelp.Qsqr=Qsqr;
+        fun.function=&inthelperf_r1;
+        fun.params=&inthelp;
+        
+        REAL result,abserr; size_t eval;
+        int status = gsl_integration_qng(&fun, MINR, MAXR, RINTACCURACY, RINTACCURACY, 
+            &result, &abserr, &eval);
+        result *= 1.0/(16.0*M_PI);
+        cout << SQR(delta) << " " << result << endl;
+    }
 
+
+   
     return 0;
 }
 
+
+// Integral helpers
+
+REAL inthelperf_r1(REAL r, void* p)
+{
+    inthelper_r* par = (inthelper_r*)p;
+    par->r=r;
+    gsl_function fun;
+    fun.function=&inthelperf_r2;
+    fun.params=par;
+    
+    REAL result,abserr; size_t eval;
+    
+    int status = gsl_integration_qng(&fun, MINR, MAXR, RINTACCURACY, RINTACCURACY, 
+        &result, &abserr, &eval);
+    
+    return 2*M_PI*r*par->vm->PsiSqr_tot_intz(par->Qsqr, r)*result;
+}
+
+// Inner r' integral: \int dr' r' (jpsi)(r') * qqamplitude_sqr(r,r')
+REAL inthelperf_r2(REAL r2, void* p)
+{
+    inthelper_r* par = (inthelper_r*)p;
+    return 2*M_PI*r2 * par->vm->PsiSqr_tot_intz(par->Qsqr, r2) 
+            * par->amplitude->Dipxsection_sqr_avg(SQR(par->r), SQR(r2), 
+                    par->bjorkx, par->delta);
+
+}

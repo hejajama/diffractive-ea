@@ -1,5 +1,5 @@
-#ifndef DIPXS_H
-#define DIPXS_H
+#ifndef Dipxs_H
+#define Dipxs_H
 
 /*
  * Parent class for dipole cross section
@@ -12,35 +12,45 @@
 #include "dipole.h"
 #include <gsl/gsl_integration.h>
 
-class DipXS
+class Dipxs
 {
     public:
-        DipXS();
-        DipXS(Nucleus nucleus_);
-        ~DipXS();
+        Dipxs();
+        Dipxs(Nucleus &nucleus_);
+        ~Dipxs();
         
-        // Cross section as a function of impact parameter and nucleon config.
         // These methods must be implemented by derived classes
-        virtual REAL DipXSection(REAL rsqr, REAL xbj, Vec b, 
+        
+        // Cross section (amplitude) as a function of impact parameter
+        // and nucleon config. (d \sigma^2 / d^2 b)_(b_1, ..., b_A)
+        virtual REAL Dipxsection(REAL rsqr, REAL xbj, Vec b, 
                 std::vector<Vec>& nucleons) = 0;
+        // Amplitude squared averaged over nucleon configurations as a 
+        // function of \Delta and r,r' (and x)
+        // \int d^2 b_1 ... d^2 b_A T_A(b_1)...T_A(B_A) 
+        //      * \int d^2 b d^2 b' e^(-i(b-b')*\Delta) 
+        //      * (d\sigma^2 / d^2 b)(b,r) (d\sgima^2 / d^2b)(b',r')
+        virtual REAL Dipxsection_sqr_avg(REAL rsqr, REAL r2sqr, REAL xbj, 
+                REAL delta)=0;
         
-        
-        REAL DipXSection(REAL rsqr, REAL xbj, REAL x, REAL y,
+        // Wrapper, calls virtual Dipxsection with parameter Vec(x,y)
+        REAL Dipxsection(REAL rsqr, REAL xbj, REAL x, REAL y,
                 std::vector<Vec>& nucleons);
 
-
-        REAL Alphas_r(REAL r);
+        // Strong coupling constant as a function of dipole size
+        REAL Alphas_r(REAL rsqr);
+        
         Nucleus& GetNucleus();
         
-        // Fourier transformation of non-averaged cros sect. DipXSection_b
-        COMPLEX FTDipXSection(REAL rsqr, REAL xbjorken,REAL deltax,REAL deltay,
+        // Fourier transformation of non-averaged cross sect. Dipxsection_b
+        COMPLEX FTDipxsection(REAL rsqr, REAL xbjorken,REAL deltax,REAL deltay,
             std::vector<Vec>& nucleons);
-        COMPLEX FTDipXSection(REAL rsqr, REAL xbjorken, Vec delta, 
+        COMPLEX FTDipxsection(REAL rsqr, REAL xbjorken, Vec delta, 
             std::vector<Vec>& nucleons);
             
         // Fourier transformation squared averaged over nucleon configurations as
         // a function of |delta| (averages over angular dependence)
-        REAL FTDipXSection_sqr_avg(REAL r1sqr, REAL r2sqr, REAL xbjorken, 
+        REAL FTDipxsection_sqr_avg(REAL r1sqr, REAL r2sqr, REAL xbjorken, 
             REAL delta);
         
     protected:
@@ -63,7 +73,7 @@ class DipXS
 
 };
 
-std::ostream& operator<<(std::ostream& os, DipXS& ic);
+std::ostream& operator<<(std::ostream& os, Dipxs& ic);
 
 
 #endif

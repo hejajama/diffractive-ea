@@ -6,19 +6,20 @@
  
  
 #include "dipxs.h"
+#include <iostream>
 
-DipXS::DipXS()
+Dipxs::Dipxs()
 {
     InitGsl();
 }
 
-DipXS::DipXS(Nucleus nucleus_)
+Dipxs::Dipxs(Nucleus &nucleus_)
 {
     nucleus=nucleus_;
     InitGsl();
 }
 
-DipXS::~DipXS()
+Dipxs::~Dipxs()
 {
     FreeGsl();
 }
@@ -26,43 +27,43 @@ DipXS::~DipXS()
 /*
  * Strong coupling constant as a function of r
  */
-REAL DipXS::Alphas_r(REAL rsqr)
+REAL Dipxs::Alphas_r(REAL rsqr)
 {
     return Alpha_s(Mu2(rsqr));    // Alpha_s(Q^2) defined in dipole.h
 }
 
-REAL DipXS::Mu2(REAL rsqr)
+REAL Dipxs::Mu2(REAL rsqr)
 {
     return 4/rsqr + mu2_0;
 }
 
-REAL DipXS::Sigmap(REAL rsqr, REAL xbjork)
-{
+REAL Dipxs::Sigmap(REAL rsqr, REAL xbjork)
+{   
     return SQR(M_PI)/NC*rsqr*Alphas_r(rsqr)
-        *nucleus.GetGDist()->gluedist(xbjork,rsqr);
+        *nucleus.GetGDist()->Gluedist(xbjork,rsqr);
 }
 
-Nucleus& DipXS::GetNucleus()
+Nucleus& Dipxs::GetNucleus()
 {
     return nucleus;
 }
 
-REAL DipXS::MaxB()
+REAL Dipxs::MaxB()
 {
     return nucleus.MaxR();
 }
 
-REAL DipXS::DipXSection(REAL rsqr, REAL xbjork, REAL x, REAL y,
+REAL Dipxs::Dipxsection(REAL rsqr, REAL xbjork, REAL x, REAL y,
                 std::vector<Vec>& nucleons)
 {
     Vec tmpvec(x,y);
-    return DipXSection(rsqr, xbjork, tmpvec, nucleons);
+    return Dipxsection(rsqr, xbjork, tmpvec, nucleons);
 
 }
 
-std::ostream& operator<<(std::ostream& os, DipXS& ic)
+std::ostream& operator<<(std::ostream& os, Dipxs& ic)
 {
-    return os << " DipXS object ";
+    return os << " Dipxs object ";
 
 }
 

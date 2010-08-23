@@ -8,7 +8,7 @@
  * Most of this code is written by Tuomas Lappi under non-specified license
  * Changes made to that code:
  * - Removed parts not needed here
- * - Ported to use DipXS class
+ * - Ported to use Dipxs class
  * - Takes into account and averages over nucleon configurations
  */
  
@@ -53,7 +53,7 @@ using std::cout; using std::cerr; using std::endl;
 
 #define MAXBRATIO 0.000001
 
-#define AVGDIPXSACCLIMIT 0.01 // swich tactics for accuracy better than this
+#define AVGDipxsACCLIMIT 0.01 // swich tactics for accuracy better than this
 
 #define MINQ 0.01 // q smaller than this treat as zero for Fourier integrals
 #define MAXR (1.0/MINQ)     // TODO: This shouldn't be hardcoded?
@@ -74,7 +74,7 @@ const int ANGULAR_INTEGRALS = 1;
 
 // helper struct to hold pointers to Dipxs and y value
 struct xintparastruct{
-  DipXS * dxs;
+  Dipxs * dxs;
   double rsqr;
   double xbj;
   double y;
@@ -82,7 +82,7 @@ struct xintparastruct{
 };
 
 struct yintparastruct{
-  DipXS * dxs;
+  Dipxs * dxs;
   double rsqr;
   double xbj;
   double qx;
@@ -97,13 +97,13 @@ double ccxintegrand(double x, void *p){
  double yval =  ((struct xintparastruct *)p)->y;
  double rsqrval =  ((struct xintparastruct *)p)->rsqr;
  double xbjval =  ((struct xintparastruct *)p)->xbj;
- DipXS *dipole = ((struct xintparastruct *)p)->dxs;
+ Dipxs *dipole = ((struct xintparastruct *)p)->dxs;
  std::vector<Vec> *nucleons = ((struct xintparastruct *)p)->nucleons;
 
- return dipole->DipXSection(rsqrval,xbjval,yval,x, *nucleons) + 
-   dipole->DipXSection(rsqrval,xbjval,-yval,x, *nucleons) + 
-   dipole->DipXSection(rsqrval,xbjval,yval,-x, *nucleons) + 
-   dipole->DipXSection(rsqrval,xbjval,-yval,-x, *nucleons) 
+ return dipole->Dipxsection(rsqrval,xbjval,yval,x, *nucleons) + 
+   dipole->Dipxsection(rsqrval,xbjval,-yval,x, *nucleons) + 
+   dipole->Dipxsection(rsqrval,xbjval,yval,-x, *nucleons) + 
+   dipole->Dipxsection(rsqrval,xbjval,-yval,-x, *nucleons) 
    ;
 
 }
@@ -111,13 +111,13 @@ double ssxintegrand(double x, void *p){
  double yval =  ((struct xintparastruct *)p)->y;
  double rsqrval =  ((struct xintparastruct *)p)->rsqr;
  double xbjval =  ((struct xintparastruct *)p)->xbj;
- DipXS *dipole = ((struct xintparastruct *)p)->dxs;
+ Dipxs *dipole = ((struct xintparastruct *)p)->dxs;
  std::vector<Vec> *nucleons = ((struct xintparastruct *)p)->nucleons;
 
- return dipole->DipXSection(rsqrval,xbjval,yval,x, *nucleons)
-   - dipole->DipXSection(rsqrval,xbjval,-yval,x, *nucleons)  
-   - dipole->DipXSection(rsqrval,xbjval,yval,-x, *nucleons)  
-   + dipole->DipXSection(rsqrval,xbjval,-yval,-x, *nucleons) 
+ return dipole->Dipxsection(rsqrval,xbjval,yval,x, *nucleons)
+   - dipole->Dipxsection(rsqrval,xbjval,-yval,x, *nucleons)  
+   - dipole->Dipxsection(rsqrval,xbjval,yval,-x, *nucleons)  
+   + dipole->Dipxsection(rsqrval,xbjval,-yval,-x, *nucleons) 
    ;
 }
 
@@ -125,26 +125,26 @@ double csxintegrand(double x, void *p){
  double yval =  ((struct xintparastruct *)p)->y;
  double rsqrval =  ((struct xintparastruct *)p)->rsqr;
  double xbjval =  ((struct xintparastruct *)p)->xbj;
- DipXS *dipole = ((struct xintparastruct *)p)->dxs;
+ Dipxs *dipole = ((struct xintparastruct *)p)->dxs;
  std::vector<Vec> *nucleons = ((struct xintparastruct *)p)->nucleons;
  
- return dipole->DipXSection(rsqrval,xbjval,yval,x,*nucleons)
-   - dipole->DipXSection(rsqrval,xbjval,-yval,x, *nucleons)  
-   + dipole->DipXSection(rsqrval,xbjval,yval,-x, *nucleons)  
-   - dipole->DipXSection(rsqrval,xbjval,-yval,-x, *nucleons) 
+ return dipole->Dipxsection(rsqrval,xbjval,yval,x,*nucleons)
+   - dipole->Dipxsection(rsqrval,xbjval,-yval,x, *nucleons)  
+   + dipole->Dipxsection(rsqrval,xbjval,yval,-x, *nucleons)  
+   - dipole->Dipxsection(rsqrval,xbjval,-yval,-x, *nucleons) 
    ;
 }
 double scxintegrand(double x, void *p){
  double yval =  ((struct xintparastruct *)p)->y;
  double rsqrval =  ((struct xintparastruct *)p)->rsqr;
  double xbjval =  ((struct xintparastruct *)p)->xbj;
- DipXS *dipole = ((struct xintparastruct *)p)->dxs;
+ Dipxs *dipole = ((struct xintparastruct *)p)->dxs;
  std::vector<Vec> *nucleons = ((struct xintparastruct *)p)->nucleons;
 
- return dipole->DipXSection(rsqrval,xbjval,yval,x, *nucleons)
-   + dipole->DipXSection(rsqrval,xbjval,-yval,x, *nucleons)  
-   - dipole->DipXSection(rsqrval,xbjval,yval,-x, *nucleons)  
-   - dipole->DipXSection(rsqrval,xbjval,-yval,-x, *nucleons) 
+ return dipole->Dipxsection(rsqrval,xbjval,yval,x, *nucleons)
+   + dipole->Dipxsection(rsqrval,xbjval,-yval,x, *nucleons)  
+   - dipole->Dipxsection(rsqrval,xbjval,yval,-x, *nucleons)  
+   - dipole->Dipxsection(rsqrval,xbjval,-yval,-x, *nucleons) 
    ;
 }
 
@@ -341,14 +341,14 @@ double scyintegrand(double y, void *p){
 
 // ********************** Actual FT method ***************
 
-COMPLEX DipXS::FTDipXSection(REAL rsqr,REAL xbjorken, Vec delta, 
+COMPLEX Dipxs::FTDipxsection(REAL rsqr,REAL xbjorken, Vec delta, 
     std::vector<Vec>& nucleons)
 {
-    return FTDipXSection(rsqr, xbjorken, delta.GetX(), delta.GetY(), 
+    return FTDipxsection(rsqr, xbjorken, delta.GetX(), delta.GetY(), 
             nucleons);
 }
 
-COMPLEX DipXS::FTDipXSection(REAL rsquare,REAL xbjorken, REAL qx, REAL qy, 
+COMPLEX Dipxs::FTDipxsection(REAL rsquare,REAL xbjorken, REAL qx, REAL qy, 
     std::vector<Vec>& nucleons) {
   double ccint(0),ssint(0),scint(0),csint(0);
   gsl_function int_helper;
@@ -464,7 +464,7 @@ COMPLEX DipXS::FTDipXSection(REAL rsquare,REAL xbjorken, REAL qx, REAL qy,
 /* 
  * Averaged Fourier transformation squared as a function of r1 and r2
  *
- * Averages the result of FTDipXSection over different
+ * Averages the result of FTDipxsection over different
  * random nucleon configuratons and the angular dependence on \delta
  *
  * Monte Carlo method is used here as it 
@@ -481,7 +481,7 @@ COMPLEX DipXS::FTDipXSection(REAL rsquare,REAL xbjorken, REAL qx, REAL qy,
  *
  */
 
-REAL DipXS::FTDipXSection_sqr_avg(REAL r1sqr, REAL r2sqr, REAL xbjork, REAL delta)
+REAL Dipxs::FTDipxsection_sqr_avg(REAL r1sqr, REAL r2sqr, REAL xbjork, REAL delta)
 {
     int npoints=ANGULAR_INTEGRALS;  // Number of points to use to average over angular depend.
     if (delta < MINQ) npoints=1;
@@ -503,10 +503,10 @@ REAL DipXS::FTDipXSection_sqr_avg(REAL r1sqr, REAL r2sqr, REAL xbjork, REAL delt
             REAL qy = delta*sin(j*deltaphi);
             COMPLEX xs(0,0);
             if (r1sqr==r2sqr)
-                xs = std::norm(FTDipXSection(r1sqr,xbjork, qx, qy, config));
+                xs = std::norm(FTDipxsection(r1sqr,xbjork, qx, qy, config));
             else
-                xs = FTDipXSection(r1sqr,xbjork, qx, qy, config)
-                    *std::conj(FTDipXSection(r2sqr,xbjork, qx, qy, config));
+                xs = FTDipxsection(r1sqr,xbjork, qx, qy, config)
+                    *std::conj(FTDipxsection(r2sqr,xbjork, qx, qy, config));
             
             angular_result += std::abs(xs);
             
@@ -524,32 +524,32 @@ REAL DipXS::FTDipXSection_sqr_avg(REAL r1sqr, REAL r2sqr, REAL xbjork, REAL delt
 
 
 /*
-REAL DipXS::avgftdipxsectionsqr(REAL rsqr,REAL xbj, REAL qt) const {
+REAL Dipxs::avgftDipxsectionsqr(REAL rsqr,REAL xbj, REAL qt) const {
   int npoints=7;
   if(qt < MINQ){npoints = 1;}
   REAL deltaphi = 2*M_PI/npoints;
   REAL sum=0;
   COMPLEX xs;
   for(int i=0;i< npoints;i++){
-    xs = ftDipXSection(rsqr,xbj,qt*cos(i*deltaphi),qt*sin(i*deltaphi));	
+    xs = ftDipxsection(rsqr,xbj,qt*cos(i*deltaphi),qt*sin(i*deltaphi));	
 //	cerr << " q = " <<qt*cos(i*deltaphi) << "," << qt*sin(i*deltaphi) << " Xs " << xs << endl;
 	sum += norm(xs);gsl_yqawotable
   }
 
-//	cerr << "DipXS::avgftDipXSection() not implemented yet"<< endl;
+//	cerr << "Dipxs::avgftDipxsection() not implemented yet"<< endl;
   return sum/npoints;
 }
 */
 /*
 struct pftstruct{
-	const DipXS * dip;
+	const Dipxs * dip;
 	REAL rsqr;
 	REAL xbj;
 	REAL q;
 };
 
 double pfthelper(REAL bt, void *p){
-  return bt*((struct pftstruct *)p)->dip->pDipXSection(
+  return bt*((struct pftstruct *)p)->dip->pDipxsection(
 					((struct pftstruct *)p)->rsqr,
 					((struct pftstruct *)p)->xbj,
 					bt  
@@ -561,7 +561,7 @@ double pfthelper(REAL bt, void *p){
 				);
 }*/
 /*
-REAL DipXS::ftpDipXSection(REAL rsquare,REAL xbjorken, REAL qt) const {
+REAL Dipxs::ftpDipxsection(REAL rsquare,REAL xbjorken, REAL qt) const {
   struct pftstruct pfstr;
   pfstr.dip = this;
   pfstr.xbj = xbjorken;
@@ -586,7 +586,7 @@ REAL DipXS::ftpDipXSection(REAL rsquare,REAL xbjorken, REAL qt) const {
 }
 
 double glauberfthelper(REAL bt, void *p){
-  return bt*((struct pftstruct *)p)->dip->avgdipxsectionglauber(
+  return bt*((struct pftstruct *)p)->dip->avgDipxsectionglauber(
 					((struct pftstruct *)p)->rsqr,
 					((struct pftstruct *)p)->xbj,
 					bt  
@@ -598,7 +598,7 @@ double glauberfthelper(REAL bt, void *p){
 				);
 }
 
-REAL DipXS::ftglauberDipXSection(REAL rsquare,REAL xbjorken, REAL qt) const {
+REAL Dipxs::ftglauberDipxsection(REAL rsquare,REAL xbjorken, REAL qt) const {
   struct pftstruct pfstr;
   pfstr.dip = this;
   pfstr.xbj = xbjorken;
@@ -624,7 +624,7 @@ REAL DipXS::ftglauberDipXSection(REAL rsquare,REAL xbjorken, REAL qt) const {
 
  
 
-void DipXS::InitGsl(){
+void Dipxs::InitGsl(){
 /*
   if(!gsl_xworkspace){  gsl_xworkspace = gsl_integration_workspace_alloc(WORKSPACE);}
   if(!gsl_xcycle_workspace){  gsl_xcycle_workspace 
@@ -648,7 +648,7 @@ void DipXS::InitGsl(){
       gsl_integration_qawo_table_alloc(1.0, 1.0, GSL_INTEG_SINE,   QAWOSIZE);
   
 }
-void DipXS::FreeGsl(){
+void Dipxs::FreeGsl(){
     gsl_integration_workspace_free(gsl_xworkspace);
     gsl_integration_workspace_free(gsl_xcycle_workspace);
     gsl_integration_qawo_table_free (gsl_xqawotable);

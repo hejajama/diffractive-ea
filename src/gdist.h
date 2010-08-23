@@ -15,7 +15,7 @@
 class GDist
 {
     public:
-        virtual REAL gluedist(REAL bjorkx, REAL rsqr)=0; // = xg(x,µ^2)
+        virtual REAL Gluedist(REAL bjorkx, REAL rsqr)=0; // = xg(x,µ^2)
     
     private:
 
@@ -31,7 +31,7 @@ class GDist
 class GDist_Toy : public GDist
 {
     public:
-        REAL gluedist(REAL bjorkx, REAL rsqr);
+        REAL Gluedist(REAL bjorkx, REAL rsqr);
 
 };
 

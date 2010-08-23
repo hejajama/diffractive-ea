@@ -23,15 +23,15 @@ const REAL MAXB=60;
 
 using std::cout; using std::endl; using std::cerr;
 
-DipXS_IPNonSat::DipXS_IPNonSat(Nucleus nucleus_) :
-    DipXS(nucleus_)
+Dipxs_IPNonSat::Dipxs_IPNonSat(Nucleus &nucleus_) :
+    Dipxs(nucleus_)
 {
     // Nothing to do here
 }
 /*
 struct inthelper
 {
-    DipXS_IPNonSat* dipxs;
+    Dipxs_IPNonSat* Dipxs;
     REAL b;
 }
 
@@ -39,7 +39,7 @@ REAL inthelperf_b2(REAL r, void* params)
 {
     // Inner b2 integral, 1 is given as a parameter
     REAL r = 0.3;   // Constant for testing purposes
-    return ((*inthelper)params)->dipxs->DipXSection_b_sqr(r,r, 
+    return ((*inthelper)params)->Dipxs->Dipxsection_b_sqr(r,r, 
     
 }
 
@@ -53,7 +53,7 @@ REAL inthelperf_b1(REAL b, void* params)
 
     // Give b1 as a parameter to inner integration
     inthelper params_2;
-    params_2.dipxs=(inthelper*)params->dipxs;
+    params_2.Dipxs=(inthelper*)params->Dipxs;
     params_2.b=b;
     gsl_integration_qags(&F2, 0, MAXB, 1e-5,1e-7, 1000, w2, &result, &abserr);
     
@@ -66,7 +66,7 @@ REAL inthelperf_b1(REAL b, void* params)
 
 struct inthelper_param 
 { 
-    DipXS_IPNonSat* dipxs;
+    Dipxs_IPNonSat* Dipxs;
     REAL r1sqr,r2sqr,xbjork; 
 };
 
@@ -76,7 +76,7 @@ REAL inthelperf(REAL x[], size_t dim, void* p)
     if (dim!=4) { cerr << "Dimension is not 4 " << endl; return 0; }
     
     Vec b1(x[0],x[1]); Vec b2(x[2],x[3]);
-    REAL result = fp->dipxs->DipXSection_avg_sqr(fp->r1sqr,fp->r2sqr,b1,b2,fp->xbjork);
+    REAL result = fp->Dipxs->Dipxsection_avg_sqr(fp->r1sqr,fp->r2sqr,b1,b2,fp->xbjork);
     return result;
 
 }
@@ -89,12 +89,12 @@ void inthelperf_cuba(unsigned int ndim, const double x[], void* fdata,
     if (ndim!=4) { cerr << "Dimension is not 4 " << endl; return; }
     
     Vec b1(x[0],x[1]); Vec b2(x[2],x[3]);
-   fval[0] = fp->dipxs->DipXSection_avg_sqr(fp->r1sqr,fp->r2sqr,b1,b2,fp->xbjork);
+   fval[0] = fp->Dipxs->Dipxsection_avg_sqr(fp->r1sqr,fp->r2sqr,b1,b2,fp->xbjork);
 }
 
 struct inthelper_param2
 {
-    DipXS_IPNonSat* dipxs;
+    Dipxs_IPNonSat* Dipxs;
     REAL r1sqr,r2sqr,xbjork;
     std::vector<Vec>* nucleons;
 };
@@ -105,14 +105,14 @@ void inthelperf2_cuba(unsigned int ndim, const double x[], void* fdata,
     // To calculate \int d^2 b d^2 b' dsgima/db(r,b_i) dsigma/db(r',b_i')
     inthelper_param2* fp = (inthelper_param2*)fdata;
     Vec b1(x[0],x[1]); Vec b2(x[2],x[3]);
-    fval[0]=fp->dipxs->DipXSection_b_nonaveraged(fp->r1sqr, fp->xbjork, b1, *(fp->nucleons))
-           *fp->dipxs->DipXSection_b_nonaveraged(fp->r2sqr, fp->xbjork, b2, *(fp->nucleons));
+    fval[0]=fp->Dipxs->Dipxsection_b_nonaveraged(fp->r1sqr, fp->xbjork, b1, *(fp->nucleons))
+           *fp->Dipxs->Dipxsection_b_nonaveraged(fp->r2sqr, fp->xbjork, b2, *(fp->nucleons));
     }
 
 /* 
  * Dipole nucleus cross section as a function of delta
  */
-REAL DipXS_IPNonSat::DipXSection_delta(REAL r1sqr, REAL r2sqr, REAL xbjork, Vec delta)
+REAL Dipxs_IPNonSat::Dipxsection_delta(REAL r1sqr, REAL r2sqr, REAL xbjork, Vec delta)
 {
     REAL xl[4]={-MAXB,-MAXB,-MAXB,-MAXB};
     REAL xu[4]={MAXB,MAXB,MAXB,MAXB};
@@ -126,7 +126,7 @@ REAL DipXS_IPNonSat::DipXSection_delta(REAL r1sqr, REAL r2sqr, REAL xbjork, Vec 
         inthelper_param2 params;
         params.r1sqr=r1sqr; params.r2sqr=r2sqr; params.xbjork=xbjork;
         params.nucleons=&nucleus.RandomNucleonConfiguration();
-        params.dipxs=this;
+        params.Dipxs=this;
        
         adapt_integrate(1, inthelperf2_cuba, &params, 4, xl, xu, MAX_ITERATIONS,
             1e-5,1e-5,&result,&error);
@@ -143,7 +143,7 @@ REAL DipXS_IPNonSat::DipXSection_delta(REAL r1sqr, REAL r2sqr, REAL xbjork, Vec 
     gsl_monte_function F;
     inthelper_param params;
     params.r1=r1; params.r2=r2; params.xbjork=xbjork;
-    params.dipxs=this;
+    params.Dipxs=this;
     
     F.f=&inthelperf; F.dim=4; F.params=&params;
     
@@ -172,7 +172,7 @@ REAL DipXS_IPNonSat::DipXSection_delta(REAL r1sqr, REAL r2sqr, REAL xbjork, Vec 
  * function of nucleon transversal positions
  * _NOT_ Averaged over nucleon connfigurations
  */
-REAL DipXS_IPNonSat::DipXSection(REAL rsqr, REAL xbjork, Vec b, 
+REAL Dipxs_IPNonSat::Dipxsection(REAL rsqr, REAL xbjork, Vec b, 
                 std::vector<Vec>& nucleons)
 {
     REAL x=b.GetX(); REAL y=b.GetY();
@@ -186,7 +186,7 @@ REAL DipXS_IPNonSat::DipXSection(REAL rsqr, REAL xbjork, Vec b,
     Vec tmp;
     for (int i=0; i<nucleons.size(); i++)
     {
-        tmp.SetX(;);
+        tmp.SetX(x-nucleons[i].GetX());
         tmp.SetY(y-nucleons[i].GetY());
         result += exp(-tmp.LenSqr()/(2*B_p));
     }
@@ -195,7 +195,7 @@ REAL DipXS_IPNonSat::DipXSection(REAL rsqr, REAL xbjork, Vec b,
 } 
 
  
-REAL DipXS_IPNonSat::DipXSection(REAL rsqr, REAL xbjork, REAL b )
+REAL Dipxs_IPNonSat::Dipxsection(REAL rsqr, REAL xbjork, REAL b )
 {
     // Dipol-proton only for now
     return Sigmap(rsqr,xbjork)*nucleus.Tp(b);
@@ -206,7 +206,7 @@ REAL DipXS_IPNonSat::DipXSection(REAL rsqr, REAL xbjork, REAL b )
 /*
  * Averaged dipole nucleus cross section squared
  */
-REAL DipXS_IPNonSat::DipXSection_avg_sqr(REAL rsqr, REAL r2sqr, Vec b, Vec b2, REAL xbjork )
+REAL Dipxs_IPNonSat::Dipxsection_avg_sqr(REAL rsqr, REAL r2sqr, Vec b, Vec b2, REAL xbjork )
 {
     if (nucleus.GetA()==1) // Dipole-proton
         return Sigmap(rsqr,xbjork)*nucleus.Tp(b.Len());
@@ -232,9 +232,9 @@ REAL DipXS_IPNonSat::DipXSection_avg_sqr(REAL rsqr, REAL r2sqr, Vec b, Vec b2, R
     for (int i=0; i<AVERAGE_INTEGRAL_ITERATIONS; i++)
     {
                 // TODO: Define mindist and maxdist somewhere 
-        result+=DipXSection_b_nonaveraged(rsqr,xbjork,b,
+        result+=Dipxsection_b_nonaveraged(rsqr,xbjork,b,
                 nucleus.RandomNucleonConfiguration())
-                * DipXSection_b_nonaveraged(r2sqr,xbjork,b2, 
+                * Dipxsection_b_nonaveraged(r2sqr,xbjork,b2, 
                 nucleus.RandomNucleonConfiguration());         
      }
      result*=1.0/AVERAGE_INTEGRAL_ITERATIONS;
@@ -246,7 +246,7 @@ REAL DipXS_IPNonSat::DipXSection_avg_sqr(REAL rsqr, REAL r2sqr, Vec b, Vec b2, R
  * Non-averaged dipole cross section as a function of
  * nucleon transversial positions 
  */
-REAL DipXS_IPNonSat::DipXSection_b_nonaveraged(REAL rsqr, REAL xbjork, Vec b, 
+REAL Dipxs_IPNonSat::Dipxsection_b_nonaveraged(REAL rsqr, REAL xbjork, Vec b, 
             std::vector<Vec> &nucleons)
 {
     if (nucleons.size() != nucleus.GetA())
