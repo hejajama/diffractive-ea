@@ -3,7 +3,7 @@ CXXFLAGS = `gsl-config --cflags` -O2
 #CXXFLAGS = `gsl-config --cflags` -O2 -fopenmp
 LDFLAGS = `gsl-config --libs` 
 
-SOURCES = main.cpp GDist.cpp
+SOURCES = main.cpp gdist_dglap.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
 
 #OBJECTS  = src/main.o src/dipole.o

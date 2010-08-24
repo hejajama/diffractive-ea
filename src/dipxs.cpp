@@ -32,17 +32,6 @@ REAL Dipxs::Alphas_r(REAL rsqr)
     return Alpha_s(Mu2(rsqr));    // Alpha_s(Q^2) defined in dipole.h
 }
 
-REAL Dipxs::Mu2(REAL rsqr)
-{
-    return 4/rsqr + mu2_0;
-}
-
-REAL Dipxs::Sigmap(REAL rsqr, REAL xbjork)
-{   
-    return SQR(M_PI)/NC*rsqr*Alphas_r(rsqr)
-        *nucleus.GetGDist()->Gluedist(xbjork,rsqr);
-}
-
 Nucleus& Dipxs::GetNucleus()
 {
     return nucleus;

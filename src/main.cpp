@@ -8,6 +8,7 @@
 #include <ctime>
 #include <vector>
 #include <gsl/gsl_math.h>
+#include <gsl/gsl_sf_bessel.h>
 #include <gsl/gsl_sf_exp.h>
 #include <gsl/gsl_integration.h>
 
@@ -15,8 +16,9 @@
 #include "vm_photon.h"
 #include "vector.h"
 #include "nucleus.h"
-//#include "dipxs_ipnonsat.h"
+#include "dipxs_ipnonsat.h"
 #include "dipxs_ipsat.h"
+#include "gdist/gdist_dglap.h"
 #include "mersenne/mersenne.h"
 
 using namespace std;
@@ -24,7 +26,7 @@ using namespace std;
 // Integration settings
 const REAL MAXR=4;
 const REAL MINR=0.05;   // r=0 doesn't work, K_{0,1}(0)=inf
-const REAL RINTACCURACY=0.001;
+const REAL RINTACCURACY=0.0001;
 
 // Integral helpers for outern r integral
 struct inthelper_r
@@ -58,16 +60,18 @@ int main(int argc, char* argv[])
     
     // Intialize Dipxs and Nucleus
     Nucleus nuke(197);
+    //GDist *gdist = new DGLAPDist();
     GDist *gdist = new GDist_Toy();
     nuke.SetGDist(gdist);    
-    Dipxs* dsigmadb = new Dipxs_IPSat(nuke);
+    //Dipxs* dsigmadb = new Dipxs_IPSat(nuke);
+    Dipxs* dsigmadb = new Dipxs_IPNonSat(nuke);
     
     /******************
      * Dipole-nucleus cross section for a fixed r 
      */
-    /*REAL Rsqr=SQR(0.5);
+    /*REAL rsqr=SQR(0.4);
     REAL maxt=2.0;
-    int points=200;
+    int points=100;
     for (REAL delta=0; SQR(delta)<maxt; delta+=sqrt(maxt)/points)
     {
         REAL tmpxs=1.0/(16.0*M_PI)*dsigmadb->Dipxsection_sqr_avg(rsqr, rsqr, x, delta);
@@ -77,12 +81,12 @@ int main(int argc, char* argv[])
     /*******************
      * \gamma^* N -> J/\Psi N cross section
      * Calculates
-     * \int d^2 r d^2 r' (jpsi)(r)*(jpsi)(r')*qqamplitude_sqr(r,delta)
+     * \int d^2 r d^2 r' (jpsi)(r)*(jpsi)(r')*qqamplitude_sqr_avg(r,delta)
      * Here (jpsi) is the inner product between \gamma^* and J/\Psi wave 
      * functions integrated over z \in [0,1]
      */
-    REAL maxt=0.3; int points=50;
-    for (REAL delta=0; SQR(delta)<maxt; delta+=sqrt(maxt)/points)
+    REAL maxt=0.3; REAL mint=0; int points=100;
+    for (REAL delta=sqrt(mint); SQR(delta)<maxt; delta+=sqrt(maxt-mint)/points)
     {
         gsl_function fun;
         inthelper_r inthelp;

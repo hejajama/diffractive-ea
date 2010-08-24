@@ -1,6 +1,22 @@
 #ifndef GDist_h
 #define GDist_h
+
+/*
+ * Gluon distribution from DGLAP equations
+ * 
+ * Uses data from file xg.dat to calculate 
+ * Gluedist(x,r) = Pi^2/(2*Nc) * Alphas(x,mu(r)^2) * xg(x,r)
+ *
+ * This code is written by Tuomas Lappi (no license specified)
+ * I have made only few minor changes to make this code work together
+ * with my code
+ *
+ * Heikki Mäntysaari <heikki.mantysaari@jyu.fi>, 2010
+ */
+
+
 #include "../dipole.h"
+#include "../gdist.h"
 #include <fstream>
 #include <iostream>
 
@@ -11,24 +27,13 @@
 #include "gsl/gsl_spline.h"
 #endif
 
-class GDist {
- public: 
-  GDist(){}; 
-  ~GDist(){};
-
-  virtual REAL gluedist(REAL x,REAL rsqr) const = 0;
-
- private:
-
-};
-
 
 class DGLAPDist : public GDist {
  public: 
   DGLAPDist(); 
   ~DGLAPDist();
 
-  REAL gluedist(REAL x,REAL rsqr) const;
+  REAL Gluedist(REAL x,REAL rsqr);
 
  private:
   REAL minxbj; // these are enforced

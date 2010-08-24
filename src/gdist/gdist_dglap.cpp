@@ -1,4 +1,16 @@
-#include "GDist.h"
+/*
+ * Gluon distribution from DGLAP equations
+ * 
+ * Uses data from file xg.dat to calculate 
+ * Gluedist(x,r) = Pi^2/(2*Nc) * Alphas(x,mu(r)^2) * xg(x,r)
+ *
+ * This code is written by Tuomas Lappi (no license specified)
+ * I have made only few minor changes
+ *
+ * Heikki Mäntysaari <heikki.mantysaari@jyu.fi>, 2010
+ */
+
+#include "gdist_dglap.h"
 #include "../dipole.h"
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_integration.h>
@@ -128,7 +140,7 @@ DGLAPDist::~DGLAPDist(){
 
 }; 
 
-REAL DGLAPDist::gluedist(REAL xbj,REAL rrsqr) const {
+REAL DGLAPDist::Gluedist(REAL xbj,REAL rrsqr){
 
   double rsqr;
   if(xbj<minxbj || xbj > maxxbj){cerr << "Exceeded xbj limits " << xbj << endl; exit(56);}
@@ -183,7 +195,7 @@ REAL DGLAPDist::gluedist(REAL xbj,REAL rrsqr) const {
 //    while(xbj > xbjvals[xind-1]){xind--; cerr << "log x not working -- "<< xind << endl;}  
   }
  
-  cerr << "Found xbj ind " << xind << " : " << xbjvals[xind-1] << " > " << xbj << " > " <<  xbjvals[xind] << endl;
+  //cerr << "Found xbj ind " << xind << " : " << xbjvals[xind-1] << " > " << xbj << " > " <<  xbjvals[xind] << endl;
 
 
  // REAL deltax = xbjvals[xind-1] - xbjvals[xind];

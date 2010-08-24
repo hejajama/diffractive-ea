@@ -54,9 +54,7 @@ class Dipxs
             REAL delta);
         
     protected:
-        REAL Mu2(REAL rsqr);   // 4/r^2 + mu_0
         Nucleus nucleus;   
-        REAL Sigmap(REAL rsqr, REAL xbjork);  // Total dipole proton cross section
            
         REAL MaxB();        // Integrate b up to this limit, MaxB()=nuke.MaxR()
      

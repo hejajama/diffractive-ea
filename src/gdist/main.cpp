@@ -1,4 +1,11 @@
-#include "GDist.h"
+/*
+ * Simple program which uses DGLAP gluon distribution glass DGLAPDist
+ * to calculate Pi^2/2*Nc * alphas(mu(r)^2) * xg(x,mu(r)^2)
+ *
+ * Heikki Mäntysaari <heikki.mantysaari@jyu.fi>, 2010
+ */
+
+#include "gdist_dglap.h"
 #include <iostream>
 #include <sstream>
 
@@ -18,7 +25,7 @@ int main(int argc, char *argv[])
     
     DGLAPDist xg;
     
-    cout << "xg(x=" << xbj << ", r="<<r<<") = " << xg.gluedist(xbj,r*r) << endl;
+    cout << "xg(x=" << xbj << ", r="<<r<<") = " << xg.Gluedist(xbj,r*r) << endl;
     
     
     return 0;

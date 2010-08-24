@@ -27,7 +27,7 @@
 const int NC=3;
 const REAL ALPHA_e = 1.0/137.0; 
 const REAL e = sqrt(4*M_PI*ALPHA_e);
-const REAL mu2_0 = 0.8; // \mu_0^2 = 0.8 GeV^2
+const REAL mu2_0 = 1.1699;  // \mu_0^2 = 0.8 GeV^2 ;    KT: 0.8
 const REAL LAMBDAQCD2=0.04;   // 0.2 GeV^2
 const REAL FOURPI = (4.0*M_PI);
 #define FMGEV 5.068       // fm * GeV
@@ -39,6 +39,7 @@ const REAL FOURPI = (4.0*M_PI);
 REAL epsfun(REAL z, REAL Qsqr, REAL msqr);
 REAL epsfunsqr(REAL z, REAL Qsqr, REAL msqr); // eps^2
 REAL Alpha_s(REAL Qsqr); // Strong coupling constant as a function of Q^2
+REAL Mu2(REAL rsqr);   // 4/r^2 + mu_0
 
 // Wrapper for gsl_sf_exp to handle underflows
 // Or just use exp() from gsl/gsl_math.h

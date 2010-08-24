@@ -15,7 +15,8 @@
 class GDist
 {
     public:
-        virtual REAL Gluedist(REAL bjorkx, REAL rsqr)=0; // = xg(x,µ^2)
+        // Pi^2 / (2*Nc) * alphas(mu(r)^2) xg(x, mu(r))
+        virtual REAL Gluedist(REAL bjorkx, REAL rsqr)=0; 
     
     private:
 

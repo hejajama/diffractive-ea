@@ -5,7 +5,7 @@
  * 
  * Heikki Mäntysaari <heikki.mantysaari@jyu.fi>, 2010
  *
- * Most of this code is written by Tuomas Lappi under non-specified license
+ * Most of this code is written by Tuomas Lappi under a non-specified license
  * Changes made to that code:
  * - Removed parts not needed here
  * - Ported to use Dipxs class

@@ -35,7 +35,7 @@ REAL  wsinthelperf3d(REAL r, void * p){
 // 1 dimensional integral of WS
 REAL wsinthelperf1d(REAL z, void* p){
     return ((wsinthelper*)p)->nuke->WS(sqrt(SQR(z)
-        + SQR(((wsinthelper*)p)->   b)));
+        + SQR(((wsinthelper*)p)->b)));
 }
 
 Nucleus::Nucleus()

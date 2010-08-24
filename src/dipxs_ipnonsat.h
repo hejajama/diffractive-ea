@@ -15,18 +15,14 @@ class Dipxs_IPNonSat : public Dipxs
 {
     public:
         Dipxs_IPNonSat(Nucleus &nucleus_);
-        REAL Dipxsection_avg_sqr(REAL rsqr, REAL r2sqr, Vec b, Vec b2, REAL xbjork ); // Impact parameter representation
-        REAL Dipxsection(REAL rsqr, REAL xbjork, REAL b ); // b=|b|
+        REAL Dipxsection_sqr_avg(REAL rsqr, REAL r2sqr, REAL xbjork, REAL delta);
         REAL Dipxsection(REAL rsqr, REAL xbjork, Vec b, 
                 std::vector<Vec>& nucleons); 
+       
 
-        
-        REAL Dipxsection_delta(REAL rsqr, REAL r2sqr, REAL xbjork, Vec delta);
-        
-        REAL Dipxsection_b_nonaveraged(REAL rsqr, REAL xbjork, Vec b, 
-            std::vector<Vec> &nucleons); // Non-averaged dipole cross section
     
     private:
+        REAL Sigmap(REAL rsqr, REAL xbjork);
         static const REAL B_p=4.0; 
 
 };

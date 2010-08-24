@@ -44,5 +44,11 @@ REAL exp_wrap(REAL x)
     return gsl_sf_exp(x);
 }
 
-
+/*
+ * \mu^2 = 4/r^2 + mu_0
+ */
+REAL Mu2(REAL rsqr)
+{
+    return 4/rsqr + mu2_0;
+}
 

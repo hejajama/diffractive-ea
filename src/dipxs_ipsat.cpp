@@ -129,19 +129,20 @@ REAL Dipxs_IPSat::Dipxsection(REAL rsqr, REAL xbjork, Vec b,
         tmp.SetY(b.GetY()-nucleons[i].GetY());
         ex+=nucleus.Tp(tmp);        
     }
-    result = 2.0*(1.0-exp(-Sigmap(rsqr,xbjork)/2.0*ex));
+    result = 2.0*(1.0-exp(-2*nucleus.GetGDist()->Gluedist(xbjork,rsqr)/2.0*ex));
     return result;
 }
 
 /*
  * FactorC
  * Defined to simplify equations
- * C = 1 - exp(-Pi^2/3*r^2*\alpha_s*xg/(4*Pi*Bp))
+ * C = 1 - exp(-Pi^2/NC*r^2*\alpha_s*xg/(4*Pi*Bp))
  *   = 1 - exp(-sigmap / (4*Pi*Bp) )
+ *   = 1 - exp(-Gluedist()*r^2 / (2*Pi*Bp))
  */
 REAL Dipxs_IPSat::FactorC(REAL rsqr, REAL xbjork)
 {
-    return 1-exp(-Sigmap(rsqr,xbjork)/(4*M_PI*B_p));    
+    return 1-exp(-nucleus.GetGDist()->Gluedist(xbjork,rsqr)*rsqr/(2.0*M_PI*B_p));    
 }
 
 
@@ -308,5 +309,5 @@ REAL Dipxs_IPSat::Dipxsection_b_avg_sqr(REAL rsqr, REAL r2sqr, Vec b, Vec b2, RE
      return result;
 }
 
-#endif HIDE_STUPID_CODE
+#endif
 
