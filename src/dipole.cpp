@@ -7,6 +7,8 @@
 #include "dipole.h"
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_sf_exp.h>
+#include <string>
+#include <sstream>
 
 // eps(z,Q,r) = sqrt(z(1-z)*Q^2 - m^2)
 REAL epsfunsqr(REAL z, REAL Qsqr, REAL msqr)
@@ -52,3 +54,21 @@ REAL Mu2(REAL rsqr)
     return 4/rsqr + mu2_0;
 }
 
+/*
+ * Str to REAL/int
+ */
+REAL StrToReal(std::string str)
+{
+    std::stringstream buff(str);
+    REAL tmp;
+    buff >> tmp;
+    return tmp;
+}
+
+int StrToInt(std::string str)
+{
+    std::stringstream buff(str);
+    int tmp;
+    buff >> tmp;
+    return tmp;
+}

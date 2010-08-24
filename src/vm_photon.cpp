@@ -5,12 +5,16 @@
  */
  
 #include "vm_photon.h"
+#include "dipole.h"
 #include <gsl/gsl_sf_exp.h>
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_sf_bessel.h>
 #include <gsl/gsl_integration.h>
 #include <gsl/gsl_errno.h>
 #include <iostream>
+#include <fstream>
+#include <string>
+#include <sstream>
 
 const REAL ZINTACCURACY=0.00001;
 
@@ -24,6 +28,52 @@ VM_Photon::VM_Photon(REAL e_f_, REAL N_T_, REAL N_L_, REAL R_T_, REAL R_L_,
     R_T=R_T_; R_L=R_L_;
     delta=delta_; 
      
+}
+
+/* Constructor to read parameters from a file
+ * The file should be written using the following syntax, this function
+ * doesn't check that the syntax is correct!
+ *
+ * Lines starting with # are comments, and parameters are written in units of
+ * GeV^n using the syntax
+ * key: value
+ * Keys are: e_f, m_f, M_V, N_T, N_L, R_T, R_L and del
+ */
+VM_Photon::VM_Photon(std::string file)
+{
+    std::ifstream f(file.c_str());
+  
+    if (!f.is_open())
+    {
+        std::cerr << "Could not open file " << file << "!";
+        return;
+    }
+    std::string line;
+    
+    while(!f.eof() )
+    {
+        std::getline(f, line);
+        if (line[0]=='#')   // Comment line
+            continue;
+        if (line.substr(0,3)=="e_f") 
+            e_f=StrToReal(line.substr(4));
+        if (line.substr(0,3)=="m_f") 
+            m_f=StrToReal(line.substr(4));
+        if (line.substr(0,3)=="M_V") 
+            M_V=StrToReal(line.substr(4));
+        if (line.substr(0,3)=="N_T") 
+            N_T=StrToReal(line.substr(4));
+        if (line.substr(0,3)=="N_L") 
+            N_L=StrToReal(line.substr(4));
+        if (line.substr(0,3)=="R_T") 
+            R_T=StrToReal(line.substr(4));
+        if (line.substr(0,3)=="R_L") 
+            R_L=StrToReal(line.substr(4));
+        if (line.substr(0,3)=="del") 
+            delta=StrToInt(line.substr(4));
+    }
+    f.close();
+
 }
 
 
@@ -161,13 +211,20 @@ REAL VM_Photon::Psi_L_D2R(REAL r, REAL z)
     return (z-1)*z/gsl_pow_4(R_L) * (SQR(R_L)-SQR(r)) * N_L * gsl_sf_exp(-SQR(r)/(2.0*SQR(R_L)));
 }
 
-std::ostream& operator<<(std::ostream& os, const VM_Photon& ic)
+std::string VM_Photon::GetParamString()
 {
-    return os << " Vector meson and photon wave function overlap. ";
-    /*e_f = "
+    std::stringstream str;
+    str << "e_f = "
     << e_f << ", m_f = " << m_f << ", M_V = " << M_V << ", N_T = "
     << N_T << ", N_L = " << N_L << ", R_T = " << R_T << ", R_L = " << R_L
     << ", delta = " << delta << " ";
-    */
+    return str.str();
+}
+
+std::ostream& operator<<(std::ostream& os, VM_Photon& ic)
+{
+    return os << " Vector meson and photon wave function overlap. Params: "
+        << ic.GetParamString() << " .";
+        
 }
 

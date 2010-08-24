@@ -11,6 +11,7 @@
 #include "dipole.h"
 #include "wave_function.h"
 #include <iostream>
+#include <string>
 
 /* Overlap functions are taken from an article written by Kowalski, Motyka 
  * and Watt, see arXiv: hep-ph/0606272v2
@@ -20,6 +21,7 @@ class VM_Photon : public WaveFunction {
     public:
         VM_Photon(REAL e_f_, REAL N_T_, REAL N_L_, REAL R_T_, REAL R_L_, 
                 REAL m_f_, REAL M_V_, int delta_);
+        VM_Photon(std::string file);
         
         // Overlap wave functions
         REAL PsiSqr_T(REAL Qsqr, REAL r, REAL z);
@@ -38,6 +40,8 @@ class VM_Photon : public WaveFunction {
         REAL Psi_L_DR(REAL r, REAL z); 
         REAL Psi_L_D2R(REAL r, REAL z); // \partial^2_r Psi_L
         
+        std::string GetParamString();
+        
         
     private:
         // Parameters
@@ -51,6 +55,6 @@ class VM_Photon : public WaveFunction {
         
 };
 
-std::ostream& operator<<(std::ostream& os, const VM_Photon& ic);
+std::ostream& operator<<(std::ostream& os, VM_Photon& ic);
 
 #endif // VM_PHOTON_H

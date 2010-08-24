@@ -14,10 +14,10 @@
 #include <vector>
 
 
-#include "dipxs_ipnonsat.h"
+
 #include "dipole.h"
 #include "cubature/cubature.h" // Multi dimensional integral
-
+#include "dipxs_ipnonsat.h"
 
 const REAL MAXB=70;
 const REAL FTINTACCURACY=0.0001;
@@ -28,7 +28,7 @@ using std::cout; using std::endl; using std::cerr;
 Dipxs_IPNonSat::Dipxs_IPNonSat(Nucleus &nucleus_) :
     Dipxs(nucleus_)
 {
-    // Nothing to do here
+    prevr=prevr2=prevft=-1;
 }
 
 
@@ -62,8 +62,9 @@ REAL inthelperf_ipnonsat(REAL b, void* p)
 REAL Dipxs_IPNonSat::Dipxsection_sqr_avg(REAL rsqr, REAL r2sqr, 
     REAL xbjork, REAL delta)
 {
-    //TODO: Integral does not depend on r,r2, so this could be optimized a lot
-
+    size_t eval;
+    REAL result,abserr;
+        
     inthelper_ipnonsat helper;
     helper.delta=delta;
     helper.nuke=&nucleus;
@@ -71,12 +72,14 @@ REAL Dipxs_IPNonSat::Dipxsection_sqr_avg(REAL rsqr, REAL r2sqr,
     gsl_function int_helper;
     int_helper.function=&inthelperf_ipnonsat;
     int_helper.params=&helper;
-    
-    size_t eval;
-    REAL result,abserr;
 
-    int status = gsl_integration_qng(&int_helper, 0, MAXB, 
-            FTINTACCURACY, FTINTACCURACY, &result, &abserr, &eval);
+    // If we just calculated this when this function was called previously
+    // Yeah, this is quite an ugly hack, but this optimizes this quite much!
+    if (rsqr==prevr and r2sqr==prevr2)
+        result=prevft;
+    else
+        int status = gsl_integration_qng(&int_helper, 0, MAXB, 
+                FTINTACCURACY, FTINTACCURACY, &result, &abserr, &eval);
     
     /*gsl_integration_workspace * w 
          = gsl_integration_workspace_alloc (1000);
@@ -88,7 +91,10 @@ REAL Dipxs_IPNonSat::Dipxsection_sqr_avg(REAL rsqr, REAL r2sqr,
     
     //std::cerr << "Sigmap: " << Sigmap(rsqr,xbjork) << " , int: " << result << ", delta=" << delta << " err:" << abserr << endl;
     
-    return Sigmap(rsqr,xbjork)*Sigmap(r2sqr,xbjork)*exp(-B_p*SQR(delta))
+    REAL bp=B_p;
+    prevr=rsqr; prevr2=r2sqr; prevft=result;
+    
+    return Sigmap(rsqr,xbjork)*Sigmap(r2sqr,xbjork)*exp(-bp*SQR(delta))
         *A*(1.0+(A-1.0)*result*result);
 }
 

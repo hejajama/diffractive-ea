@@ -23,6 +23,7 @@ class Dipxs_IPNonSat : public Dipxs
     
     private:
         REAL Sigmap(REAL rsqr, REAL xbjork);
+        REAL prevr, prevr2, prevft;     // To optimize Dipxsection_sqr_avg
         static const REAL B_p=4.0; 
 
 };

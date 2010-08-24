@@ -34,10 +34,11 @@ class Dipxs_IPSat : public Dipxs
         REAL GetB_p();
         REAL FactorC(REAL rsqr, REAL xbjork);
     private:
-        static const REAL B_p=4.0; 
-       
+        static const REAL B_p=4.0;       
 
 };
+
+static const int N_MAX=2;  // Upper limit for the sum in DipXSection_sqr_avg
 
 
 #endif  // Dipxs_IPSAT_H
