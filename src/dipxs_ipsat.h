@@ -38,7 +38,7 @@ class Dipxs_IPSat : public Dipxs
 
 };
 
-static const int N_MAX=2;  // Upper limit for the sum in DipXSection_sqr_avg
+static const int N_MAX=1;  // Upper limit for the sum in Dipxsection_sqr_avg
 
 
 #endif  // Dipxs_IPSAT_H

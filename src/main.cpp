@@ -66,13 +66,13 @@ int main(int argc, char* argv[])
         if (string(argv[1])=="--help")
         {
             cout << "Usage: -x bjorkx -Q2 Q^2" << endl;
-            cout << "Default values: x="<<bjorkx <<", Q^2="<<Qsqr 
-                << "A="<<A<< endl;
             cout << "-dipole {ipsat,ipnonsat}" << endl;
             cout << "-gdist {dglap,toy}" << endl;
             cout << "-A number_of_nucleai" << endl;
             cout << "-N number_of_data_points" << endl;
             cout << "-mint t_value, -maxt t_value" << endl;
+            cout << "Default values: x="<<bjorkx <<", Q^2="<<Qsqr 
+                << " A="<<A<<", N="<<points<<", mint="<<mint<<", maxt="<<maxt<< endl;
             return 0;
         }
         for (int i=1; i<argc; i++)
@@ -84,7 +84,7 @@ int main(int argc, char* argv[])
             if (string(argv[i])=="-A")
                 A=StrToInt(argv[i+1]);
             if (string(argv[i])=="-N")
-                N=StrToInt(argv[i+1]);
+                points=StrToInt(argv[i+1]);
             if (string(argv[i])=="-mint")
                 mint=StrToReal(argv[i+1]);
             if (string(argv[i])=="-maxt")
@@ -122,6 +122,8 @@ int main(int argc, char* argv[])
     // J/Psi wave function:  e_f, N_T, N_L, R_T, R_L, m_f, M_V, delta
     //VM_Photon JPsi(2.0/3.0, 1.23, 0.83, sqrt(6.5), sqrt(3.0), 1.4, 3.097, 1);
     VM_Photon JPsi("jpsi.dat");
+    
+    cout << JPsi.PsiSqr_tot_intz(Qsqr,1) << endl; return 0;
 
     
     // Intialize Dipxs and Nucleus
@@ -151,7 +153,7 @@ int main(int argc, char* argv[])
 
        
     #pragma omp parallel for
-    for (int i=0; i<points; i++)
+    for (int i=0; i<=points; i++)
     {
         REAL tmpt = (maxt-mint)/points*i;
         REAL delta = sqrt(tmpt);

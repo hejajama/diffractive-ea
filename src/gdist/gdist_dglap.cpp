@@ -4,7 +4,7 @@
  * Uses data from file xg.dat to calculate 
  * Gluedist(x,r) = Pi^2/(2*Nc) * Alphas(x,mu(r)^2) * xg(x,r)
  *
- * This code is written by Tuomas Lappi (no license specified)
+ * This code is written by Tuomas Lappi 
  * I have made only few minor changes
  *
  * Heikki Mäntysaari <heikki.mantysaari@jyu.fi>, 2010
