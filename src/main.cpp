@@ -32,6 +32,9 @@ const REAL RINTACCURACY=0.0001;
 const int MODEL_IPSAT=1; const int MODEL_IPNONSAT=2;
 const int GDIST_DGLAP=1; const int GDIST_TOY=2;
 
+REAL DsigmaDt(REAL delta, Dipxs* dipole, VM_Photon* VM, REAL bjorkx, REAL Qsqr);
+REAL DsigmaDt(REAL t, void* p);
+
 // Integral helpers for outern r integral
 struct inthelper_r
 {
@@ -59,6 +62,7 @@ int main(int argc, char* argv[])
     int gdist_model=GDIST_DGLAP;
     int points=100;
     REAL maxt=0.3; REAL mint=0; 
+    bool totxs=false;   // Calculate total cross section
             
     // Parse parameters
     if (argc>1)
@@ -71,8 +75,10 @@ int main(int argc, char* argv[])
             cout << "-A number_of_nucleai" << endl;
             cout << "-N number_of_data_points" << endl;
             cout << "-mint t_value, -maxt t_value" << endl;
+            cout << "-totxs (calculates total cross section" << endl;
             cout << "Default values: x="<<bjorkx <<", Q^2="<<Qsqr 
                 << " A="<<A<<", N="<<points<<", mint="<<mint<<", maxt="<<maxt<< endl;
+            cout << "                dipxs=false" << endl;
             return 0;
         }
         for (int i=1; i<argc; i++)
@@ -89,6 +95,8 @@ int main(int argc, char* argv[])
                 mint=StrToReal(argv[i+1]);
             if (string(argv[i])=="-maxt")
                 maxt=StrToReal(argv[i+1]);
+            if (string(argv[i])=="-totxs")
+                totxs=true;
             if (string(argv[i])=="-dipole")
             {
                 if (string(argv[i+1])=="ipsat")
@@ -122,8 +130,6 @@ int main(int argc, char* argv[])
     // J/Psi wave function:  e_f, N_T, N_L, R_T, R_L, m_f, M_V, delta
     //VM_Photon JPsi(2.0/3.0, 1.23, 0.83, sqrt(6.5), sqrt(3.0), 1.4, 3.097, 1);
     VM_Photon JPsi("jpsi.dat");
-    
-    cout << JPsi.PsiSqr_tot_intz(Qsqr,1) << endl; return 0;
 
     
     // Intialize Dipxs and Nucleus
@@ -143,51 +149,69 @@ int main(int argc, char* argv[])
     
     /*******************
      * \gamma^* N -> J/\Psi N cross section
-     * Calculates
+     * Calculates:   d\sigma / dt = 1/(16*\pi)*
      * \int d^2 r d^2 r' (jpsi)(r)*(jpsi)(r')*qqamplitude_sqr_avg(r,delta)
-     * Here (jpsi) is the inner product between \gamma^* and J/\Psi wave 
+     * Here (jpsi) is the inner product between \gamma^* and J/\Psi (or VM) wave 
      * functions integrated over z \in [0,1]
-     *
-     * All iterations are independent, so this is straightforward to parallerize
      */
 
-       
+    if (totxs)  // Calculate total cross section
+    {
+        gsl_function fun;   
+        inthelper_r inthelp;
+        inthelp.amplitude=dsigmadb;
+        inthelp.vm=&JPsi; inthelp.bjorkx=bjorkx;
+        inthelp.delta=-1; inthelp.Qsqr=Qsqr;
+        fun.function=&DsigmaDt;
+        fun.params=&inthelp; 
+        
+        REAL result,abserr; size_t eval;
+        int status = gsl_integration_qng(&fun, 0, 2, RINTACCURACY, RINTACCURACY, 
+            &result, &abserr, &eval);
+        
+        cout << "Total cross section: " << result*400.0*1000.0 << " nb" << endl;
+        return 0;
+    }
+    
+    // All iterations are independent, so this is straightforward to parallerize   
     #pragma omp parallel for
     for (int i=0; i<=points; i++)
     {
         REAL tmpt = (maxt-mint)/points*i;
         REAL delta = sqrt(tmpt);
-        gsl_function fun;
-        inthelper_r inthelp;
-        inthelp.amplitude=dsigmadb;
-        inthelp.vm=&JPsi; inthelp.bjorkx=bjorkx;
-        inthelp.delta=delta; inthelp.Qsqr=Qsqr;
-        fun.function=&inthelperf_r1;
-        fun.params=&inthelp;
-        
-        REAL result,abserr; size_t eval;
-        int status = gsl_integration_qng(&fun, MINR, MAXR, RINTACCURACY, RINTACCURACY, 
-            &result, &abserr, &eval);
-        result *= 1.0/(16.0*M_PI);
+        REAL result = DsigmaDt(delta, dsigmadb, &JPsi, bjorkx, Qsqr);
         cout << SQR(delta) << " " << result << endl;
     }
 
-
-
-    /******************
-     * Dipole-nucleus cross section for a fixed r 
-     */
-    /*REAL rsqr=SQR(0.4);
-    REAL maxt=2.0;
-    int points=100;
-    for (REAL delta=0; SQR(delta)<maxt; delta+=sqrt(maxt)/points)
-    {
-        REAL tmpxs=1.0/(16.0*M_PI)*dsigmadb->Dipxsection_sqr_avg(rsqr, rsqr, x, delta);
-        cout << SQR(delta) << " " << tmpxs << endl;
-    }*/
-
    
     return 0;
+}
+
+
+/*
+ * Differential cross section as a function of delta
+ */
+REAL DsigmaDt(REAL delta, Dipxs* dipole, VM_Photon* VM, REAL bjorkx, REAL Qsqr)
+{
+    gsl_function fun;
+    inthelper_r inthelp;
+    inthelp.amplitude=dipole;
+    inthelp.vm=VM; inthelp.bjorkx=bjorkx;
+    inthelp.delta=delta; inthelp.Qsqr=Qsqr;
+    fun.function=&inthelperf_r1;
+    fun.params=&inthelp;
+        
+    REAL result,abserr; size_t eval;
+    int status = gsl_integration_qng(&fun, MINR, MAXR, RINTACCURACY, RINTACCURACY, 
+        &result, &abserr, &eval);
+    result *= 1.0/(16.0*M_PI);
+    return result;
+}
+
+REAL DsigmaDt(REAL t, void* p)
+{
+    inthelper_r* par = (inthelper_r*)p;
+    return DsigmaDt(sqrt(t), par->amplitude, par->vm, par->bjorkx, par->Qsqr);
 }
 
 
@@ -218,3 +242,17 @@ REAL inthelperf_r2(REAL r2, void* p)
                     par->bjorkx, par->delta);
 
 }
+
+    /******************
+     * Dipole-nucleus cross section for a fixed r 
+     */
+    /*REAL rsqr=SQR(0.4);
+    REAL maxt=2.0;
+    int points=100;
+    for (REAL delta=0; SQR(delta)<maxt; delta+=sqrt(maxt)/points)
+    {
+        REAL tmpxs=1.0/(16.0*M_PI)*dsigmadb->Dipxsection_sqr_avg(rsqr, rsqr, x, delta);
+        cout << SQR(delta) << " " << tmpxs << endl;
+    }*/
+    
+

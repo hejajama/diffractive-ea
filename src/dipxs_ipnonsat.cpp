@@ -16,7 +16,6 @@
 
 
 #include "dipole.h"
-#include "cubature/cubature.h" // Multi dimensional integral
 #include "dipxs_ipnonsat.h"
 
 const REAL MAXB=70;

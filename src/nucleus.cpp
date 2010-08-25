@@ -17,8 +17,7 @@
 
 using std::cout; using std::endl; using std::cerr;
 
-const REAL WSINTACCURACY=0.00001;
-const REAL ZINTLIMIT=99;    // z integral in T_WS is from -ZINTLIM to +ZINTLIM
+const REAL WSINTACCURACY=0.000001;
 
 // Integral helpers 
 
@@ -35,7 +34,7 @@ REAL  wsinthelperf3d(REAL r, void * p){
 // 1 dimensional integral of WS
 REAL wsinthelperf1d(REAL z, void* p){
     return ((wsinthelper*)p)->nuke->WS(sqrt(SQR(z)
-        + SQR(((wsinthelper*)p)->b)));
+        + SQR( ((wsinthelper*)p)->b) ) )   ;
 }
 
 Nucleus::Nucleus()
@@ -59,7 +58,7 @@ Nucleus::~Nucleus()
 
 void Nucleus::SetA(int A_)
 {
-    A=A_; gdist=0;
+    A=A_; 
     Intialize();
 }
 
@@ -102,9 +101,9 @@ int Nucleus::Intialize()
     }
         
     WS_N = 1/result;
-    T_WS_0=T_WS(0);
+    //T_WS_0=T_WS(0);
     
-    next_config=-1;
+    next_config=-1;    
     
     return 0;
 
@@ -127,7 +126,7 @@ GDist* Nucleus::GetGDist()
  */
 REAL Nucleus::WS(REAL r)
 {
-    return WS_N/(1+gsl_sf_exp((r-WS_RA)/WS_delta));
+    return WS_N/(1+exp((r-WS_RA)/WS_delta));
 }
 
 /*
@@ -138,11 +137,11 @@ REAL Nucleus::WS_unnorm(REAL r)
 {
     return WS(r)/WS_N;
 }
-
+/*
 REAL Nucleus::T_WS_unnorm(REAL r)
 {
     return T_WS(r)/T_WS_0;
-}
+}*/
 
 /*
  * Integrated density distribution
@@ -160,14 +159,15 @@ REAL Nucleus::T_WS(REAL b)
     int_helper.function=&wsinthelperf1d;
     int_helper.params=&param;
     
-    int status = gsl_integration_qng(&int_helper, -ZINTLIMIT,ZINTLIMIT, 
+    int status = gsl_integration_qng(&int_helper, 0, MaxR(), 
             WSINTACCURACY, WSINTACCURACY, &result, &abserr, &eval);
     if (status) { 
-        std::cerr << "WS integral in Nucleus constructor failed with code " 
+        std::cerr << "WS integral in T_WS failed with code " 
             << gsl_strerror(status) << std::endl;
         return -1;
     }
-    return result;
+    return result*2.0;  // Multiplied by 2.0 as integration is done from 0,
+                        // not form -MaxR()
 
 }
 
