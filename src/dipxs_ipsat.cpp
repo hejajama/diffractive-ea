@@ -16,10 +16,8 @@
 #include "dipxs_ipsat.h"
 #include "dipole.h"
 
-const int AVERAGE_INTEGRAL_ITERATIONS=15;
-const int MONTE_CARLO_ITERATIONS=1000;
-const int MAX_ITERATIONS=80000;
-const REAL MAXB=80;
+
+const REAL MAXB=90;
 
 const REAL AVGITACCURACY = 0.0001;
 
@@ -64,7 +62,7 @@ REAL inthelperf_ipsatavg(REAL b, void* p)
     // Calculate the sum
     REAL sum=0;
     inthelper_ipsatavg* par=(inthelper_ipsatavg*)p;
-    REAL A = par->nuke->GetA();
+    int A = par->nuke->GetA();
     REAL x = par->xbj;
     REAL B_p=par->dip->GetB_p();
     REAL twstmp = par->nuke->T_WS(b);

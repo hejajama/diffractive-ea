@@ -12,6 +12,7 @@
 #include <gsl/gsl_sf_bessel.h>
 #include <gsl/gsl_sf_exp.h>
 #include <gsl/gsl_integration.h>
+#include <gsl/gsl_errno.h>
 
 #include "dipole.h"
 #include "vm_photon.h"
@@ -19,6 +20,7 @@
 #include "nucleus.h"
 #include "dipxs_ipnonsat.h"
 #include "dipxs_ipsat.h"
+#include "dipxs_iim.h"
 #include "gdist/gdist_dglap.h"
 #include "mersenne/mersenne.h"
 
@@ -29,7 +31,7 @@ const REAL MAXR=4;
 const REAL MINR=0.05;   // r=0 doesn't work, K_{0,1}(0)=inf
 const REAL RINTACCURACY=0.0001;
 
-const int MODEL_IPSAT=1; const int MODEL_IPNONSAT=2;
+const int MODEL_IPSAT=1; const int MODEL_IPNONSAT=2; const int MODEL_IIM=3;
 const int GDIST_DGLAP=1; const int GDIST_TOY=2;
 
 REAL DsigmaDt(REAL delta, Dipxs* dipole, VM_Photon* VM, REAL bjorkx, REAL Qsqr);
@@ -53,7 +55,8 @@ REAL inthelperf_r2(REAL r2, void* p);
 
 int main(int argc, char* argv[])
 {    
-
+    gsl_set_error_handler(&ErrHandler);   // We really don't want to use this!
+    
     // Parameters
     REAL bjorkx=1e-4;
     REAL Qsqr=0;
@@ -70,7 +73,7 @@ int main(int argc, char* argv[])
         if (string(argv[1])=="--help")
         {
             cout << "Usage: -x bjorkx -Q2 Q^2" << endl;
-            cout << "-dipole {ipsat,ipnonsat}" << endl;
+            cout << "-dipole {ipsat,ipnonsat,iim}" << endl;
             cout << "-gdist {dglap,toy}" << endl;
             cout << "-A number_of_nucleai" << endl;
             cout << "-N number_of_data_points" << endl;
@@ -103,6 +106,8 @@ int main(int argc, char* argv[])
                     model=MODEL_IPSAT;
                 else if (string(argv[i+1])=="ipnonsat")
                     model=MODEL_IPNONSAT;
+                else if (string(argv[i+1])=="iim")
+                    model=MODEL_IIM;
                 else
                     cerr << "Model " << argv[i+1] << " is not valid" << endl;
             }
@@ -146,6 +151,8 @@ int main(int argc, char* argv[])
         dsigmadb = new Dipxs_IPSat(nuke);
     else if (model==MODEL_IPNONSAT)
         dsigmadb = new Dipxs_IPNonSat(nuke);
+    else if (model==MODEL_IIM)
+        dsigmadb = new Dipxs_IIM(nuke);
     
     /*******************
      * \gamma^* N -> J/\Psi N cross section
@@ -233,7 +240,7 @@ REAL inthelperf_r1(REAL r, void* p)
     return 2*M_PI*r*par->vm->PsiSqr_tot_intz(par->Qsqr, r)*result;
 }
 
-// Inner r' integral: \int dr' r' (jpsi)(r') * qqamplitude_sqr(r,r')
+// Inner r' integral: \int dr' r' (jpsi)(r') * qqamplitude_avg_sqr(r,r')
 REAL inthelperf_r2(REAL r2, void* p)
 {
     inthelper_r* par = (inthelper_r*)p;

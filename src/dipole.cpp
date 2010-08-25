@@ -72,3 +72,16 @@ int StrToInt(std::string str)
     buff >> tmp;
     return tmp;
 }
+
+// GSL Error handler
+int errors;
+void ErrHandler(const char * reason,
+                        const char * file,
+                        int line,
+                        int gsl_errno)
+{
+    errors++;
+    std::cerr << file << ":"<< line <<": Error " << errors << ": " <<reason 
+        << "(code " << gsl_errno << ")." << std::endl;
+}
+

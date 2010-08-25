@@ -30,6 +30,7 @@ class Nucleus
         REAL WS_unnorm(REAL r); // Unnormalized WS
         REAL T_WS(REAL b);
         REAL T_WS(Vec b);
+        REAL FT_T_WS(REAL delta);   // Fourier transform of T_WS
         //REAL T_WS_unnorm(REAL b); // Unnormalized T_WS
         
         // Nucleon configuration

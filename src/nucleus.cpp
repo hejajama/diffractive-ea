@@ -18,6 +18,8 @@
 using std::cout; using std::endl; using std::cerr;
 
 const REAL WSINTACCURACY=0.000001;
+const REAL FTINTACCURACY=0.0001;
+const REAL MAXB=70;
 
 // Integral helpers 
 
@@ -283,6 +285,37 @@ std::vector<Vec>& Nucleus::RandomNucleonConfiguration2d()
     return nucleons;
 
 }*/
+
+/*
+ * Fourier transform of T_WS
+ */ 
+ 
+// First some helpers
+struct inthelper_ft_tws
+{
+    Nucleus* nuke;
+    REAL delta;
+};
+
+REAL inthelperf_ft_tws(REAL b, void* p)
+{
+    inthelper_ft_tws* par = (inthelper_ft_tws*)p;
+    return 2*M_PI*b*par->nuke->T_WS(b)*gsl_sf_bessel_J0(b*par->delta);
+}
+
+REAL Nucleus::FT_T_WS(REAL delta)
+{
+    inthelper_ft_tws helper;
+    helper.nuke=this; helper.delta=delta;
+    gsl_function f;
+    f.params=&helper;
+    f.function=&inthelperf_ft_tws;   
+    REAL result, abserr; size_t eval;
+    int status = gsl_integration_qng(&f, 0, MAXB, 
+                FTINTACCURACY, FTINTACCURACY, &result, &abserr, &eval);
+
+    return result;
+}
 
 /*
  * Maximum radius

@@ -11,7 +11,7 @@
 #include <gsl/gsl_math.h>
 #include <complex>
 #include <string>
-
+#include <iostream>
 
 // *** Datatypes ***
 // REAL = double
@@ -45,6 +45,12 @@ REAL Mu2(REAL rsqr);   // 4/r^2 + mu_0
 REAL StrToReal(std::string str);
 int StrToInt(std::string str);
 
+// GSL error handler
+void ErrHandler(const char * reason,
+                        const char * file,
+                        int line,
+                        int gsl_errno);
+                        
 // Wrapper for gsl_sf_exp to handle underflows
 // Or just use exp() from gsl/gsl_math.h
 REAL exp_wrap(REAL x);   
