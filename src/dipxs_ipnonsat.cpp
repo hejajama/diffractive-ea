@@ -27,7 +27,7 @@ using std::cout; using std::endl; using std::cerr;
 Dipxs_IPNonSat::Dipxs_IPNonSat(Nucleus &nucleus_) :
     Dipxs(nucleus_)
 {
-    prevr=prevr2=prevft=-1;
+    prevdelta=prevft=-1;
 }
 
 
@@ -51,14 +51,14 @@ REAL Dipxs_IPNonSat::Dipxsection_sqr_avg(REAL rsqr, REAL r2sqr,
     
     // If we just calculated this when this function was called previously
     // Yeah, this is quite an ugly hack, but this optimizes this quite much!
-    if (rsqr==prevr and r2sqr==prevr2)
+    if (prevdelta==delta)
         result=prevft;
     else
         result=nucleus.FT_T_WS(delta);
     
     REAL A = nucleus.GetA();
     REAL bp=B_p;
-    prevr=rsqr; prevr2=r2sqr; prevft=result;
+    prevdelta=delta; prevft=result;
     
     return Sigmap(rsqr,xbjork)*Sigmap(r2sqr,xbjork)*exp(-bp*SQR(delta))
         *A*(1.0+(A-1.0)*result*result);

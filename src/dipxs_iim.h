@@ -28,10 +28,11 @@ class Dipxs_IIM : public Dipxs
         
         REAL Dipxsection(REAL rsqr, REAL xbjork, Vec b, 
             std::vector<Vec> &nucleons); // Non-averaged dipole cross section
-
-    private:
-        REAL Q_s(REAL x);       // Saturation scale
         REAL DipoleAmplitude(REAL r, REAL x);
+        REAL Q_s(REAL x);       // Saturation scale
+    private:
+        
+        REAL prevft, prevdelta;     // To optimize Dipxsection_sqr_avg
         
     
         // Parameters for the model

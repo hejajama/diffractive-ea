@@ -19,7 +19,7 @@
 
 const REAL MAXB=90;
 
-const REAL AVGITACCURACY = 0.0001;
+const REAL AVGITACCURACY = 0.001;
 
 using std::cout; using std::endl; using std::cerr;
 
@@ -102,8 +102,11 @@ REAL Dipxs_IPSat::Dipxsection_sqr_avg(REAL rsqr, REAL r2sqr, REAL xbj,
     REAL result,abserr;
 
     int status = gsl_integration_qng(&int_helper, 0, MAXB, 
-            AVGITACCURACY, AVGITACCURACY, &result, &abserr, &eval);
+            0, AVGITACCURACY, &result, &abserr, &eval);
     
+    if (status) std::cerr << "Error " << status << " at " << __FILE__ << ":"
+        << __LINE__ << ": Result " << result << ", abserror: " << abserr 
+        << " (t=" << delta*delta <<")" << endl;
     return result;
 }
 

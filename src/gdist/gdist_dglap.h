@@ -30,12 +30,14 @@
 
 class DGLAPDist : public GDist {
  public: 
-  DGLAPDist(); 
+  DGLAPDist();
+  DGLAPDist(std::string file); 
   ~DGLAPDist();
 
   REAL Gluedist(REAL x,REAL rsqr);
 
  private:
+  void Intialize(std::string file);
   REAL minxbj; // these are enforced
   REAL maxxbj;
   REAL minrsqr; // this just determines whether we interpolate or extrapolate in rsqr

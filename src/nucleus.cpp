@@ -313,7 +313,9 @@ REAL Nucleus::FT_T_WS(REAL delta)
     REAL result, abserr; size_t eval;
     int status = gsl_integration_qng(&f, 0, MAXB, 
                 FTINTACCURACY, FTINTACCURACY, &result, &abserr, &eval);
-
+    if (status) std::cerr << "Error " << status << " at " << __FILE__ << ":"
+        << __LINE__ << ": Result " << result << ", abserror: " << abserr 
+        << endl;
     return result;
 }
 

@@ -26,9 +26,18 @@ const float fmgev=5.067731;
 
 REAL interptransf(REAL rsqr){return -log(1.0+1.0/rsqr);} // transformation from rsqr to variable usen in interpolation
 
-DGLAPDist::DGLAPDist(): rind(0), xind(0) {
+DGLAPDist::DGLAPDist(std::string file): rind(0), xind(0) {
+  Intialize(file);
+}
 
-  ifstream gluedata("xg.dat",ios::in);
+DGLAPDist::DGLAPDist() : rind(0),xind(0) {
+  Intialize("xg.dat");
+}
+
+void DGLAPDist::Intialize(std::string file)
+{
+
+  ifstream gluedata(file.c_str(),ios::in);
   char linebuffer[1024];
   bool info=true;
  if(!gluedata.good()){

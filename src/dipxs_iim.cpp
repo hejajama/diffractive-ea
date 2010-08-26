@@ -12,7 +12,7 @@
 
 Dipxs_IIM::Dipxs_IIM(Nucleus& nuke) : Dipxs(nuke)
 {
-
+    prevdelta=prevft=-1;
 }
 
 /* Amplitude squared averaged over nucleon configurations as a 
@@ -27,10 +27,12 @@ Dipxs_IIM::Dipxs_IIM(Nucleus& nuke) : Dipxs(nuke)
  * N(r,x) is the dipole scattering amplitude
  * eq. (13) in paper arXiv 0706.2682v1
  * 
- * For a nuclear target we follow an article by Goncalves, Kugeratski 
- * and Navarra (Brazilian Journal of Physics, vol. 37, no. 1, March, 2007):
- * We replace Q_s^2 -> A^{1/3} * Q_s^2 and
- * S(b) => \sum_i S(b-b_i)
+ * This is generalized to a electron-nucleus scattering by replacing
+ * S(b) = \sum_i S(b-b_i), as it is done with IPNonSat model
+ *
+ * TODO: Should we also change the saturation scale Q_s? See
+ * Goncalves, Kugeratski and Navarra,
+ * (Brazilian Journal of Physics, vol. 37, no. 1, March, 2007)
  */
  
 REAL Dipxs_IIM::Dipxsection_sqr_avg(REAL rsqr, REAL r2sqr, REAL xbj, 
@@ -39,12 +41,21 @@ REAL Dipxs_IIM::Dipxsection_sqr_avg(REAL rsqr, REAL r2sqr, REAL xbj,
     REAL r1 = sqrt(rsqr); REAL r2 = sqrt(r2sqr);    // Stupid..
     REAL A = nucleus.GetA();
     
-    REAL Q_sA = pow(A,1.0/6.0)*Q_s(xbj); // Q_s -> A^(1/6) Q_s
+    REAL Q_sA=Q_s(xbj); //pow(A,1.0/6.0)*Q_s(xbj); // Q_s -> A^(1/6) Q_s
     REAL r1Q = Q_sA*r1; REAL r2Q=Q_sA*r2;
     REAL bd=B_D;
-    REAL ft=nucleus.FT_T_WS(delta); 
+    
+    // If we just calculated this when this function was called previously
+    // Yeah, this is quite an ugly hack, but this optimizes this quite much!
+    REAL ft;
+    if (prevdelta==delta)
+        ft=prevft;
+    else
+        ft=nucleus.FT_T_WS(delta);
+
+    prevdelta=delta; prevft=ft;
     return 4*SQR(M_PI)*SQR(bd)*exp(-bd*delta*delta)*DipoleAmplitude(r1Q,xbj)
-        * DipoleAmplitude(r2Q,xbj)*A*( 1+(A-1)*ft*ft );
+        * DipoleAmplitude(r2Q,xbj)*A*( 1.0 + (A-1.0)*ft*ft );
 
 }
 

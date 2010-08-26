@@ -5,6 +5,7 @@
  */
  
 #include <iostream>
+#include <iomanip>  // Set cout precision
 #include <ctime>
 #include <vector>
 #include <sstream>
@@ -29,7 +30,8 @@ using namespace std;
 // Integration settings
 const REAL MAXR=4;
 const REAL MINR=0.05;   // r=0 doesn't work, K_{0,1}(0)=inf
-const REAL RINTACCURACY=0.0001;
+const REAL RINTACCURACY=0.002;
+const REAL TOTXS_MAXT=2;    // Max |t| in GeV^2 when calculating total xs
 
 const int MODEL_IPSAT=1; const int MODEL_IPNONSAT=2; const int MODEL_IIM=3;
 const int GDIST_DGLAP=1; const int GDIST_TOY=2;
@@ -135,7 +137,6 @@ int main(int argc, char* argv[])
     // J/Psi wave function:  e_f, N_T, N_L, R_T, R_L, m_f, M_V, delta
     //VM_Photon JPsi(2.0/3.0, 1.23, 0.83, sqrt(6.5), sqrt(3.0), 1.4, 3.097, 1);
     VM_Photon JPsi("jpsi.dat");
-
     
     // Intialize Dipxs and Nucleus
     Nucleus nuke(A);
@@ -153,7 +154,8 @@ int main(int argc, char* argv[])
         dsigmadb = new Dipxs_IPNonSat(nuke);
     else if (model==MODEL_IIM)
         dsigmadb = new Dipxs_IIM(nuke);
-    
+
+
     /*******************
      * \gamma^* N -> J/\Psi N cross section
      * Calculates:   d\sigma / dt = 1/(16*\pi)*
@@ -173,23 +175,32 @@ int main(int argc, char* argv[])
         fun.params=&inthelp; 
         
         REAL result,abserr; size_t eval;
-        int status = gsl_integration_qng(&fun, 0, 2, RINTACCURACY, RINTACCURACY, 
+        int status = gsl_integration_qng(&fun, 0, TOTXS_MAXT, 0, RINTACCURACY, 
             &result, &abserr, &eval);
-        
+        if (status)
+            cerr << "Total cross section integral failed to reach tolerance: "
+                << "Result: " << result << ", abserr: " << abserr << endl;
         cout << "Total cross section: " << result*400.0*1000.0 << " nb" << endl;
-        return 0;
+        
+    }
+    else
+    {
+        // All iterations are independent, so this is straightforward to parallerize   
+        #pragma omp parallel for
+        for (int i=0; i<=points; i++)
+        {
+            REAL tmpt = (maxt-mint)/points*i;
+            REAL delta = sqrt(tmpt);
+            REAL result = DsigmaDt(delta, dsigmadb, &JPsi, bjorkx, Qsqr);
+            cout.precision(5);
+            cout << fixed << SQR(delta);
+            cout.precision(8);
+            cout << " " << result << endl;
+        }
     }
     
-    // All iterations are independent, so this is straightforward to parallerize   
-    #pragma omp parallel for
-    for (int i=0; i<=points; i++)
-    {
-        REAL tmpt = (maxt-mint)/points*i;
-        REAL delta = sqrt(tmpt);
-        REAL result = DsigmaDt(delta, dsigmadb, &JPsi, bjorkx, Qsqr);
-        cout << SQR(delta) << " " << result << endl;
-    }
-
+    delete dsigmadb;
+    delete gdist;
    
     return 0;
 }
@@ -209,8 +220,13 @@ REAL DsigmaDt(REAL delta, Dipxs* dipole, VM_Photon* VM, REAL bjorkx, REAL Qsqr)
     fun.params=&inthelp;
         
     REAL result,abserr; size_t eval;
+    
     int status = gsl_integration_qng(&fun, MINR, MAXR, RINTACCURACY, RINTACCURACY, 
         &result, &abserr, &eval);
+        if (status) std::cerr << "Error " << status << " at " << __FILE__ << ":"
+        << __LINE__ << ": Result " << result << ", abserror: " << abserr 
+        << " (t=" << delta*delta <<")" << endl;
+        
     result *= 1.0/(16.0*M_PI);
     return result;
 }
@@ -234,8 +250,12 @@ REAL inthelperf_r1(REAL r, void* p)
     
     REAL result,abserr; size_t eval;
     
-    int status = gsl_integration_qng(&fun, MINR, MAXR, RINTACCURACY, RINTACCURACY, 
+    int status = gsl_integration_qng(&fun, MINR, MAXR, 0, RINTACCURACY, 
         &result, &abserr, &eval);
+    
+    if (status) std::cerr << "Error " << status << " at " << __FILE__ << ":"
+        << __LINE__ << ": Result " << result << ", abserror: " << abserr 
+        << " (t=" << par->delta*par->delta << ")" << endl;
     
     return 2*M_PI*r*par->vm->PsiSqr_tot_intz(par->Qsqr, r)*result;
 }
