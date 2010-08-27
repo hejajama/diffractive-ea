@@ -1,0 +1,105 @@
+\documentclass[a4paper,12pt,twoside]{article}
+\usepackage[utf8x]{inputenc}
+\usepackage[english]{babel}
+\usepackage{enumerate}
+\usepackage{textcomp}
+\usepackage{graphicx}
+\usepackage{microtype}
+\usepackage{hyperref}
+\usepackage{url}
+\urlstyle{sf}
+\usepackage{mathtools}
+\usepackage[amssymb]{SIunits} 
+
+\bibliographystyle{utphys}
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\der}{\mathrm{d}}
+\newcommand{\A}{\mathcal{A}}
+
+\title{Numerical Code to Calculate Electron-Nucleus Scattering Cross Section}
+\author{Heikki Mäntysaari}
+\date{}
+
+\begin{document} 
+\maketitle
+\begin{abstract}
+This document describes the physics used in my numerical code. The structure of the code is not covered in this document.
+\end{abstract}
+
+\section{Introduction}
+For a $\gamma^*p \rightarrow VA$ scattering ($V$ is e.g. a vector meson) we have the following formulae for an amplitude \cite{Caldwell:2009ke}
+\begin{equation}
+	\A^{\gamma^* p}(x,Q,\Delta) =	\sum_f \int \der^2 r \int_0^1 \frac{\der z}{4\pi} \Psi_V^*(r,z,Q) \A_{q\bar q}(x,r,\Delta) \Psi(r,z,Q).
+\end{equation}
+Here $\A_{q\bar q}$ is the scattering amplitude for dipole-proton scattering.
+
+\section{Dipole cross section}
+Code supports a few different models for dipole cross section, and it is quite easy to implement a new one. Just derive a class from class \code{DIpxs}.
+
+\subsection{Ip Non Sat}
+Code: This model is implemented as a class \code{Dipxs\_IPNonSat}.
+
+Ip Non Sat is the most simple model for dipole-proton cross section. It is derived in e.g. \cite{Caldwell:2009ke} by Kowalski and Caldwell. In this model the dipole cross section is given by
+\begin{equation}
+	\frac{\der \sigma_{q\bar q}}{\der^2 b} = \frac{\pi^2}{3}r^2 \alpha_s(µ^2)xg(x,µ^2) T_p(b). 
+\end{equation}
+This amplitude can be used to derive the amplitude squared for the quasi-elastic dipole-nucleus scattering:
+\begin{equation}
+	|\A|^2(x,r,r',\Delta) = \kappa(r) \kappa(r') e^{-B_p \Delta^2} A  \left[ 1 + \left| \int \der^2 b e^{-ib \cdot \Delta} T_A(b)\right|^2 \right] . 
+\end{equation}
+Here 
+\begin{equation}
+	\label{eq:kappa}
+	\kappa(r) = \frac{\pi^2}{3}r^2\alpha_s(\mu^2)xg(x,\mu^2).
+\end{equation}
+$xg(x,\mu^2)$ is the dimensionless gluon density, see some notes about it in chapter \ref{gdist}.
+
+\label{IP Sat}
+Code: This model is implemented as a class \code{Dipxs\_IPSat}.
+
+IP Sat model takes into account the unitarity requirement of the scattering matrix $S$. In this model the dipole-proton corss section can be written as \cite{PhysRevD.68.114005}
+\begin{equation}
+	\frac{\der \sigma_{q\bar q}}{\der^2 b} = 2\left[1- \exp \left(-\frac{\pi^2}{3\cdot 2}r^2 \kappa_s(µ^2)xg(x,µ^2) T_p(b)\right) \right]
+\end{equation}
+One can then do some approximations to obtain the following formula
+\begin{equation}
+\begin{split}
+	|\A|^2(x,r,r',\Delta) = 16\pi \frac{\der \sigma_{q\bar q}^{A_0 \rightarrow A_n}}{\der t} &= B_p \int \der^2 b_2 \sum_{n=1}^A \binom{A}{n} e^{-B_p \Delta^2/n} e^{-2A\pi B_p T_A(b_2)[C(r)+C(r')]} \\
+	&\quad \times \left(\frac{\pi B_p C(r)C(r') 2 T_A(b_2)}{1-2\pi B_p T_A(b_2)[C(r)+C(r')]}\right)^n,
+\end{split}
+\end{equation}
+where
+\begin{equation}
+	C(r) = 1-e^{-\kappa(r)/(4\pi B_p)}.
+\end{equation}
+$\kappa(r)$ is defined by eq \eqref{eq:kappa}.
+
+\subsection{IIM}
+
+\section{Vector Meson Wave Function}
+We have to calculate the overlap between a virtual photon and a vector meson wave functions. It is quite easy to implement a new model, just derive the class from the class \code{WaveFunction}.
+
+\subsection{Gaus-LC}
+In case of vector meson production one can use the Gaus-LC model to get the overlap between $\gamma^*$ and the VM \cite{Kowalski:2006hc}.
+
+In this model we get the overlaps for transversial and longitudinal $\gamma^*$ polarisations as
+\begin{align}
+	|\Psi |^2_T &= e_f \frac{N_c}{\pi z(1-z)} \left[ m_f^2 K_0(\epsilon r)\phi_T(r,z) - (z^2 + (1-z)^2) \epsilon K_1(\epsilon r) \partial_r \phi_T(r,z) \right] \\
+	|\Psi |^2_L &= e_f \frac{N_c}{\pi} 2Q z (1-z)K_0(\epsilon r) \left[ M_V \phi_L(r,z) + \delta \frac{m_f^2 - \nabla_r^2}{M_V z(1-z)}\phi_L(r,z) \right].
+\end{align}
+Here
+\begin{align}
+	\phi_T(r,z) &= N_T \left[ z(1-z)\right]^2 e^{-r^2/(2R_T^2)}, \\
+	\phi_L(r,z) &= N_L z(1-z) e^{-r^2/(2R_L^2)}.
+\end{align}
+We also use notation $\nabla_r^2 = (1/r)\partial_r + \partial_r^2$.
+
+Parameters for $J/\Psi$ production are: $M_V = \unit{3.097}{\giga\electronvolt}$, $m_f = \unit{1.4}{\giga\electronvolt}$, $N_T = 1.23$, $R_T^2 = \unit{6.5}{\giga\electronvolt^{-2}}$, $N_L=0.83$, $R_L^2 = \unit{3.0}{\giga\electronvolt^{-2}}$, $e_f = 2/3 e$, $\delta = 0$ or 1.
+\section{Gluon Distribution}
+\label{gdist}
+
+\bibliography{refs}
+
+\end{document}
+
+

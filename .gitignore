@@ -3,3 +3,8 @@
 *.txt
 *.pdf
 *.ps
+*.bbl 
+*.blg
+*.log
+*.out
+
