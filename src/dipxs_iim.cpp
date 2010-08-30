@@ -9,10 +9,20 @@
 #include "dipxs_iim.h"
 #include <gsl/gsl_math.h>
 #include <iostream>
+#include <fstream>
+#include <string>
+#include <sstream>
 
 Dipxs_IIM::Dipxs_IIM(Nucleus& nuke) : Dipxs(nuke)
 {
     prevdelta=prevft=-1;
+    ReadParameters("iim.dat");
+}
+
+Dipxs_IIM::Dipxs_IIM(Nucleus& nuke, std::string file)
+{
+    prevdelta=prevft=-1;
+    ReadParameters(file);
 }
 
 /* Amplitude squared averaged over nucleon configurations as a 
@@ -41,7 +51,7 @@ REAL Dipxs_IIM::Dipxsection_sqr_avg(REAL rsqr, REAL r2sqr, REAL xbj,
     REAL r1 = sqrt(rsqr); REAL r2 = sqrt(r2sqr);    // Stupid..
     REAL A = nucleus.GetA();
     
-    REAL Q_sA=Q_s(xbj); //pow(A,1.0/6.0)*Q_s(xbj); // Q_s -> A^(1/6) Q_s
+    REAL Q_sA=Q_s(xbj);
     REAL r1Q = Q_sA*r1; REAL r2Q=Q_sA*r2;
     REAL bd=B_D;
     
@@ -66,9 +76,9 @@ REAL Dipxs_IIM::DipoleAmplitude(REAL rq, REAL x)
 {
     if (rq <= 2.0)
         return N0*pow(rq/2.0,2.0*gammac)*exp(-2*pow(log(rq/2.0),2)
-            /(kappa*lambda*log(1/x)));
+            /(kappa*lambda*log(1/x) ) );
     else
-        return 1-exp(-4*alpha*pow(log(beta*rq),2));    
+        return 1-exp(-4*alpha*pow(log(beta*rq),2) );    
 
 }
  
@@ -76,7 +86,7 @@ REAL Dipxs_IIM::DipoleAmplitude(REAL rq, REAL x)
 REAL Dipxs_IIM::Dipxsection(REAL rsqr, REAL xbjork, Vec b, 
             std::vector<Vec> &nucleons)
 {
-
+    // Not implemented
     return 0;
 }
 
@@ -87,4 +97,53 @@ REAL Dipxs_IIM::Q_s(REAL x)
 {
     return pow(x0/x,lambda/2);
 }
+
+/*
+ * Read parameters from the given file
+ * Syntax is: key:value
+ * Lines starting with # are ignored
+ * Dimension of values is GeV^n
+ * Keys: alpha, beta, x_0, N_0, kappa, lambda, gammac, B_D
+ * 
+ * Returns -1 in case of error, 0 otherwise
+ */
+int Dipxs_IIM::ReadParameters(std::string file)
+{
+    std::ifstream f(file.c_str());
+  
+    if (!f.is_open())
+    {
+        std::cerr << "Could not open file " << file << "!";
+        return -1;
+    }
+    std::string line;
+    
+    while(!f.eof() )
+    {
+        std::getline(f, line);
+        if (line[0]=='#')   // Comment line
+            continue;
+        if (line.substr(0,5)=="alpha") 
+            alpha=StrToReal(line.substr(6));
+        if (line.substr(0,4)=="beta") 
+            beta=StrToReal(line.substr(5));
+        if (line.substr(0,3)=="x_0") 
+            x0=StrToReal(line.substr(4));
+        if (line.substr(0,3)=="N_0") 
+            N0=StrToReal(line.substr(4));
+        if (line.substr(0,5)=="kappa") 
+            kappa=StrToReal(line.substr(6));
+        if (line.substr(0,6)=="lambda") 
+            lambda=StrToReal(line.substr(7));
+        if (line.substr(0,6)=="gammac") 
+            gammac=StrToReal(line.substr(7));
+        if (line.substr(0,3)=="B_D") 
+            B_D=StrToInt(line.substr(4));
+    }
+    f.close();
+
+    return 0;
+
+}
+
 

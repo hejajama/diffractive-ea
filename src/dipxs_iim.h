@@ -18,6 +18,7 @@ class Dipxs_IIM : public Dipxs
 {
     public:
         Dipxs_IIM(Nucleus &nucleus_);
+        Dipxs_IIM(Nucleus &nucleus_, std::string file);
         // Amplitude squared averaged over nucleon configurations as a 
         // function of \Delta and r,r' (and x)
         // \int d^2 b_1 ... d^2 b_A T_A(b_1)...T_A(B_A) 
@@ -31,20 +32,19 @@ class Dipxs_IIM : public Dipxs
         REAL DipoleAmplitude(REAL r, REAL x);
         REAL Q_s(REAL x);       // Saturation scale
     private:
-        
+        int ReadParameters(std::string file);
         REAL prevft, prevdelta;     // To optimize Dipxsection_sqr_avg
         
     
         // Parameters for the model
-        static const REAL alpha = 0.615065;
-        static const REAL beta  = 1.00642;
-        static const REAL x0    = 1.632e-5;
-        static const REAL N0    = 0.7;
-        static const REAL kappa = 9.9;
-        static const REAL lambda= 0.2197;
-        static const REAL gammac= 0.7376;
-        static const REAL B_D   = 5.591;    // GeV^{-2}
-        
+        REAL alpha;     // = 0.615065;
+        REAL beta;      // = 1.00642;
+        REAL x0;        // = 1.632e-5;
+        REAL N0;        // = 0.7;
+        REAL kappa;     // = 9.9;      // \eta in documentation
+        REAL lambda;    // = 0.2197;
+        REAL gammac;    // = 0.7376;
+        REAL B_D;       // = 5.591 or 4.0;    // GeV^{-2}   
 
 };
 

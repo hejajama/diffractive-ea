@@ -36,7 +36,7 @@ VM_Photon::VM_Photon(REAL e_f_, REAL N_T_, REAL N_L_, REAL R_T_, REAL R_L_,
  *
  * Lines starting with # are comments, and parameters are written in units of
  * GeV^n using the syntax
- * key: value
+ * key:value
  * Keys are: e_f, m_f, M_V, N_T, N_L, R_T, R_L and del
  */
 VM_Photon::VM_Photon(std::string file)
