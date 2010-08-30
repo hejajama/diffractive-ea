@@ -8,7 +8,7 @@ SOURCES = src/main.cpp src/dipole.cpp src/vm_photon.cpp src/vector.cpp src/nucle
 	src/mersenne/mersenne_inline.cpp src/wave_function.cpp \
 	src/dipxs_ipsat.cpp src/dipxs_fourier.cpp \
 	src/dipxs_ipnonsat.cpp src/dipxs_iim.cpp \
-	src/gdist/gdist_dglap.cpp
+	src/gdist/gdist_dglap.cpp src/calculator.cpp
 
 OBJECTS=$(SOURCES:.cpp=.o)
 
