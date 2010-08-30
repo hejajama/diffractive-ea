@@ -7,6 +7,7 @@
 #include <iostream>
 #include <iomanip>  // Set cout precision
 #include <ctime>
+#include <cstdlib>
 #include <vector>
 #include <sstream>
 #include <gsl/gsl_math.h>
@@ -37,8 +38,7 @@ const REAL TOTXS_MAXT=2;    // Max |t| in GeV^2 when calculating total xs
 const int MODEL_IPSAT=1; const int MODEL_IPNONSAT=2; const int MODEL_IIM=3;
 const int GDIST_DGLAP=1; const int GDIST_TOY=2;
 
-REAL DsigmaDt(REAL delta, Dipxs* dipole, WaveFunction* VM, REAL bjorkx, REAL Qsqr);
-REAL DsigmaDt(REAL t, void* p);
+void Cleanup(); 
 
 int main(int argc, char* argv[])
 {    
@@ -53,6 +53,11 @@ int main(int argc, char* argv[])
     int points=100;
     REAL maxt=0.3; REAL mint=0; 
     bool totxs=false;   // Calculate total cross section
+    bool Ap=false;      // \sigma^A / A*\sigma_p as a function of Q^2
+    REAL t=0.5;
+    REAL maxQsqr=30;
+    
+    string iim_file="iim.dat";  // Read parameters for IIM model from this file
             
     // Parse parameters
     if (argc>1)
@@ -65,10 +70,15 @@ int main(int argc, char* argv[])
             cout << "-A number_of_nucleai" << endl;
             cout << "-N number_of_data_points" << endl;
             cout << "-mint t_value, -maxt t_value" << endl;
+            cout << "-iimfile filename (parameters for the IIM model)" << endl;
             cout << "-totxs (calculates total cross section" << endl;
+            cout << "-A/p (nucleus cross section / A* "
+                    <<"proton cross section as a function of Q^2)" << endl;
+            cout << "-t t, -maxQ2 maxq2 [GeV] (value of t and maximum of Q^2 in case of -A/p)" << endl;
             cout << "Default values: x="<<bjorkx <<", Q^2="<<Qsqr 
                 << " A="<<A<<", N="<<points<<", mint="<<mint<<", maxt="<<maxt<< endl;
-            cout << "                dipxs=false" << endl;
+            cout << "                dipxs=false, A/p=false, iimfile=" << iim_file << endl;
+            cout << "                t="<<t << endl;
             return 0;
         }
         for (int i=1; i<argc; i++)
@@ -87,6 +97,14 @@ int main(int argc, char* argv[])
                 maxt=StrToReal(argv[i+1]);
             if (string(argv[i])=="-totxs")
                 totxs=true;
+            if (string(argv[i])=="-A/p")
+                Ap=true;
+            if (string(argv[i])=="-t")
+                t=StrToReal(argv[i+1]);
+            if (string(argv[i])=="-maxQ2")
+                maxQsqr=StrToReal(argv[i+1]);
+            if (string(argv[i])=="-iimfile")
+                iim_file=string(argv[i+1]);
             if (string(argv[i])=="-dipole")
             {
                 if (string(argv[i+1])=="ipsat")
@@ -113,8 +131,11 @@ int main(int argc, char* argv[])
     }
     
     // Print values
-    cout << "# x=" << bjorkx << ", Q^2=" << Qsqr << " A=" << A << endl;
+    cout << "# x=" << bjorkx << ", Q^2=" << Qsqr << " A=" << A;
+    if (A==1 and model==MODEL_IPNONSAT) cout << " (dipole-proton)";
+    cout << endl;
     cout << "# GDist=" << gdist_model << ",  dipole model=" << model << endl;
+ 
     
     // Intialize random number generator
     seed_mersenne(std::time(NULL));
@@ -138,7 +159,7 @@ int main(int argc, char* argv[])
     else if (model==MODEL_IPNONSAT)
         dsigmadb = new Dipxs_IPNonSat(nuke);
     else if (model==MODEL_IIM)
-        dsigmadb = new Dipxs_IIM(nuke);
+        dsigmadb = new Dipxs_IIM(nuke, iim_file);
 
     Calculator calculator(dsigmadb, JPsi);
 
@@ -155,6 +176,33 @@ int main(int argc, char* argv[])
         REAL result = calculator.TotalCrossSection(Qsqr, bjorkx);
         cout << "Total cross section: " << result*400.0*1000.0 << " nb" << endl;
     }
+    else if (Ap)    // Calculate \sigma^A / A*\sigma_p as a function Q^2 at t
+    {
+        // Proton cross section
+        Nucleus proton(1);
+        proton.SetGDist(gdist);
+        Dipxs *protonxs = new Dipxs_IPNonSat(proton);
+        //Dipxs_IPNonSat protonxs(proton);
+        Calculator protoncalc(protonxs,JPsi);
+        
+        cout << "# t=" << t << endl;
+        cout << "# Q^2   nucleus_xs / A*proton_xs" << endl;
+        
+        //#pragma omp parallel for
+        for (int i=0; i<=points; i++)
+        {
+            REAL tmpqsqr=maxQsqr/points*i;
+            REAL protonxs = protoncalc.CrossSection_dt(t, tmpqsqr, bjorkx);
+            REAL nukexs = calculator.CrossSection_dt(t, tmpqsqr, bjorkx);
+            cout.precision(5);
+            cout << fixed << tmpqsqr;
+            cout.precision(8);
+            cout << " " << nukexs / (A*protonxs) << endl;
+        }
+        delete protonxs;
+    
+    
+    }
     else
     {
         // All iterations are independent, so this is straightforward to parallerize   
@@ -165,7 +213,7 @@ int main(int argc, char* argv[])
             REAL delta = sqrt(tmpt);
             REAL result = calculator.CrossSection_dt(tmpt, Qsqr, bjorkx);
             cout.precision(5);
-            cout << fixed << SQR(delta);
+            cout << fixed << tmpt;
             cout.precision(8);
             cout << " " << result << endl;
         }
@@ -177,4 +225,5 @@ int main(int argc, char* argv[])
    
     return 0;
 }
+
 

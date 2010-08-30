@@ -12,17 +12,28 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <cstdlib>
 
 Dipxs_IIM::Dipxs_IIM(Nucleus& nuke) : Dipxs(nuke)
 {
     prevdelta=prevft=-1;
-    ReadParameters("iim.dat");
+    if(ReadParameters("iim.dat"))
+    {
+        std::cerr << "Could not read parameters from file iim.dat" 
+            << std::endl;
+        std::exit(EXIT_FAILURE);
+    }
 }
 
-Dipxs_IIM::Dipxs_IIM(Nucleus& nuke, std::string file)
+Dipxs_IIM::Dipxs_IIM(Nucleus& nuke, std::string file) : Dipxs(nuke)
 {
     prevdelta=prevft=-1;
-    ReadParameters(file);
+    if(ReadParameters(file))
+    {
+        std::cerr << "Could not read parameters from file " << file
+            << std::endl;
+        std::exit(EXIT_FAILURE);
+    }
 }
 
 /* Amplitude squared averaged over nucleon configurations as a 
@@ -49,7 +60,7 @@ REAL Dipxs_IIM::Dipxsection_sqr_avg(REAL rsqr, REAL r2sqr, REAL xbj,
                 REAL delta)
 {
     REAL r1 = sqrt(rsqr); REAL r2 = sqrt(r2sqr);    // Stupid..
-    REAL A = nucleus.GetA();
+    int A = nucleus.GetA();
     
     REAL Q_sA=Q_s(xbj);
     REAL r1Q = Q_sA*r1; REAL r2Q=Q_sA*r2;
@@ -113,7 +124,6 @@ int Dipxs_IIM::ReadParameters(std::string file)
   
     if (!f.is_open())
     {
-        std::cerr << "Could not open file " << file << "!";
         return -1;
     }
     std::string line;

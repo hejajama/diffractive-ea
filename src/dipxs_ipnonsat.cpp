@@ -42,12 +42,24 @@ Dipxs_IPNonSat::Dipxs_IPNonSat(Nucleus &nucleus_) :
  *            * |\int d^2 b e^(-ib*\delta) T_A(b)|^2
  * 
  * Here we neglect two-body correlations
+ *
+ * Case A=1 (dipole-proton collision) is handled separately:
+ * |A|^2 = sigmap(r)*sigmap(r')*exp(-B_p*\Delta^2)
  */
 
 REAL Dipxs_IPNonSat::Dipxsection_sqr_avg(REAL rsqr, REAL r2sqr, 
     REAL xbjork, REAL delta)
 {
     REAL result;
+    REAL bp=B_p;
+    // In case dipole-proton use just the transverse profile of proton and
+    // do not sum over nucleus states / average over nucleons
+    if (nucleus.GetA()==1)
+    {
+        result=Sigmap(rsqr, xbjork)*Sigmap(r2sqr, xbjork)*exp(-bp*SQR(delta));    
+        return result;
+    }    
+    // Dipole-nucleus
     
     // If we just calculated this when this function was called previously
     // Yeah, this is quite an ugly hack, but this optimizes this quite much!
@@ -57,7 +69,7 @@ REAL Dipxs_IPNonSat::Dipxsection_sqr_avg(REAL rsqr, REAL r2sqr,
         result=nucleus.FT_T_WS(delta);
     
     REAL A = nucleus.GetA();
-    REAL bp=B_p;
+    
     prevdelta=delta; prevft=result;
     
     return Sigmap(rsqr,xbjork)*Sigmap(r2sqr,xbjork)*exp(-bp*SQR(delta))

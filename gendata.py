@@ -30,7 +30,7 @@ for mode in models:
                         + " -gdist " + gd + " > data/" + filename
             print (fullcmd)
             os.system(fullcmd)
-            os.system("rm -fr tmp; mkdir tmp")
-            os.system("sort -n " + filename + " > " + "tmp/" + filename)
+            os.system("rm -fr data/tmp; mkdir data/tmp")
+            os.system("sort -n " + filename + " > " + "data/tmp/" + filename)
 
 print("Done, sorted data can be found under tmp directory")

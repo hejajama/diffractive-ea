@@ -7,4 +7,5 @@
 *.blg
 *.log
 *.out
-
+*.aux
+*.pyc

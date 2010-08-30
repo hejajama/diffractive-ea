@@ -14,6 +14,7 @@
 
 #include "nucleus.h"
 #include "mersenne/mersenne.h"
+#include "gdist/gdist_dglap.h"
 
 using std::cout; using std::endl; using std::cerr;
 
@@ -75,7 +76,7 @@ int Nucleus::Intialize()
 
     // Gluon distribution
     if (gdist) delete gdist;    // If we already have allocated gdist
-    gdist = new GDist_Toy();    // Use toy model by default
+    gdist = new DGLAPDist();    // Use toy model by default
     
     
     // Normalize WS distribution    

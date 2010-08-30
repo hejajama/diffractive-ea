@@ -1,5 +1,5 @@
 CXXFLAGS = `gsl-config --cflags` -g #-fopenmp #-pg -Wall
-CXXFLAGS = `gsl-config --cflags` -O2 
+#CXXFLAGS = `gsl-config --cflags` -O2 
 #CXXFLAGS = `gsl-config --cflags` -O2 -fopenmp -g
 LDFLAGS = `gsl-config --libs` 
 
