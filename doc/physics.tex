@@ -1,4 +1,4 @@
-\documentclass[a4paper,12pt,twoside]{article}
+\documentclass[a4paper,12pt]{article}
 \usepackage[utf8x]{inputenc}
 \usepackage[english]{babel}
 \usepackage{enumerate}
@@ -23,43 +23,65 @@
 \begin{document} 
 \maketitle
 \begin{abstract}
-This document describes the physics used in my numerical code. The structure of the code is not covered in this document.
+This program calculates numerically quasi-elastic diffractive deep inealastic electron-nuclues cross section. In this document the physical background of my numerical code is described. The structure of the code is not covered in this document.
 \end{abstract}
 
 \section{Introduction}
-For a $\gamma^*p \rightarrow VA$ scattering ($V$ is e.g. a vector meson) we have the following formulae for an amplitude \cite{Caldwell:2009ke}
+For a $\gamma^*A \rightarrow VA$ scattering ($V$ is e.g. a vector meson) we have the following formulae for an amplitude \cite{Caldwell:2009ke}
 \begin{equation}
-	\A^{\gamma^* p}(x,Q,\Delta) =	\sum_f \int \der^2 r \int_0^1 \frac{\der z}{4\pi} \Psi_V^*(r,z,Q) \A_{q\bar q}(x,r,\Delta) \Psi(r,z,Q).
+	\A^{\gamma^* A}(x,Q,\Delta) =	\sum_f \int \der^2 r \int_0^1 \frac{\der z}{4\pi} \Psi_V^*(r,z,Q) \A_{q\bar q}(x,r,\Delta) \Psi(r,z,Q).
 \end{equation}
-Here $\A_{q\bar q}$ is the scattering amplitude for dipole-proton scattering.
+Here $\A_{q\bar q}$ is the scattering amplitude for dipole-nucleus scattering. 
+
+When we calculate the quasi-elastic cross section we have to sum over all possible excited states of nucleus and any breakup of the nucleus into colorless nucleus. In addition, the cross section must be averaged over nucleon configurations. This is possible to do using the completness relation $\sum_n \Psi_{A_n}(b_1,\dots,b_i) \Psi_{A_n}^*(b_1',\dots,b_i') = \prod_i \delta(b_i-b_i')$. Here $\Psi_{A_n}$ is the wave function of nucleus at state $A_n$. As a result we get
+\begin{equation}
+\begin{split}
+	\label{eq:Asqr}
+	|\A^{\gamma^* A}|^2 &= \int \der^2 r \int \frac{\der z}{4\pi} (\Psi_V^*\Psi)(r,z,Q) \int \der^2 r' \int \frac{\der z'}{4\pi} (\Psi_V^*\Psi)(r',z',Q) \\
+	&\quad  \times |\A_{q\bar q}|^2(x,r,r',\Delta).
+\end{split}
+\end{equation}
+$|\A_{q\bar q}|^2$ is the dipole-nucleus scattering amplitude squared averaged over nucleon configurations and summed over possible states of nucleus (completness relation is used here).
+
+In this program $|\A_{q\bar q}|^2$ depend on the given dipole model and it is implemented as \code{Dipxs::Dipxsection\_sqr\_avg}. The rest of eq. \eqref{eq:Asqr} is implemented in \code{Calculator::CrossSection\_dt} and does not depend on the used dipole model.
+
+The amplitude squared can be used to obtain the differential cross section:
+\begin{equation}
+	\frac{\der \sigma}{\der t} = \frac{1}{16\pi} |\A|^2 .
+\end{equation}
 
 \section{Dipole cross section}
 Code supports a few different models for dipole cross section, and it is quite easy to implement a new one. Just derive a class from class \code{DIpxs}.
 
-\subsection{Ip Non Sat}
+\subsection{Ip Non-Sat}
 Code: This model is implemented as a class \code{Dipxs\_IPNonSat}.
 
-Ip Non Sat is the most simple model for dipole-proton cross section. It is derived in e.g. \cite{Caldwell:2009ke} by Kowalski and Caldwell. In this model the dipole cross section is given by
+Ip Non-Sat is the most simple model for dipole-proton cross section. It is derived in e.g. \cite{Caldwell:2009ke} by Kowalski and Caldwell. In this model the dipole-proton amplitude is given by
 \begin{equation}
 	\frac{\der \sigma_{q\bar q}}{\der^2 b} = \frac{\pi^2}{3}r^2 \alpha_s(µ^2)xg(x,µ^2) T_p(b). 
 \end{equation}
-This amplitude can be used to derive the amplitude squared for the quasi-elastic dipole-nucleus scattering:
+This amplitude can be used to (see \cite{Caldwell:2009ke}) derive the amplitude squared for the quasi-elastic dipole-nucleus scattering:
 \begin{equation}
-	|\A|^2(x,r,r',\Delta) = \kappa(r) \kappa(r') e^{-B_p \Delta^2} A  \left[ 1 + \left| \int \der^2 b e^{-ib \cdot \Delta} T_A(b)\right|^2 \right] . 
+	|\A_{q\bar q}|^2(x,r,r',\Delta) = \kappa(r) \kappa(r') e^{-B_p \Delta^2} A  \left[ 1 + (A-1) \left| \int \der^2 b e^{-ib \cdot \Delta} T_A(b)\right|^2 \right] . 
 \end{equation}
 Here 
 \begin{equation}
 	\label{eq:kappa}
 	\kappa(r) = \frac{\pi^2}{3}r^2\alpha_s(\mu^2)xg(x,\mu^2).
 \end{equation}
-$xg(x,\mu^2)$ is the dimensionless gluon density, see some notes about it in chapter \ref{gdist}.
+$xg(x,\mu^2)$ is the dimensionless gluon density, see some notes about it in chapter \ref{gdist}. The two-body correlations are neglected. Moreover,
+\begin{equation}
+	T_p(b) = \frac{1}{2\pi B_G}e^{-b^2/(2B_G)},
+\end{equation}
+where $B_G=\unit{4.0}{\giga\electronvolt^{-2}}$.
 
-\label{IP Sat}
+\subsection{IP Sat}
+\label{ipsat}
 Code: This model is implemented as a class \code{Dipxs\_IPSat}.
 
-IP Sat model takes into account the unitarity requirement of the scattering matrix $S$. In this model the dipole-proton corss section can be written as \cite{PhysRevD.68.114005}
+IP Sat model takes into account the unitarity requirement of the scattering matrix $S$. In this model the dipole-proton scattering amplitude can be written as \cite{PhysRevD.68.114005}
 \begin{equation}
-	\frac{\der \sigma_{q\bar q}}{\der^2 b} = 2\left[1- \exp \left(-\frac{\pi^2}{3\cdot 2}r^2 \kappa_s(µ^2)xg(x,µ^2) T_p(b)\right) \right]
+	\frac{\der \sigma_{q\bar q}}{\der^2 b} = 2\left[1- \exp \left(-\frac{\pi^2}{3\cdot 2}r^2 \alpha_s(µ^2)xg(x,µ^2) T_p(b)\right) \right]
 \end{equation}
 One can then do some approximations to obtain the following formula
 \begin{equation}
@@ -72,9 +94,41 @@ where
 \begin{equation}
 	C(r) = 1-e^{-\kappa(r)/(4\pi B_p)}.
 \end{equation}
-$\kappa(r)$ is defined by eq \eqref{eq:kappa}.
+$\kappa(r)$ is defined in eq \eqref{eq:kappa}.
 
 \subsection{IIM}
+The heavy-quark improved Iancu-Itakura-Munier (IIM) model is defined by parts so that when $rQ_s(x)>1$, the dipole-proton scattering amplitude is about $1$. When $rQ_s(x) \ll 1$, the amplitude is also small. Here $Q_s(x)$ is the saturation scale parametrised by
+\begin{equation}
+	Q_s(x) = Q_0 \frac{x_0}{x}^{\lambda/2}.
+\end{equation}
+We take the parameters from \cite{Marquet:2007nf}: $Q_0 = \unit{1.0}{\giga\electronvolt}$, $\lambda = 0.2197$ and $x_0 = 1.632 \cdot 10^{-5}$.
+
+In IIM model the dipole-proton amplitude is factorized as
+\begin{equation}
+	\A_{q\bar q} = S(b) N(rQ_s,x).
+\end{equation}
+Here the impact parameter dependence is factorized in $S(b)$ and it is assumed to be gaussian
+\begin{equation}
+	S(b) = e^{-b^2/(2B_D)}.
+\end{equation}
+The parameter $B_D = \unit{5.591}{\giga\electronvolt^{-2}}$.
+
+Moreover, $N$ can be written as
+\begin{equation}
+N(rQ_s,x) = \begin{cases}
+	N_0\left( \frac{rQ_s}{2} \right)^{2\gamma_c} \exp \left[ -\frac{2 \ln^2 (rQ_s/2) }{\eta \lambda \ln (1/x)} \right] & \text{for } rQ_s \leq 2  \\
+	1-e^{-4\alpha \ln^2 (\beta rQ_s)} & \text{for } rQ_s > 2	
+	\end{cases}
+\end{equation}
+In this heavy-quark improved model the parameters are: $\eta = 9.9$, $\gamma_c = 0.7376$, $\lambda=0.2197$ and $N_0 = 0.7$. $\alpha$ and $\beta$ are determined from the requirement that $N$ and its derivative are continuous at $rQ_s=2$. Using the parameters introduced here one finds that $\alpha = 0.615065$ and $\beta = 1.00642$.
+
+This model can be easily modified to describe dipole-nucleus scattering: as it was done with Ip Non-Sat model, we write $S(b) = \sum_i S(b-b_i)$ and get the result
+\begin{equation}
+\begin{split}
+	|\A_{q\bar q}|^2(x,r,r',\Delta) &= 4\pi^2B_D^2 e^{-B_D \Delta^2} N(rQ_s,x)N(r'Q_s,x) A \\
+	&\quad \times \left[1 + (A-1) \left| \int \der^2 b e^{-ib \cdot \Delta} T_A(b) \right|^2 \right] . 
+\end{split}
+\end{equation}
 
 \section{Vector Meson Wave Function}
 We have to calculate the overlap between a virtual photon and a vector meson wave functions. It is quite easy to implement a new model, just derive the class from the class \code{WaveFunction}.
@@ -95,11 +149,15 @@ Here
 We also use notation $\nabla_r^2 = (1/r)\partial_r + \partial_r^2$.
 
 Parameters for $J/\Psi$ production are: $M_V = \unit{3.097}{\giga\electronvolt}$, $m_f = \unit{1.4}{\giga\electronvolt}$, $N_T = 1.23$, $R_T^2 = \unit{6.5}{\giga\electronvolt^{-2}}$, $N_L=0.83$, $R_L^2 = \unit{3.0}{\giga\electronvolt^{-2}}$, $e_f = 2/3 e$, $\delta = 0$ or 1.
+
+
 \section{Gluon Distribution}
 \label{gdist}
+Code: \code{GDist} class. See also \code{src/gdist/gdist\_dglap.h}.
 
 \bibliography{refs}
 
 \end{document}
+
 
 
