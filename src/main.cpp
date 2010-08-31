@@ -176,7 +176,7 @@ int main(int argc, char* argv[])
         REAL result = calculator.TotalCrossSection(Qsqr, bjorkx);
         cout << "Total cross section: " << result*400.0*1000.0 << " nb" << endl;
     }
-    else if (Ap)    // Calculate \sigma^A / A*\sigma_p as a function Q^2 at t
+    else if (Ap)    // Calculate d\sigma^A/dt / A*d\sigma_p/dt as a function Q^2 at t
     {
         // Proton cross section
         Nucleus proton(1);
@@ -194,10 +194,13 @@ int main(int argc, char* argv[])
             REAL tmpqsqr=maxQsqr/points*i;
             REAL protonxs = protoncalc.CrossSection_dt(t, tmpqsqr, bjorkx);
             REAL nukexs = calculator.CrossSection_dt(t, tmpqsqr, bjorkx);
-            cout.precision(5);
-            cout << fixed << tmpqsqr;
-            cout.precision(8);
-            cout << " " << nukexs / (A*protonxs) << endl;
+            //#pragma omp critical
+            {
+                cout.precision(5);
+                cout << fixed << tmpqsqr;
+                cout.precision(8);
+                cout << " " << nukexs / (A*protonxs) << endl;
+            }
         }
         delete protonxs;
     
@@ -212,10 +215,13 @@ int main(int argc, char* argv[])
             REAL tmpt = (maxt-mint)/points*i;
             REAL delta = sqrt(tmpt);
             REAL result = calculator.CrossSection_dt(tmpt, Qsqr, bjorkx);
-            cout.precision(5);
-            cout << fixed << tmpt;
-            cout.precision(8);
-            cout << " " << result << endl;
+            #pragma omp critical
+            {
+                cout.precision(5);
+                cout << fixed << tmpt;
+                cout.precision(8);
+                cout << " " << result << endl;
+            }
         }
     }
     

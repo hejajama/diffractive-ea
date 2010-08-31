@@ -10,27 +10,25 @@ models=["ipsat", "ipnonsat", "iim"]
 # Gluon distributions
 gdists=["dglap"]
 #Q^2 values
-Q2vals=[0,3,20]
+Q2vals=[0,25,60]
 
 A=197 # Gold
 N=200
 mint=0
-maxt=1.0
-num_of_threads=6
+maxt=0.7
+num_of_threads=4
 bjorkx=0.0001
+gd="dglap"
 
 cmd = "OMP_NUM_THREADS="+str(num_of_threads) + " ./dipole -A " + str(A) \
     + " -N " + str(N) + " -mint " + str(mint)  + " -maxt " + str(maxt) \
     + " -x " + str(bjorkx)
 for mode in models:
-    for gd in gdists:
-        for q in Q2vals:
-            filename = mode+"_" + gd + "_" + str(q) + ".txt"
-            fullcmd = cmd + " -Q2 " + str(q) + " -dipole " + mode \
-                        + " -gdist " + gd + " > data/" + filename
-            print (fullcmd)
-            os.system(fullcmd)
-            os.system("rm -fr data/tmp; mkdir data/tmp")
-            os.system("sort -n " + filename + " > " + "data/tmp/" + filename)
-
-print("Done, sorted data can be found under tmp directory")
+    for q in Q2vals:
+        filename = "data/q" + str(q) + "/" + mode + ".txt"
+        fullcmd = cmd + " -Q2 " + str(q) + " -dipole " + mode \
+                     + " -gdist " + gd + " > " + filename
+        print (fullcmd)
+        os.system(fullcmd)
+        os.system("sort -n " + filename + " > data/q" + str(q) + "/" + mode + "_sorted.txt")
+print("Done")

@@ -76,7 +76,7 @@ int Nucleus::Intialize()
 
     // Gluon distribution
     if (gdist) delete gdist;    // If we already have allocated gdist
-    gdist = new DGLAPDist();    // Use toy model by default
+    gdist = new DGLAPDist();    // Use dglap model by default
     
     
     // Normalize WS distribution    
