@@ -10,6 +10,7 @@
 #include "dipxs.h"
 #include "nucleus.h"
 #include <vector>
+
  
 class Dipxs_IPSat : public Dipxs
 {
@@ -26,6 +27,9 @@ class Dipxs_IPSat : public Dipxs
         REAL Dipxsection(REAL rsqr, REAL xbjork, Vec b, 
             std::vector<Vec> &nucleons); // Non-averaged dipole cross section
 
+        // Dipole-proton amplitude
+        REAL Dipxsection_proton(REAL rsqr, REAL xbj, REAL delta);
+
 
         //REAL Dipxsection_b_avg_sqr(REAL rsqr, REAL r2sqr, Vec b, Vec b2, REAL xbjork ); // Impact parameter representation
         
@@ -34,6 +38,7 @@ class Dipxs_IPSat : public Dipxs
         REAL GetB_p();
         REAL FactorC(REAL rsqr, REAL xbjork);
     private:
+        REAL Sigmap(REAL rsqr, REAL xbjork);
         static const REAL B_p=4.0;       
 
 };

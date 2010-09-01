@@ -8,11 +8,16 @@
  
 #include "dipxs_iim.h"
 #include <gsl/gsl_math.h>
+#include <gsl/gsl_integration.h>
+#include <gsl/gsl_sf_gamma.h>
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <sstream>
 #include <cstdlib>
+
+const REAL AVGITACCURACY = 0.001;
+const REAL MAXB=90;
 
 Dipxs_IIM::Dipxs_IIM(Nucleus& nuke) : Dipxs(nuke)
 {
@@ -56,6 +61,48 @@ Dipxs_IIM::Dipxs_IIM(Nucleus& nuke, std::string file) : Dipxs(nuke)
  * (Brazilian Journal of Physics, vol. 37, no. 1, March, 2007)
  */
  
+// Some integral helpers for IIM_IPSAT case 
+// First the required integral helpers
+struct inthelper_iimavg
+{
+    REAL r1q,r2q;
+    REAL xbj;
+    REAL delta;
+    
+    Dipxs_IIM* dip;
+    Nucleus* nuke;
+};
+
+REAL inthelperf_iimavg(REAL b, void* p)
+{
+    // Calculate the sum
+    REAL sum=0;
+    inthelper_iimavg* par=(inthelper_iimavg*)p;
+    int A = par->nuke->GetA();
+    REAL x = par->xbj;
+    REAL B_D=par->dip->GetB_D();
+    REAL twstmp = par->nuke->T_WS(b);
+    for (int i=1; i<=N_MAX_IIM; i++)
+    {
+        sum+=gsl_sf_choose(A,i)/((REAL)i)*exp(-B_D*SQR(par->delta)/i)
+             * exp(-2*A*M_PI*B_D*twstmp*(par->dip->DipoleAmplitude(par->r1q,x)/2.0
+               + par->dip->DipoleAmplitude(par->r2q,x)/2.0 ) )
+             * pow( 
+                M_PI*B_D*par->dip->DipoleAmplitude(par->r1q,x)/2.0
+                * par->dip->DipoleAmplitude(par->r2q,x)/2.0*twstmp
+                / (1-2*M_PI*B_D*twstmp
+                *(par->dip->DipoleAmplitude(par->r1q,x)/2.0
+                    + par->dip->DipoleAmplitude(par->r2q,x)/2.0 )
+                 )  ,i);    
+    }
+    
+    sum*=16*M_PI*B_D;
+    
+    // 2D integral -> 1D
+    sum*=2*M_PI*b;
+    return sum;
+}
+ 
 REAL Dipxs_IIM::Dipxsection_sqr_avg(REAL rsqr, REAL r2sqr, REAL xbj, 
                 REAL delta)
 {
@@ -66,18 +113,65 @@ REAL Dipxs_IIM::Dipxsection_sqr_avg(REAL rsqr, REAL r2sqr, REAL xbj,
     REAL r1Q = Q_sA*r1; REAL r2Q=Q_sA*r2;
     REAL bd=B_D;
     
-    // If we just calculated this when this function was called previously
-    // Yeah, this is quite an ugly hack, but this optimizes this quite much!
-    REAL ft;
-    if (prevdelta==delta)
-        ft=prevft;
-    else
-        ft=nucleus.FT_T_WS(delta);
+ 
+    if (IIM_MODE==IIM_IPNONSAT)
+    {
+        // Generalize to qq-nucleus scattering as it was done with IPNonSat
+        // model: amplitude=\sum_i amplitude_qq(b-b_i)
+    
+        // If we just calculated this when this function was called previously
+        // Yeah, this is quite an ugly hack, but this optimizes this quite much!
+        REAL ft;
+        if (prevdelta==delta)
+            ft=prevft;
+        else
+            ft=nucleus.FT_T_WS(delta);
 
-    prevdelta=delta; prevft=ft;
-    return 4*SQR(M_PI)*SQR(bd)*exp(-bd*delta*delta)*DipoleAmplitude(r1Q,xbj)
-        * DipoleAmplitude(r2Q,xbj)*A*( 1.0 + (A-1.0)*ft*ft );
+        prevdelta=delta; prevft=ft;
+        return 4*SQR(M_PI)*SQR(bd)*exp(-bd*delta*delta)*DipoleAmplitude(r1Q,xbj)
+            * DipoleAmplitude(r2Q,xbj)*A*( 1.0 + (A-1.0)*ft*ft );
+     }
+     else if (IIM_MODE==IIM_IPSAT)
+     {
+        // Generalize as a product of S matrix elements
+        inthelper_iimavg helper;
+        helper.r1q=r1Q; helper.r2q=r2Q;
+        helper.xbj=xbj; helper.delta=delta;
+        helper.dip=this;
+        helper.nuke=&nucleus;
+        
+        gsl_function fun;
+        fun.function=&inthelperf_iimavg;
+        fun.params=&helper;
+        
+        size_t eval;
+        REAL result,abserr;
 
+        int status = gsl_integration_qng(&fun, 0, MAXB, 
+                0, AVGITACCURACY, &result, &abserr, &eval);
+        
+        if (status) std::cerr << "Error " << status << " at " << __FILE__ << ":"
+            << __LINE__ << ": Result " << result << ", abserror: " << abserr 
+            << " (t=" << delta*delta <<")" << std::endl;
+        
+        return result;
+     
+     }
+     
+
+}
+
+/*
+ * Dipole-proton amplitude as a function of \Delta
+ * Integrated over impact parameter dependence
+ * 
+ * 2 \pi B_D exp(-B_D*\Delta^2/2) * DipoleAmplitude(rq,x)
+ */
+REAL Dipxs_IIM::Dipxsection_proton(REAL rsqr, REAL xbj, REAL delta)
+{
+    REAL bd = B_D;
+    REAL rq = Q_s(xbj)*sqrt(rsqr);
+    return 2*M_PI*bd*exp(-bd*SQR(delta)/2)*DipoleAmplitude(rq,xbj);
 }
 
 /* 
@@ -154,6 +248,11 @@ int Dipxs_IIM::ReadParameters(std::string file)
 
     return 0;
 
+}
+
+REAL Dipxs_IIM::GetB_D()
+{
+    return B_D;
 }
 
 

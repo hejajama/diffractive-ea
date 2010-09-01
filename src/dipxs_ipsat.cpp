@@ -111,6 +111,19 @@ REAL Dipxs_IPSat::Dipxsection_sqr_avg(REAL rsqr, REAL r2sqr, REAL xbj,
 }
 
 /*
+ * Dipole-proton amplitude as a function of \Delta
+ * Integrated over impact parameter dependence
+ * A = sigmap(r) exp(-B_p \Delta^2 / 2)
+ * 
+ * Same as Dipxs_IPNonSAT::Dipxsection_proton
+ */
+REAL Dipxs_IPSat::Dipxsection_proton(REAL rsqr, REAL xbj, REAL delta)
+{
+    REAL bp=B_p;
+    return Sigmap(rsqr, xbj)*exp(-bp*SQR(delta)/2.0);
+}
+
+/*
  * Non-averaged dipole cross section as a function of
  * nucleon transversial positions 
  */
@@ -146,6 +159,17 @@ REAL Dipxs_IPSat::Dipxsection(REAL rsqr, REAL xbjork, Vec b,
 REAL Dipxs_IPSat::FactorC(REAL rsqr, REAL xbjork)
 {
     return 1-exp(-nucleus.GetGDist()->Gluedist(xbjork,rsqr)*rsqr/(2.0*M_PI*B_p));    
+}
+
+/*
+ * Sigmap
+ * Total dipole-proton cross section
+ * \pi^2/Nc*r^2*alpha_s(mu(r)^2)*xg(x,mu(r)^2)
+ * = 2*r^2*Gluedist(x,r)
+ */
+REAL Dipxs_IPSat::Sigmap(REAL rsqr, REAL xbjork)
+{
+    return 2*rsqr*nucleus.GetGDist()->Gluedist(xbjork,rsqr);
 }
 
 

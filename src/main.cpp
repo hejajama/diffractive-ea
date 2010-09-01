@@ -132,7 +132,7 @@ int main(int argc, char* argv[])
     
     // Print values
     cout << "# x=" << bjorkx << ", Q^2=" << Qsqr << " A=" << A;
-    if (A==1 and model==MODEL_IPNONSAT) cout << " (dipole-proton)";
+    if (A==1) cout << " (dipole-proton)";
     cout << endl;
     cout << "# GDist=" << gdist_model << ",  dipole model=" << model << endl;
  
@@ -177,24 +177,17 @@ int main(int argc, char* argv[])
         cout << "Total cross section: " << result*400.0*1000.0 << " nb" << endl;
     }
     else if (Ap)    // Calculate d\sigma^A/dt / A*d\sigma_p/dt as a function Q^2 at t
-    {
-        // Proton cross section
-        Nucleus proton(1);
-        proton.SetGDist(gdist);
-        Dipxs *protonxs = new Dipxs_IPNonSat(proton);
-        //Dipxs_IPNonSat protonxs(proton);
-        Calculator protoncalc(protonxs,JPsi);
-        
+    {         
         cout << "# t=" << t << endl;
         cout << "# Q^2   nucleus_xs / A*proton_xs" << endl;
         
-        //#pragma omp parallel for
+        #pragma omp parallel for
         for (int i=0; i<=points; i++)
         {
             REAL tmpqsqr=maxQsqr/points*i;
-            REAL protonxs = protoncalc.CrossSection_dt(t, tmpqsqr, bjorkx);
+            REAL protonxs = calculator.ProtonCrossSection_dt(t, tmpqsqr, bjorkx);
             REAL nukexs = calculator.CrossSection_dt(t, tmpqsqr, bjorkx);
-            //#pragma omp critical
+            #pragma omp critical
             {
                 cout.precision(5);
                 cout << fixed << tmpqsqr;
@@ -202,7 +195,6 @@ int main(int argc, char* argv[])
                 cout << " " << nukexs / (A*protonxs) << endl;
             }
         }
-        delete protonxs;
     
     
     }
@@ -214,7 +206,11 @@ int main(int argc, char* argv[])
         {
             REAL tmpt = (maxt-mint)/points*i;
             REAL delta = sqrt(tmpt);
-            REAL result = calculator.CrossSection_dt(tmpt, Qsqr, bjorkx);
+            REAL result;
+            if (A==1)
+                result = calculator.ProtonCrossSection_dt(tmpt, Qsqr, bjorkx);
+            else
+                result = calculator.CrossSection_dt(tmpt, Qsqr, bjorkx);
             #pragma omp critical
             {
                 cout.precision(5);

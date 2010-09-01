@@ -33,6 +33,9 @@ class Dipxs
         virtual REAL Dipxsection_sqr_avg(REAL rsqr, REAL r2sqr, REAL xbj, 
                 REAL delta)=0;
         
+        // Scattering amplitude for dipole-proton scattering
+        virtual REAL Dipxsection_proton(REAL rsqr, REAL xbj, REAL delta)=0;
+        
         // Wrapper, calls virtual Dipxsection with parameter Vec(x,y)
         REAL Dipxsection(REAL rsqr, REAL xbj, REAL x, REAL y,
                 std::vector<Vec>& nucleons);

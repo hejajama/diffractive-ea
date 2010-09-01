@@ -23,6 +23,7 @@ class Calculator
     public:
         Calculator(Dipxs* amplitude_, WaveFunction* wavef_);
         REAL CrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx);  // d\sigma / dt
+        REAL ProtonCrossSection_dt(REAL t, REAL Qsqr, REAL Bjorkx);
         REAL TotalCrossSection(REAL Qsqr, REAL bjorkx); 
         
     private:
@@ -48,6 +49,7 @@ struct inthelper_r
 REAL inthelperf_r1(REAL r, void* p);
 REAL inthelperf_r2(REAL r, void* p);
 REAL inthelper_totxs(REAL t, void* p);
+REAL inthelperf_proton(REAL r, void* p);
 
 // Integration settings
 const REAL MAXR=4;

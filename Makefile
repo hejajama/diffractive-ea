@@ -1,6 +1,6 @@
 CXXFLAGS = `gsl-config --cflags` -g #-fopenmp #-pg -Wall
 #CXXFLAGS = `gsl-config --cflags` -O2 
-#CXXFLAGS = `gsl-config --cflags` -O2 -fopenmp -g
+#CXXFLAGS = `gsl-config --cflags` -O2 -fopenmp
 LDFLAGS = `gsl-config --libs` 
 
 SOURCES = src/main.cpp src/dipole.cpp src/vm_photon.cpp src/vector.cpp src/nucleus.cpp \

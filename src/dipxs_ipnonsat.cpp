@@ -76,6 +76,16 @@ REAL Dipxs_IPNonSat::Dipxsection_sqr_avg(REAL rsqr, REAL r2sqr,
         *A*(1.0+(A-1.0)*result*result);
 }
 
+/*
+ * Dipole-proton amplitude as a function of \Delta
+ * Integrated over impact parameter dependence
+ * |A|^2 = sigmap(r)^2 exp(-B_p \Delta^2)
+ */
+REAL Dipxs_IPNonSat::Dipxsection_proton(REAL rsqr, REAL xbj, REAL delta)
+{
+    REAL bp=B_p;
+    return Sigmap(rsqr, xbj)*exp(-bp*SQR(delta)/2.0);
+}
 
 /*
  * Dipole cross section in impact parameter reprsesentation as a 
@@ -103,6 +113,7 @@ REAL Dipxs_IPNonSat::Dipxsection(REAL rsqr, REAL xbjork, Vec b,
     result *= Sigmap(rsqr,xbjork)/(2*M_PI*B_p);
     return result;
 } 
+
 
 /*
  * Sigmap

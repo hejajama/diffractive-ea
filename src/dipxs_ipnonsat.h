@@ -18,7 +18,9 @@ class Dipxs_IPNonSat : public Dipxs
         REAL Dipxsection_sqr_avg(REAL rsqr, REAL r2sqr, REAL xbjork, REAL delta);
         REAL Dipxsection(REAL rsqr, REAL xbjork, Vec b, 
                 std::vector<Vec>& nucleons); 
-       
+                
+       // Dipole-proton amplitude
+       REAL Dipxsection_proton(REAL rsqr, REAL xbj, REAL delta);
 
     
     private:

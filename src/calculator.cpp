@@ -3,12 +3,14 @@
  *
  * Heikki Mäntysaari <heikki.mantysaari@jyu.fi>, 2010
  */
- 
+
+#include "dipole.h"
 #include "calculator.h"
 #include <gsl/gsl_integration.h>
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_math.h>
 #include <iostream>
+
 
 
 Calculator::Calculator(Dipxs* amplitude_, WaveFunction* wavef_)
@@ -41,6 +43,31 @@ REAL Calculator::CrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
         
     result *= 1.0/(16.0*M_PI);
     return result;
+}
+
+/*
+ * Differential cross section for dipole-proton scattering
+ */
+REAL Calculator::ProtonCrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
+{
+    gsl_function fun;   
+    inthelper_r inthelp;
+    inthelp.amplitude=amplitude;
+    inthelp.vm=wavef; inthelp.bjorkx=bjorkx;
+    inthelp.delta=sqrt(t); inthelp.Qsqr=Qsqr;
+    inthelp.calculator=this;
+    fun.function=&inthelperf_proton;
+    fun.params=&inthelp; 
+        
+    REAL result,abserr; size_t eval;
+    int status = gsl_integration_qng(&fun, MINR, MAXR, 0, RINTACCURACY, 
+        &result, &abserr, &eval);
+    if (status) std::cerr << "Error " << status << " at " << __FILE__ << ":"
+        << __LINE__ << ": Result " << result << ", abserror: " << abserr 
+        << " (t=" << t <<")" << std::endl;
+    
+    return result*result/(16.0*M_PI);
+
 }
 
 /*
@@ -110,3 +137,14 @@ REAL inthelperf_r2(REAL r2, void* p)
                     par->bjorkx, par->delta);
 
 }
+
+// Only one r integral for dipole-proton scattering
+REAL inthelperf_proton(REAL r, void* p)
+{
+    inthelper_r* par = (inthelper_r*)p;
+    return 2*M_PI*r*par->vm->PsiSqr_tot_intz(par->Qsqr, r)
+        * par->amplitude->Dipxsection_proton(SQR(r), par->bjorkx,
+         par->delta);
+       
+}
+
