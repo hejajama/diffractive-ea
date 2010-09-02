@@ -36,6 +36,7 @@ const REAL RINTACCURACY=0.002;
 const REAL TOTXS_MAXT=2;    // Max |t| in GeV^2 when calculating total xs
 */
 const int MODEL_IPSAT=1; const int MODEL_IPNONSAT=2; const int MODEL_IIM=3;
+const int MODEL_IPSAT_NONSATP=4;
 const int GDIST_DGLAP=1; const int GDIST_TOY=2;
 
 void Cleanup(); 
@@ -65,7 +66,7 @@ int main(int argc, char* argv[])
         if (string(argv[1])=="--help")
         {
             cout << "Usage: -x bjorkx -Q2 Q^2" << endl;
-            cout << "-dipole {ipsat,ipnonsat,iim}" << endl;
+            cout << "-dipole {ipsat,ipnonsat,iim,ipsat_nonsatp}" << endl;
             cout << "-gdist {dglap,toy}" << endl;
             cout << "-A number_of_nucleai" << endl;
             cout << "-N number_of_data_points" << endl;
@@ -113,6 +114,8 @@ int main(int argc, char* argv[])
                     model=MODEL_IPNONSAT;
                 else if (string(argv[i+1])=="iim")
                     model=MODEL_IIM;
+                else if (string(argv[i+1])=="ipsat_nonastp")
+                    model=MODEL_IPSAT_NONSATP;
                 else
                     cerr << "Model " << argv[i+1] << " is not valid" << endl;
             }
@@ -160,6 +163,8 @@ int main(int argc, char* argv[])
         dsigmadb = new Dipxs_IPNonSat(nuke);
     else if (model==MODEL_IIM)
         dsigmadb = new Dipxs_IIM(nuke, iim_file);
+    else if (model==MODEL_IPSAT_NONSATP)
+        dsigmadb = new Dipxs_IPSat(nuke, IPSAT_MODE_NONSAT_P);
 
     Calculator calculator(dsigmadb, JPsi);
 

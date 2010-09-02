@@ -10,12 +10,12 @@
 #include "dipxs.h"
 #include "nucleus.h"
 #include <vector>
-
  
 class Dipxs_IPSat : public Dipxs
 {
     public:
         Dipxs_IPSat(Nucleus &nucleus_);
+        Dipxs_IPSat(Nucleus &nucleus_, int mode_);
         // Amplitude squared averaged over nucleon configurations as a 
         // function of \Delta and r,r' (and x)
         // \int d^2 b_1 ... d^2 b_A T_A(b_1)...T_A(B_A) 
@@ -39,11 +39,22 @@ class Dipxs_IPSat : public Dipxs
         REAL FactorC(REAL rsqr, REAL xbjork);
     private:
         REAL Sigmap(REAL rsqr, REAL xbjork);
-        static const REAL B_p=4.0;       
+        static const REAL B_p=4.0;   
+        REAL mode;    
 
 };
 
-static const int N_MAX=1;  // Upper limit for the sum in Dipxsection_sqr_avg
+const int N_MAX=1;  // Upper limit for the sum in Dipxsection_sqr_avg
+
+const int IPSAT_MODE_DEFAULT=1;
+const int IPSAT_MODE_NONSAT_P=2;
+/* In case of IPSAT_MODE_NONSAT_P the scattering amplitude for
+ * dipole-proton scattering is not unitarized, but we however take into
+ * account the possibility to scatter on multiple nucleons at the same time
+ *
+ * In IPSAT_MODE_DEFAULT the dipole-proton scattering amplitude is also
+ * unitarized
+ */
 
 
 #endif  // Dipxs_IPSAT_H

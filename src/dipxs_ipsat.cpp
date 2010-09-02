@@ -26,7 +26,12 @@ using std::cout; using std::endl; using std::cerr;
 Dipxs_IPSat::Dipxs_IPSat(Nucleus &nucleus_) :
     Dipxs(nucleus_)
 {
-    // Nothing to do here
+    mode = IPSAT_MODE_DEFAULT;
+}
+
+Dipxs_IPSat::Dipxs_IPSat(Nucleus &nucleus_, int mode_) : Dipxs(nucleus_)
+{
+    mode = mode_;
 }
 
 /* Amplitude squared averaged over nucleon configurations as a 
@@ -158,7 +163,13 @@ REAL Dipxs_IPSat::Dipxsection(REAL rsqr, REAL xbjork, Vec b,
  */
 REAL Dipxs_IPSat::FactorC(REAL rsqr, REAL xbjork)
 {
-    return 1-exp(-nucleus.GetGDist()->Gluedist(xbjork,rsqr)*rsqr/(2.0*M_PI*B_p));    
+    if (mode==IPSAT_MODE_DEFAULT)
+        return 1-exp(-nucleus.GetGDist()->Gluedist(xbjork,rsqr)
+            *rsqr/(2.0*M_PI*B_p));    
+    else if (mode==IPSAT_MODE_NONSAT_P)
+        return 2.0*nucleus.GetGDist()->Gluedist(xbjork,rsqr)*rsqr / (4.0*M_PI*B_p);
+    else
+        std::cerr << "Error: mode not set for Dipxs_IPSat. " << std::endl;
 }
 
 /*
