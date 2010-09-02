@@ -10,7 +10,7 @@ models=["ipsat", "ipnonsat", "iim"]
 # Gluon distributions
 gdists=["dglap"]
 #Q^2 values
-Q2vals=[0,25,60]
+Q2vals=[0,10,50]
 
 A=197 # Gold
 N=200
@@ -27,8 +27,8 @@ for mode in models:
     for q in Q2vals:
         filename = "data/q" + str(q) + "/" + mode + ".txt"
         fullcmd = cmd + " -Q2 " + str(q) + " -dipole " + mode \
-                     + " -gdist " + gd + " > " + filename
+                     + " -gdist " + gd + " > " + filename + "_tmp"
         print (fullcmd)
         os.system(fullcmd)
-        os.system("sort -n " + filename + " > data/q" + str(q) + "/" + mode + "_sorted.txt")
+        os.system("sort -n " + filename +"_tmp" + " > data/q" + str(q) + "/" + mode + ".txt")
 print("Done")
