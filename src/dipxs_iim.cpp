@@ -53,12 +53,11 @@ Dipxs_IIM::Dipxs_IIM(Nucleus& nuke, std::string file) : Dipxs(nuke)
  * N(r,x) is the dipole scattering amplitude
  * eq. (13) in paper arXiv 0706.2682v1
  * 
- * This is generalized to a electron-nucleus scattering by replacing
- * S(b) = \sum_i S(b-b_i), as it is done with IPNonSat model
- *
- * TODO: Should we also change the saturation scale Q_s? See
- * Goncalves, Kugeratski and Navarra,
- * (Brazilian Journal of Physics, vol. 37, no. 1, March, 2007)
+ * This is generalized to a electron-nucleus scattering by two different ways:
+ * 1) IIM_MODE=IIM_IPNONSAT:
+ * * S(b) = \sum_i S(b-b_i), as it is done with IPNonSat model
+ * 2) IIM_MODE=IIM_IPSAT
+ * * S-matrix is the product of dipole-proton S matrix elements
  */
  
 // Some integral helpers for IIM_IPSAT case 
@@ -85,14 +84,14 @@ REAL inthelperf_iimavg(REAL b, void* p)
     for (int i=1; i<=N_MAX_IIM; i++)
     {
         sum+=gsl_sf_choose(A,i)/((REAL)i)*exp(-B_D*SQR(par->delta)/i)
-             * exp(-2*A*M_PI*B_D*twstmp*(par->dip->DipoleAmplitude(par->r1q,x)/2.0
-               + par->dip->DipoleAmplitude(par->r2q,x)/2.0 ) )
+             * exp(-2*A*M_PI*B_D*twstmp*(par->dip->DipoleAmplitude(par->r1q,x)
+               + par->dip->DipoleAmplitude(par->r2q,x) ) )
              * pow( 
-                M_PI*B_D*par->dip->DipoleAmplitude(par->r1q,x)/2.0
-                * par->dip->DipoleAmplitude(par->r2q,x)/2.0*twstmp
+                M_PI*B_D*par->dip->DipoleAmplitude(par->r1q,x)
+                * par->dip->DipoleAmplitude(par->r2q,x)*twstmp
                 / (1-2*M_PI*B_D*twstmp
-                *(par->dip->DipoleAmplitude(par->r1q,x)/2.0
-                    + par->dip->DipoleAmplitude(par->r2q,x)/2.0 )
+                *(par->dip->DipoleAmplitude(par->r1q,x)
+                    + par->dip->DipoleAmplitude(par->r2q,x) )
                  )  ,i);    
     }
     
@@ -165,13 +164,14 @@ REAL Dipxs_IIM::Dipxsection_sqr_avg(REAL rsqr, REAL r2sqr, REAL xbj,
  * Dipole-proton amplitude as a function of \Delta
  * Integrated over impact parameter dependence
  * 
- * 2 \pi B_D exp(-B_D*\Delta^2/2) * DipoleAmplitude(rq,x)
+ * 2 \pi B_D exp(-B_D*\Delta^2/2) * DipoleAmplitude(rq,x) * 2
+ * Last * 2 is due to the fact that d\sigma/d^2b = 2 * amplitude
  */
 REAL Dipxs_IIM::Dipxsection_proton(REAL rsqr, REAL xbj, REAL delta)
 {
     REAL bd = B_D;
     REAL rq = Q_s(xbj)*sqrt(rsqr);
-    return 2*M_PI*bd*exp(-bd*SQR(delta)/2)*DipoleAmplitude(rq,xbj);
+    return 2*2*M_PI*bd*exp(-bd*SQR(delta)/2.0)*DipoleAmplitude(rq,xbj);
 }
 
 /* 

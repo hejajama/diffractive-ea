@@ -51,9 +51,9 @@ class Dipxs_IIM : public Dipxs
         REAL lambda;    // = 0.2197;
         REAL gammac;    // = 0.7376;
         REAL B_D;       // = 5.591 or 4.0;    // GeV^{-2}   
-        static const int IIM_MODE=IIM_IPSAT;
 };
 
+static const int IIM_MODE = IIM_IPSAT;
 static const int N_MAX_IIM=1;   // How many terms we take into account from
                                 // the amplitude series
 
