@@ -11,9 +11,13 @@ from matplotlibhelper import *
 models=[
 	["ipsat","IPSat"],
 	["ipnonsat","IPNonSat"],
-	["iim","IIM"] ]
+	["iim","IIM"], 
+	["ipsat_nonsatp", "IPSat, NonSat p"]	
+]
+
 # Q^2
-qsqr=[0,10,50]
+#qsqr=[0,10,50]
+qsqr=[0]
 
 textsize=16
 style=0
@@ -44,7 +48,8 @@ for q in qsqr:
 	leg.draw_frame(False)
 	fig.suptitle(r"$Q^2=" + str(q) + "$ GeV$^2$", fontsize=textsize)
 	f = "q" + str(q) + ".pdf"
-    
+	print f    
+
 	pp = PdfPages(f)
 	savefig(pp,format='pdf')
 	pp.close()

@@ -164,7 +164,7 @@ REAL Dipxs_IPSat::Dipxsection(REAL rsqr, REAL xbjork, Vec b,
 REAL Dipxs_IPSat::FactorC(REAL rsqr, REAL xbjork)
 {
     if (mode==IPSAT_MODE_DEFAULT)
-        return 1-exp(-nucleus.GetGDist()->Gluedist(xbjork,rsqr)
+        return 1.0-exp(-nucleus.GetGDist()->Gluedist(xbjork,rsqr)
             *rsqr/(2.0*M_PI*B_p));    
     else if (mode==IPSAT_MODE_NONSAT_P)
         return 2.0*nucleus.GetGDist()->Gluedist(xbjork,rsqr)*rsqr / (4.0*M_PI*B_p);

@@ -39,6 +39,9 @@ const int MODEL_IPSAT=1; const int MODEL_IPNONSAT=2; const int MODEL_IIM=3;
 const int MODEL_IPSAT_NONSATP=4;
 const int GDIST_DGLAP=1; const int GDIST_TOY=2;
 
+const int MODE_TOTXS=1; const int MODE_DIFFXS=2; const int MODE_Ap=3;
+const int MODE_Ap_X=4;
+
 void Cleanup(); 
 
 int main(int argc, char* argv[])
@@ -53,10 +56,11 @@ int main(int argc, char* argv[])
     int gdist_model=GDIST_DGLAP;
     int points=100;
     REAL maxt=0.3; REAL mint=0; 
-    bool totxs=false;   // Calculate total cross section
-    bool Ap=false;      // \sigma^A / A*\sigma_p as a function of Q^2
     REAL t=0.5;
     REAL maxQsqr=30;
+    int mode=MODE_DIFFXS;   // What to do
+    REAL minx=1e-6;
+    REAL maxx=1e-2;
     
     string iim_file="iim.dat";  // Read parameters for IIM model from this file
             
@@ -76,10 +80,11 @@ int main(int argc, char* argv[])
             cout << "-A/p (nucleus cross section / A* "
                     <<"proton cross section as a function of Q^2)" << endl;
             cout << "-t t, -maxQ2 maxq2 [GeV] (value of t and maximum of Q^2 in case of -A/p)" << endl;
+            cout << "-A/p_x (same as -A/p but as a function of x), -minx minx, -maxx maxx" << endl;
             cout << "Default values: x="<<bjorkx <<", Q^2="<<Qsqr 
                 << " A="<<A<<", N="<<points<<", mint="<<mint<<", maxt="<<maxt<< endl;
             cout << "                dipxs=false, A/p=false, iimfile=" << iim_file << endl;
-            cout << "                t="<<t << endl;
+            cout << "                t="<<t << ", minx=" << minx << ", maxx=" << maxx << endl;
             return 0;
         }
         for (int i=1; i<argc; i++)
@@ -97,9 +102,11 @@ int main(int argc, char* argv[])
             if (string(argv[i])=="-maxt")
                 maxt=StrToReal(argv[i+1]);
             if (string(argv[i])=="-totxs")
-                totxs=true;
+                mode=MODE_TOTXS;
             if (string(argv[i])=="-A/p")
-                Ap=true;
+                mode=MODE_Ap;
+            if (string(argv[i])=="-A/p_x")
+                mode=MODE_Ap_X;
             if (string(argv[i])=="-t")
                 t=StrToReal(argv[i+1]);
             if (string(argv[i])=="-maxQ2")
@@ -114,7 +121,7 @@ int main(int argc, char* argv[])
                     model=MODEL_IPNONSAT;
                 else if (string(argv[i+1])=="iim")
                     model=MODEL_IIM;
-                else if (string(argv[i+1])=="ipsat_nonastp")
+                else if (string(argv[i+1])=="ipsat_nonsatp")
                     model=MODEL_IPSAT_NONSATP;
                 else
                     cerr << "Model " << argv[i+1] << " is not valid" << endl;
@@ -176,14 +183,14 @@ int main(int argc, char* argv[])
      * functions integrated over z \in [0,1]
      */
 
-    if (totxs)  // Calculate total cross section
+    if (mode==MODE_TOTXS)  // Calculate total cross section
     {
         REAL result = calculator.TotalCrossSection(Qsqr, bjorkx);
         cout << "Total cross section: " << result*400.0*1000.0 << " nb" << endl;
     }
-    else if (Ap)    // Calculate d\sigma^A/dt / A*d\sigma_p/dt as a function Q^2 at t
+    else if (mode==MODE_Ap)    // Calculate d\sigma^A/dt / A*d\sigma_p/dt as a function Q^2 at t
     {         
-        cout << "# t=" << t << endl;
+        cout << "# t=" << t << ", x = " << bjorkx <<  endl;
         cout << "# Q^2   nucleus_xs / A*proton_xs" << endl;
         
         #pragma omp parallel for
@@ -203,6 +210,30 @@ int main(int argc, char* argv[])
     
     
     }
+    
+    else if (mode==MODE_Ap_X)   // d\sigma^A/dt / A*d\sigma_p/dt as a function of x
+    {
+        cout << "# t=" << t << ", Q^2=" << Qsqr << endl;
+        cout << "# x-dependence of nucleus_xs / A*proton_xs" << endl;
+        
+        #pragma omp parallel for
+        for (int i=0; i<points; i++)
+        {
+            REAL tmpx = minx + (maxx-minx)/points*i;
+            REAL protonxs = calculator.ProtonCrossSection_dt(t, Qsqr, tmpx);
+            REAL nukexs = calculator.CrossSection_dt(t, Qsqr, tmpx);
+            #pragma omp critical
+            {
+                cout.precision(6);
+                cout << fixed << tmpx;
+                cout.precision(8);
+                cout << " " << nukexs / (A*protonxs) << endl;
+            }
+        
+        }
+    
+    }
+    
     else
     {
         // All iterations are independent, so this is straightforward to parallerize   
