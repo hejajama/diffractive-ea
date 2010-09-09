@@ -79,7 +79,7 @@ REAL inthelperf_ipsatavg(REAL b, void* p)
              * pow( 
                 M_PI*B_p*par->dip->FactorC(par->rsqr,x)
                 * par->dip->FactorC(par->r2sqr,x)*twstmp
-                / (1-2*M_PI*B_p*twstmp
+                / (1.0-2.0*M_PI*B_p*twstmp
                 *(par->dip->FactorC(par->rsqr,x)+par->dip->FactorC(par->r2sqr,x)
                 ))  ,i);    
     }
@@ -118,14 +118,18 @@ REAL Dipxs_IPSat::Dipxsection_sqr_avg(REAL rsqr, REAL r2sqr, REAL xbj,
 /*
  * Dipole-proton amplitude as a function of \Delta
  * Integrated over impact parameter dependence
- * A = sigmap(r) exp(-B_p \Delta^2 / 2)
+ * A = 4*Pi*B_p*C exp(-B_p \Delta^2 / 2)
  * 
- * Same as Dipxs_IPNonSAT::Dipxsection_proton
+ * Otherwise same as Dipxs_IPNonSAT::Dipxsection_proton but
+ * we take into account the unitarity requirement.
+ *
+ * It is also approximated that 1-exp(-r^2T(b)...) = T(b)(1-exp(...))
  */
 REAL Dipxs_IPSat::Dipxsection_proton(REAL rsqr, REAL xbj, REAL delta)
 {
     REAL bp=B_p;
-    return Sigmap(rsqr, xbj)*exp(-bp*SQR(delta)/2.0);
+    //return Sigmap(rsqr, xbj)*exp(-bp*SQR(delta)/2.0);
+    return 4.0*M_PI*bp*FactorC(rsqr, xbj) * exp(-bp*SQR(delta)/2.0);
 }
 
 /*

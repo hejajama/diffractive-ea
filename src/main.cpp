@@ -124,7 +124,10 @@ int main(int argc, char* argv[])
                 else if (string(argv[i+1])=="ipsat_nonsatp")
                     model=MODEL_IPSAT_NONSATP;
                 else
+                {
                     cerr << "Model " << argv[i+1] << " is not valid" << endl;
+                    return -1;
+                }
             }
             if (string(argv[i])=="-gdist")
             {
@@ -145,7 +148,6 @@ int main(int argc, char* argv[])
     if (A==1) cout << " (dipole-proton)";
     cout << endl;
     cout << "# GDist=" << gdist_model << ",  dipole model=" << model << endl;
- 
     
     // Intialize random number generator
     seed_mersenne(std::time(NULL));
@@ -174,6 +176,7 @@ int main(int argc, char* argv[])
         dsigmadb = new Dipxs_IPSat(nuke, IPSAT_MODE_NONSAT_P);
 
     Calculator calculator(dsigmadb, JPsi);
+
 
     /*******************
      * \gamma^* N -> J/\Psi N cross section

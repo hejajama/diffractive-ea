@@ -27,7 +27,7 @@ for q in qsqr:
 	fig=figure()
 	p1=fig.add_subplot(111)
 	xlabel(r"$|t|$ $/$ $\mathrm{GeV}^2$",fontsize=textsize+4)
-	ylabel(r"$\mathrm{d} \sigma^A / \mathrm{d}t$ $/$ $\mathrm{\mu b}/\mathrm{GeV}^2$",fontsize=textsize+4)
+	ylabel(r"$\mathrm{d} \sigma^A / \mathrm{d}t$ $/$ $\mathrm{nb}/\mathrm{GeV}^2$",fontsize=textsize+4)
     
 	for mode in models:
         	x=[]

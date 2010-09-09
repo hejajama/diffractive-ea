@@ -151,6 +151,9 @@ DGLAPDist::~DGLAPDist(){
 
 REAL DGLAPDist::Gluedist(REAL xbj,REAL rrsqr){
 
+  // This function assumes that the unit of rrsqr is fm^2, so let's convert
+  // rrsqr GeV^-2 => rrsqr fm^2     - H. Mäntysaari
+  rrsqr /= FMGEV*FMGEV;
   double rsqr;
   if(xbj<minxbj || xbj > maxxbj){cerr << "Exceeded xbj limits " << xbj << endl; exit(56);}
   if(rrsqr < MINR){rsqr = MINR;}else{rsqr = rrsqr;}

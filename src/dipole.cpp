@@ -28,7 +28,7 @@ REAL epsfun(REAL z, REAL Qsqr, REAL msqr)
  */
 REAL Alpha_s(REAL Qsqr)
 {
-    return 12.0*M_PI/((33.0-2.0*3.0)*log(Qsqr/LAMBDAQCD2));
+    return 12.0*M_PI/( (33.0-2.0*Nf)*log(Qsqr/LAMBDAQCD2) );
 }
 
 /*
@@ -51,7 +51,7 @@ REAL exp_wrap(REAL x)
  */
 REAL Mu2(REAL rsqr)
 {
-    return 4/rsqr + mu2_0;
+    return 4.0/rsqr + mu2_0;
 }
 
 /*
