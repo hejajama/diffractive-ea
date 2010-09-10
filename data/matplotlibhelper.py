@@ -17,7 +17,7 @@ dashes = ['--', #    : dashed line
           '-.', #   : dash-dot line
           ':', #    : dotted line
            '-']
-
+colors = [ "black", "blue", "red", '0.35']
 
 # Possibility to use , as a desimal separator
 import locale
@@ -34,7 +34,7 @@ def readfile(file, xlist, ylist,m=1.0):
 
 	for i in range(n):
 		s=lines[i].split()
-		if (len(s)==2):
+		if (len(s)==2 and s[0]!="#"):
 			xlist.append(float(s[0]))
 			ylist.append(float(s[1])*m)
 	f.close()

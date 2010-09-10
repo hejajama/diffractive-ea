@@ -17,7 +17,7 @@ models=[
 
 # Q^2
 #qsqr=[0,10,50]
-qsqr=[0]
+qsqr=[0, 10]
 
 textsize=16
 style=0
@@ -38,7 +38,7 @@ for q in qsqr:
 	        else:
 	            readfile(filename,x,y,400*1000)  # In units nb/GeV^2
 	        lbl=mode[1]
-	        p1.semilogy(x,y,label=lbl,linestyle=dashes[style],linewidth=2)
+	        p1.semilogy(x,y,label=lbl,linestyle=dashes[style],color=colors[style],linewidth=2)
 	        style=style+1
 	        if (style>4):
 	            style=0
@@ -46,7 +46,7 @@ for q in qsqr:
    
 	leg=legend(prop=dict(size=textsize),labelspacing=0.001)
 	leg.draw_frame(False)
-	fig.suptitle(r"$Q^2=" + str(q) + "$ GeV$^2$", fontsize=textsize)
+	fig.suptitle(r"$Q^2=" + str(q) + "$ GeV$^2$, $x=0.0001$", fontsize=textsize)
 	f = "q" + str(q) + ".pdf"
 	print f    
 

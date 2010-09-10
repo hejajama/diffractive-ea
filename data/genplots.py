@@ -33,7 +33,7 @@ for q in Q2vals:
             readfile(filename,x,y,400*1000)  # In units nb/GeV^2
 
             lbl=mode+ ", " + gd
-            p1.semilogy(x,y,label=lbl,linestyle=dashes[style],linewidth=2)
+            p1.semilogy(x,y,label=lbl,linestyle=dashes[style],color=colors[style],linewidth=2)
             style=style+1
             if (style>4):
                 style=0

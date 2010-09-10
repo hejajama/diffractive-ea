@@ -10,7 +10,7 @@ models=["ipsat", "ipnonsat", "iim", "ipsat_nonsatp"]
 # Gluon distributions
 gdists=["dglap"]
 #Q^2 values
-Q2vals=[0,10,50]
+Q2vals=[0,10]
 
 A=197 # Gold
 N=200

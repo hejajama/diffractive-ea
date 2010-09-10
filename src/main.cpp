@@ -61,6 +61,7 @@ int main(int argc, char* argv[])
     int mode=MODE_DIFFXS;   // What to do
     REAL minx=1e-6;
     REAL maxx=1e-2;
+    string xgfile="xg.dat";
     
     string iim_file="iim.dat";  // Read parameters for IIM model from this file
             
@@ -71,7 +72,7 @@ int main(int argc, char* argv[])
         {
             cout << "Usage: -x bjorkx -Q2 Q^2" << endl;
             cout << "-dipole {ipsat,ipnonsat,iim,ipsat_nonsatp}" << endl;
-            cout << "-gdist {dglap,toy}" << endl;
+            cout << "-gdist {dglap,toy} -xgfile file" << endl;
             cout << "-A number_of_nucleai" << endl;
             cout << "-N number_of_data_points" << endl;
             cout << "-mint t_value, -maxt t_value" << endl;
@@ -113,6 +114,8 @@ int main(int argc, char* argv[])
                 maxQsqr=StrToReal(argv[i+1]);
             if (string(argv[i])=="-iimfile")
                 iim_file=string(argv[i+1]);
+            if (string(argv[i])=="-xgfile")
+                xgfile=string(argv[i+1]);
             if (string(argv[i])=="-dipole")
             {
                 if (string(argv[i+1])=="ipsat")
@@ -161,7 +164,7 @@ int main(int argc, char* argv[])
     //GDist *gdist = new DGLAPDist();
     GDist *gdist;
     if (gdist_model==GDIST_DGLAP)
-        gdist = new DGLAPDist();
+        gdist = new DGLAPDist(xgfile);
     else if (gdist_model==GDIST_TOY)
         gdist = new GDist_Toy();
     nuke.SetGDist(gdist);    
@@ -176,7 +179,6 @@ int main(int argc, char* argv[])
         dsigmadb = new Dipxs_IPSat(nuke, IPSAT_MODE_NONSAT_P);
 
     Calculator calculator(dsigmadb, JPsi);
-
 
     /*******************
      * \gamma^* N -> J/\Psi N cross section

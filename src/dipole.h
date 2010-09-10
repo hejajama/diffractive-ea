@@ -29,7 +29,7 @@ const int NC=3;
 const int Nf=3;
 const REAL ALPHA_e = 1.0/137.0; 
 const REAL e = sqrt(4*M_PI*ALPHA_e);
-const REAL mu2_0 = 1.1699;  // \mu_0^2 = 0.8 GeV^2 ;    KT: 0.8
+const REAL mu2_0 = 1.1699;  // \mu_0^2 = 1.1699 (Lappi) or 0.8 GeV^2 (KT) 
 const REAL LAMBDAQCD2=0.04;   // (0.2 GeV)^2
 const REAL FOURPI = (4.0*M_PI);
 #define FMGEV 5.068       // fm * GeV

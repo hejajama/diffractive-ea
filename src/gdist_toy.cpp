@@ -14,6 +14,7 @@
 // Pi^2 / (2*Nc) * alphas(mu(r)^2) xg(x, mu(r))
 REAL GDist_Toy::Gluedist(REAL bjorkx, REAL rsqr)
 {
+    std::cerr << "You are using the toy model of GDist, you really shoudn't!!" << std::endl;
     return SQR(M_PI)/(2*NC)*Alpha_s(Mu2(rsqr))*15.2426629*gsl_sf_exp(-0.36264237*sqrt(rsqr));
 }
 
