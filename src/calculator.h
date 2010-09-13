@@ -26,6 +26,8 @@ class Calculator
         REAL ProtonCrossSection_dt(REAL t, REAL Qsqr, REAL Bjorkx);
         REAL TotalCrossSection(REAL Qsqr, REAL bjorkx); 
         
+        Dipxs* GetAmplitude();
+        
     private:
         Dipxs* amplitude;
         WaveFunction* wavef;

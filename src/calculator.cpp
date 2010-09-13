@@ -104,6 +104,8 @@ REAL Calculator::TotalCrossSection(REAL Qsqr, REAL bjorkx)
 REAL inthelper_totxs(REAL t, void* p)
 {
     inthelper_r* par = (inthelper_r*)p;
+    if (par->calculator->GetAmplitude()->GetNucleus().GetA()==1) // Proton
+        return par->calculator->ProtonCrossSection_dt(t, par->Qsqr, par->bjorkx);
     return par->calculator->CrossSection_dt(t, par->Qsqr, par->bjorkx);
 
 }
@@ -146,5 +148,11 @@ REAL inthelperf_proton(REAL r, void* p)
         * par->amplitude->Dipxsection_proton(SQR(r), par->bjorkx,
          par->delta);
        
+}
+
+// Return pointer to dipole amplitude
+Dipxs* Calculator::GetAmplitude()
+{
+    return amplitude;
 }
 
