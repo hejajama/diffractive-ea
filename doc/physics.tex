@@ -43,9 +43,17 @@ When we calculate the quasi-elastic cross section we have to sum over all possib
 	&\quad  \times |\A_{q\bar q}|^2(x,r,r',\Delta).
 \end{split}
 \end{equation}
-$|\A_{q\bar q}|^2$ is the dipole-nucleus scattering amplitude squared averaged over nucleon configurations and summed over possible states of nucleus (completness relation is used here).
+$|\A_{q\bar q}(\Delta)|^2$ is the dipole-nucleus scattering amplitude squared averaged over nucleon configurations and summed over possible states of nucleus (completness relation is used here). $\A(\Delta)$ can be obtained by means of Fourier transformation:
+\begin{equation}
+	\A_{q\bar q}(\Delta) = \int \der^2 b e^{-ib\cdot \Delta} 2\A_{q\bar q}(b) = i\int \der^2 b e^{-ib\cdot \Delta} \frac{\der \sigma_{q\bar q}}{\der^2 b}
+\end{equation}
+Notice that
+\begin{equation}
+	\frac{\der \sigma_{q\bar q}}{\der^2 b} = 2(1-\hat S) = 2\A_{q\bar q}(b),
+\end{equation}
+where $\hat S$ is the scattering matrix elment. 
 
-In this program $|\A_{q\bar q}|^2$ depends on the given dipole model and it is implemented as \code{Dipxs::Dipxsection\_sqr\_avg}. The rest of eq. \eqref{eq:Asqr} is implemented in \code{Calculator::CrossSection\_dt} and does not depend on the used dipole model.
+In this program $|\A_{q\bar q}(b)|^2$ depends on the given dipole model and it is implemented as \code{Dipxs::Dipxsection\_sqr\_avg}. The rest of eq. \eqref{eq:Asqr} is implemented in \code{Calculator::CrossSection\_dt} and does not depend on the used dipole model.
 
 The amplitude squared can be used to obtain the differential cross section:
 \begin{equation}
@@ -63,6 +71,12 @@ Ip Non-Sat is the most simple model for dipole-proton cross section. It is deriv
 	\label{eq:nonsat-d2b}
 	\frac{\der \sigma_{q\bar q}}{\der^2 b} = \frac{\pi^2}{3}r^2 \alpha_s(µ^2)xg(x,µ^2) T_p(b). 
 \end{equation}
+The proton shape function is approximated to be gaussian \cite{Caldwell:2009ke}:
+\begin{equation}
+	T_p(b) = \frac{e^{-b^2/(2B_G)}}{4\pi B_G},
+\end{equation}
+where $B_G=\unit{4.0}{\giga\electronvolt^{-2}}$.
+
 This amplitude can be used to (see \cite{Caldwell:2009ke}) derive the amplitude squared for the quasi-elastic dipole-nucleus scattering:
 \begin{equation}
 	|\A_{q\bar q}|^2(x,r,r',\Delta) = \kappa(r) \kappa(r') e^{-B_p \Delta^2} A  \left[ 1 + (A-1) \left| \int \der^2 b e^{-ib \cdot \Delta} T_A(b)\right|^2 \right] . 
@@ -72,11 +86,9 @@ Here
 	\label{eq:kappa}
 	\kappa(r) = \frac{\pi^2}{3}r^2\alpha_s(\mu^2)xg(x,\mu^2).
 \end{equation}
-$xg(x,\mu^2)$ is the dimensionless gluon density, see some notes about it in chapter \ref{gdist}. The two-body correlations are neglected. Moreover,
-\begin{equation}
-	T_p(b) = \frac{1}{2\pi B_G}e^{-b^2/(2B_G)},
-\end{equation}
-where $B_G=\unit{4.0}{\giga\electronvolt^{-2}}$.
+$xg(x,\mu^2)$ is the dimensionless gluon density, see some notes about it in chapter \ref{gdist}. The two-body correlations are neglected.
+
+For dipole-proton scattering we just substitute \eqref{eq:nonsat-d2b} into eq. \eqref{eq:eq:Asqr}.
 
 \subsection{IP Sat}
 \label{ipsat}
@@ -84,13 +96,11 @@ Code: This model is implemented as a class \code{Dipxs\_IPSat}.
 
 IP Sat model takes into account the unitarity requirement of the scattering matrix $S$. In this model the dipole-proton scattering amplitude can be written as \cite{PhysRevD.68.114005}
 \begin{equation}
+	\label{ipsat-d2b}
 	\frac{\der \sigma_{q\bar q}}{\der^2 b} = 2\left[1- \exp \left(-\frac{\pi^2}{3\cdot 2}r^2 \alpha_s(µ^2)xg(x,µ^2) T_p(b)\right) \right].
 \end{equation}
 
-This can be generalized to the dipole-nucleon scattering by means of the product of $\hat S$ matrix elements. First we should noutice that
-\begin{equation}
-	\frac{\der \sigma_{q\bar q}}{\der^2 b} = 2(1-\hat S) = 2\A.	
-\end{equation}
+This can be generalized to the dipole-nucleon scattering by means of the product of $\hat S$ matrix elements.
 For the dipole-nucleu scattering we use the equation $\hat S(b) = \prod_i \hat S(b-b_i)$. Thus
 \begin{equation}
 	\label{eq:ipsat-a}
@@ -107,11 +117,16 @@ Neglecting terms that do not contribute at large $\Delta$ and taking the large $
 \label{eq:ipsat-asqr}
 \begin{split}
 	|\A|^2(x,r,r',\Delta) &= 16\pi B_p \int \der^2 b_2 \sum_{n=1}^A \binom{A}{n} e^{-B_p \Delta^2/n} e^{-2A\pi B_p T_A(b_2)[C(r)+C(r')]} \\
-	&\quad \times \left(\frac{\pi B_p C(r)C(r') T_A(b_2)}{1-2\pi B_p T_A(b_2)[C(r)+C(r')]}\right)^n.
+	&\quad \times \left(\frac{\pi B_p C(r)C(r') 2 T_A(b_2)}{1-2\pi B_p T_A(b_2)[C(r)+C(r')]}\right)^n.
 \end{split}
 \end{equation}
 
 It is also interesting to see what happens if $C(r)=\frac{\kappa(r)}{4\pi B_p}$. This means that we use the result \eqref{eq:nonsat-d2b} for dipole-proton scattering (so, we do not require the unitarity for dipole-proton scattering), but we still take into account the possibility to scatter from multiple nucleons at the same time. This possibility is implemented in \code{Dipxs\_IPSat} class, and can be used if the mode is set to \code{IPSAT\_MODE\_NONSAT\_P}.
+
+For dipole-proton scattering we make the same approximation as it is done when deriving eq. \eqref{eq:ipsat-asqr}:
+\begin{equation}
+	\frac{\der \sigma_{q\bar q}}{\der^2 b} = 2 e^{T_p(b)}C.
+\end{equation}
 
 \subsection{IIM}
 The heavy-quark improved Iancu-Itakura-Munier (IIM) model is defined by parts so that when $rQ_s(x)>1$, the dipole-proton scattering amplitude is about $1$. When $rQ_s(x) \ll 1$, the amplitude is also small. Here $Q_s(x)$ is the saturation scale parametrised by

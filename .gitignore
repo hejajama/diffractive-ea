@@ -3,9 +3,12 @@
 *.txt
 *.pdf
 *.ps
-*.bbl 
+*.bbl
 *.blg
 *.log
 *.out
 *.aux
 *.pyc
+data/q*
+*.sh
+*.dat
