@@ -62,6 +62,9 @@ int main(int argc, char* argv[])
     REAL minx=1e-6;
     REAL maxx=1e-2;
     string xgfile="xg.dat";
+    REAL W=-1;  // W^2 = (P+q)^2 = invariant mass^2 of the \gamma^*N system
+    bool x_set=false;
+    bool w_set=false;
     
     string iim_file="iim.dat";  // Read parameters for IIM model from this file
             
@@ -70,7 +73,7 @@ int main(int argc, char* argv[])
     {
         if (string(argv[1])=="--help")
         {
-            cout << "Usage: -x bjorkx -Q2 Q^2" << endl;
+            cout << "Usage: -x bjorkx -Q2 Q^2 -W W (specify only x or W)" << endl;
             cout << "-dipole {ipsat,ipnonsat,iim,ipsat_nonsatp}" << endl;
             cout << "-gdist {dglap,toy} -xgfile file" << endl;
             cout << "-A number_of_nucleai" << endl;
@@ -91,7 +94,15 @@ int main(int argc, char* argv[])
         for (int i=1; i<argc; i++)
         {
             if (string(argv[i])=="-x") 
+            {
                 bjorkx=StrToReal(argv[i+1]); 
+                x_set=true;
+            }
+            if (string(argv[i])=="-W")
+            {
+                W = StrToReal(argv[i+1]);                
+                w_set=true;
+            }
             if (string(argv[i])=="-Q2")
                 Qsqr=StrToReal(argv[i+1]); 
             if (string(argv[i])=="-A")
@@ -144,6 +155,16 @@ int main(int argc, char* argv[])
              }
                 
         }
+    }
+    
+    if (x_set==true and w_set==true)
+    {
+        cerr << "Both x and W set, don't know what to do. Exiting..." << endl;
+        return -1;
+    }
+    if (w_set)
+    {
+        bjorkx = Qsqr/(Qsqr + SQR(W));
     }
     
     // Print values
@@ -239,7 +260,7 @@ int main(int argc, char* argv[])
     
     }
     
-    else
+    else    // dsigma/dt as a function of t
     {
         // All iterations are independent, so this is straightforward to parallerize   
         #pragma omp parallel for
