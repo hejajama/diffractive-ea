@@ -40,7 +40,7 @@ const int MODEL_IPSAT_NONSATP=4;
 const int GDIST_DGLAP=1; const int GDIST_TOY=2;
 
 const int MODE_TOTXS=1; const int MODE_DIFFXS=2; const int MODE_Ap=3;
-const int MODE_Ap_X=4;
+const int MODE_Ap_X=4; const int MODE_TOTXS_Q=5;
 
 void Cleanup(); 
 
@@ -50,7 +50,7 @@ int main(int argc, char* argv[])
     
     // Parameters
     REAL bjorkx=1e-4;
-    REAL Qsqr=0;
+    REAL Qsqr=1;
     int A=197;
     int model=MODEL_IPSAT;
     int gdist_model=GDIST_DGLAP;
@@ -65,6 +65,9 @@ int main(int argc, char* argv[])
     REAL W=-1;  // W^2 = (P+q)^2 = invariant mass^2 of the \gamma^*N system
     bool x_set=false;
     bool w_set=false;
+    bool xgval=false;   // Print the value of xg(x,µ) and quit.
+    REAL r=-1;
+    REAL M_v=3.097; // Mass of the produced vector meson, 3.097 GeV = J/\Psi
     
     string iim_file="iim.dat";  // Read parameters for IIM model from this file
             
@@ -80,15 +83,21 @@ int main(int argc, char* argv[])
             cout << "-N number_of_data_points" << endl;
             cout << "-mint t_value, -maxt t_value" << endl;
             cout << "-iimfile filename (parameters for the IIM model)" << endl;
-            cout << "-totxs (calculates total cross section" << endl;
+            cout << "-totxs (calculates total cross section)" << endl;
+            cout << "-totxs_q2 (total cross section as a function of Q^2)" << endl;
             cout << "-A/p (nucleus cross section / A* "
                     <<"proton cross section as a function of Q^2)" << endl;
             cout << "-t t, -maxQ2 maxq2 [GeV] (value of t and maximum of Q^2 in case of -A/p)" << endl;
             cout << "-A/p_x (same as -A/p but as a function of x), -minx minx, -maxx maxx" << endl;
+            cout << "-xg rval (print the value of xg(x,r) and quit) " << endl;
+            cout << "-Mv mass (mass of the produced vector meson) " << endl;
+            cout << endl;
             cout << "Default values: x="<<bjorkx <<", Q^2="<<Qsqr 
                 << " A="<<A<<", N="<<points<<", mint="<<mint<<", maxt="<<maxt<< endl;
             cout << "                dipxs=false, A/p=false, iimfile=" << iim_file << endl;
             cout << "                t="<<t << ", minx=" << minx << ", maxx=" << maxx << endl;
+            cout << "                Mv=" << M_v << endl;
+
             return 0;
         }
         for (int i=1; i<argc; i++)
@@ -119,6 +128,8 @@ int main(int argc, char* argv[])
                 mode=MODE_Ap;
             if (string(argv[i])=="-A/p_x")
                 mode=MODE_Ap_X;
+            if (string(argv[i])=="-totxs_q2")
+                mode=MODE_TOTXS_Q;
             if (string(argv[i])=="-t")
                 t=StrToReal(argv[i+1]);
             if (string(argv[i])=="-maxQ2")
@@ -127,6 +138,12 @@ int main(int argc, char* argv[])
                 iim_file=string(argv[i+1]);
             if (string(argv[i])=="-xgfile")
                 xgfile=string(argv[i+1]);
+            if (string(argv[i])=="-Mv")
+                M_v=StrToReal(argv[i+1]);
+            if (string(argv[i])=="-xg") {
+                xgval=true;
+                r=StrToReal(argv[i+1]);
+            }
             if (string(argv[i])=="-dipole")
             {
                 if (string(argv[i+1])=="ipsat")
@@ -162,9 +179,11 @@ int main(int argc, char* argv[])
         cerr << "Both x and W set, don't know what to do. Exiting..." << endl;
         return -1;
     }
-    if (w_set)
+    if (w_set)  // TODO: Check
     {
-        bjorkx = Qsqr/(Qsqr + SQR(W));
+        //bjorkx = Qsqr/(Qsqr + SQR(W));
+        bjorkx = (Qsqr + SQR(M_v))/SQR(W);
+        bjorkx = Qsqr/(Qsqr+SQR(W))*(1+SQR(M_v)/Qsqr);
     }
     
     // Print values
@@ -199,6 +218,15 @@ int main(int argc, char* argv[])
     else if (model==MODEL_IPSAT_NONSATP)
         dsigmadb = new Dipxs_IPSat(nuke, IPSAT_MODE_NONSAT_P);
 
+    if (xgval)  // Print the value of xg(x,µ) and quit
+    {
+        REAL tmp = gdist->Gluedist(bjorkx, r*r);
+        tmp *= 2*NC/(M_PI*M_PI*Alpha_s(Mu2(SQR(r))) );
+        cout << tmp << endl;
+        return 0;
+    }
+
+
     Calculator calculator(dsigmadb, JPsi);
 
     /*******************
@@ -213,6 +241,31 @@ int main(int argc, char* argv[])
     {
         REAL result = calculator.TotalCrossSection(Qsqr, bjorkx);
         cout << "Total cross section: " << result*400.0*1000.0 << " nb" << endl;
+    }
+     
+    else if (mode==MODE_TOTXS_Q)    // Total cross section as a function of Q^2
+    {
+        cout << "# Total cross section, W=" << W << endl;
+        #pragma omp parallel for
+        for (int i=1; i<=points; i++)
+        {
+            REAL tmpqsqr = maxQsqr/points*i;
+            bjorkx = tmpqsqr/(tmpqsqr+SQR(W))*(1+SQR(M_v)/tmpqsqr);
+            bjorkx = (tmpqsqr + SQR(M_v))/SQR(W);
+            REAL xs = calculator.TotalCrossSection(tmpqsqr, bjorkx);
+            xs *= 400.0 * 1000.0;   // Gev^{-4} => nb/GeV^2   
+            #pragma omp critical
+            {
+                cout.precision(5);
+                cout << fixed << tmpqsqr;
+                cout.precision(8);
+                cout << " " << xs << endl;
+            }
+        
+        }
+    
+    
+    
     }
     else if (mode==MODE_Ap)    // Calculate d\sigma^A/dt / A*d\sigma_p/dt as a function Q^2 at t
     {         
@@ -259,6 +312,7 @@ int main(int argc, char* argv[])
         }
     
     }
+
     
     else    // dsigma/dt as a function of t
     {
