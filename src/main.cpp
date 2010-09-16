@@ -66,8 +66,10 @@ int main(int argc, char* argv[])
     bool x_set=false;
     bool w_set=false;
     bool xgval=false;   // Print the value of xg(x,µ) and quit.
+    bool scalex=false;  // Scale x so that x=x_bj*(1+M_V^2/Q^2)
     REAL r=-1;
     REAL M_v=3.097; // Mass of the produced vector meson, 3.097 GeV = J/\Psi
+    REAL M_n=0;     // Mass of nucleus/nucleon
     
     string iim_file="iim.dat";  // Read parameters for IIM model from this file
             
@@ -77,9 +79,10 @@ int main(int argc, char* argv[])
         if (string(argv[1])=="--help")
         {
             cout << "Usage: -x bjorkx -Q2 Q^2 -W W (specify only x or W)" << endl;
+            cout << "-scalex (scale x by factor 1+M_V^2/Q^2) (can't be used with -W)" << endl;
             cout << "-dipole {ipsat,ipnonsat,iim,ipsat_nonsatp}" << endl;
             cout << "-gdist {dglap,toy} -xgfile file" << endl;
-            cout << "-A number_of_nucleai" << endl;
+            cout << "-A number_of_nucleai -Mn nucleus_mass" << endl;
             cout << "-N number_of_data_points" << endl;
             cout << "-mint t_value, -maxt t_value" << endl;
             cout << "-iimfile filename (parameters for the IIM model)" << endl;
@@ -96,7 +99,7 @@ int main(int argc, char* argv[])
                 << " A="<<A<<", N="<<points<<", mint="<<mint<<", maxt="<<maxt<< endl;
             cout << "                dipxs=false, A/p=false, iimfile=" << iim_file << endl;
             cout << "                t="<<t << ", minx=" << minx << ", maxx=" << maxx << endl;
-            cout << "                Mv=" << M_v << endl;
+            cout << "                Mv=" << M_v << ", Mn=" << M_n << endl;
 
             return 0;
         }
@@ -140,10 +143,14 @@ int main(int argc, char* argv[])
                 xgfile=string(argv[i+1]);
             if (string(argv[i])=="-Mv")
                 M_v=StrToReal(argv[i+1]);
+            if (string(argv[i])=="-Mn")
+                M_n=StrToReal(argv[i+1]);
             if (string(argv[i])=="-xg") {
                 xgval=true;
                 r=StrToReal(argv[i+1]);
             }
+            if (string(argv[i])=="-scalex")
+                scalex=true;
             if (string(argv[i])=="-dipole")
             {
                 if (string(argv[i+1])=="ipsat")
@@ -182,8 +189,15 @@ int main(int argc, char* argv[])
     if (w_set)  // TODO: Check
     {
         //bjorkx = Qsqr/(Qsqr + SQR(W));
-        bjorkx = (Qsqr + SQR(M_v))/SQR(W);
-        bjorkx = Qsqr/(Qsqr+SQR(W))*(1+SQR(M_v)/Qsqr);
+        // x = x_bj*(1+M^2/Q^2) = Q^2/(Q^2+W^2+M_n^2)(1+M^2/Q^2)
+        //   = (Q^2 + M_v^2) / (Q^2 + W^2 + M_n^2)
+        bjorkx = (Qsqr + SQR(M_v))/( Qsqr + SQR(W) + SQR(M_n) );
+    }
+    
+    if (w_set==false and scalex==true) // Scale x->x*(1+M^2/Q^2)
+    {
+        if (Qsqr<0.00001){ cerr << "Q^2=0, can't scale fixed x" << endl; return -1;}
+        bjorkx = bjorkx * (1 + SQR(M_v)/Qsqr);
     }
     
     // Print values
@@ -244,14 +258,14 @@ int main(int argc, char* argv[])
     }
      
     else if (mode==MODE_TOTXS_Q)    // Total cross section as a function of Q^2
-    {
-        cout << "# Total cross section, W=" << W << endl;
+    {                               // W fixed
+        cout << "# Total cross section [nb], W=" << W << " GeV" << endl;
         #pragma omp parallel for
         for (int i=1; i<=points; i++)
         {
             REAL tmpqsqr = maxQsqr/points*i;
             bjorkx = tmpqsqr/(tmpqsqr+SQR(W))*(1+SQR(M_v)/tmpqsqr);
-            bjorkx = (tmpqsqr + SQR(M_v))/SQR(W);
+            //bjorkx = (tmpqsqr + SQR(M_v))/SQR(W);
             REAL xs = calculator.TotalCrossSection(tmpqsqr, bjorkx);
             xs *= 400.0 * 1000.0;   // Gev^{-4} => nb/GeV^2   
             #pragma omp critical
@@ -316,6 +330,7 @@ int main(int argc, char* argv[])
     
     else    // dsigma/dt as a function of t
     {
+        cout << "# d\\sigma/dt [1/GeV^4] " << endl;
         // All iterations are independent, so this is straightforward to parallerize   
         #pragma omp parallel for
         for (int i=0; i<=points; i++)

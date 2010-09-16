@@ -22,7 +22,7 @@ gd="dglap"
 
 cmd = "OMP_NUM_THREADS="+str(num_of_threads) + " ./dipole -A " + str(A) \
     + " -N " + str(N) + " -mint " + str(mint)  + " -maxt " + str(maxt) \
-    + " -x " + str(bjorkx)
+    + " -x " + str(bjorkx) + " -scalex"
 for mode in models:
     for q in Q2vals:
         filename = "data/q" + str(q) + "/" + mode + ".txt"
