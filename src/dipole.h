@@ -32,6 +32,7 @@ const REAL e = sqrt(4*M_PI*ALPHA_e);
 const REAL mu2_0 = 1.1699;  // \mu_0^2 = 1.1699 (Lappi) or 0.8 GeV^2 (KT) 
 const REAL LAMBDAQCD2=0.04;   // (0.2 GeV)^2
 const REAL FOURPI = (4.0*M_PI);
+const REAL DEFAULT_B_p=4.0;	// Default proton shape for ipsat and ipnonsat
 #define FMGEV 5.068       // fm * GeV
 
 

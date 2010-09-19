@@ -27,11 +27,13 @@ Dipxs_IPSat::Dipxs_IPSat(Nucleus &nucleus_) :
     Dipxs(nucleus_)
 {
     mode = IPSAT_MODE_DEFAULT;
+    B_p=DEFAULT_B_p;
 }
 
-Dipxs_IPSat::Dipxs_IPSat(Nucleus &nucleus_, int mode_) : Dipxs(nucleus_)
+Dipxs_IPSat::Dipxs_IPSat(Nucleus &nucleus_, int mode_, REAL bp) : Dipxs(nucleus_)
 {
     mode = mode_;
+    B_p=bp;
 }
 
 /* Amplitude squared averaged over nucleon configurations as a 
@@ -127,13 +129,12 @@ REAL Dipxs_IPSat::Dipxsection_sqr_avg(REAL rsqr, REAL r2sqr, REAL xbj,
  */
 REAL Dipxs_IPSat::Dipxsection_proton(REAL rsqr, REAL xbj, REAL delta)
 {
-    REAL bp=B_p;;
     //return 4.0*M_PI*bp*FactorC(rsqr, xbj) * exp(-bp*SQR(delta)/2.0);
     
     // Note: We cannot use FactorC() here as FactorC() depends on the mode
     // used: in NONSAT_P mode it doesn't saturate
     
-    return 4.0*M_PI*bp*exp(-bp*SQR(delta)/2.0)
+    return 4.0*M_PI*B_p*exp(-B_p*SQR(delta)/2.0)
         * ( 1.0-exp(-nucleus.GetGDist()->Gluedist(xbj,rsqr)
             *rsqr/(2.0*M_PI*B_p)) );
     

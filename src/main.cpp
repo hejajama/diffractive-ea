@@ -70,6 +70,7 @@ int main(int argc, char* argv[])
     REAL r=-1;
     REAL M_v=3.097; // Mass of the produced vector meson, 3.097 GeV = J/\Psi
     REAL M_n=0;     // Mass of nucleus/nucleon
+    REAL bp=DEFAULT_B_p;
     
     string iim_file="iim.dat";  // Read parameters for IIM model from this file
             
@@ -84,6 +85,7 @@ int main(int argc, char* argv[])
             cout << "-gdist {dglap,toy} -xgfile file" << endl;
             cout << "-A number_of_nucleai -Mn nucleus_mass" << endl;
             cout << "-N number_of_data_points" << endl;
+            cout << "-Bp proton_shape (for ipsat and ipnonsat[TODO])" << endl;
             cout << "-mint t_value, -maxt t_value" << endl;
             cout << "-iimfile filename (parameters for the IIM model)" << endl;
             cout << "-totxs (calculates total cross section)" << endl;
@@ -99,7 +101,7 @@ int main(int argc, char* argv[])
                 << " A="<<A<<", N="<<points<<", mint="<<mint<<", maxt="<<maxt<< endl;
             cout << "                dipxs=false, A/p=false, iimfile=" << iim_file << endl;
             cout << "                t="<<t << ", minx=" << minx << ", maxx=" << maxx << endl;
-            cout << "                Mv=" << M_v << ", Mn=" << M_n << endl;
+            cout << "                Mv=" << M_v << ", Mn=" << M_n << ", B_p=" << bp << endl;
 
             return 0;
         }
@@ -110,48 +112,50 @@ int main(int argc, char* argv[])
                 bjorkx=StrToReal(argv[i+1]); 
                 x_set=true;
             }
-            if (string(argv[i])=="-W")
+            else if (string(argv[i])=="-W")
             {
                 W = StrToReal(argv[i+1]);                
                 w_set=true;
             }
-            if (string(argv[i])=="-Q2")
+            else if (string(argv[i])=="-Q2")
                 Qsqr=StrToReal(argv[i+1]); 
-            if (string(argv[i])=="-A")
+            else if (string(argv[i])=="-A")
                 A=StrToInt(argv[i+1]);
-            if (string(argv[i])=="-N")
+            else if (string(argv[i])=="-N")
                 points=StrToInt(argv[i+1]);
-            if (string(argv[i])=="-mint")
+            else if (string(argv[i])=="-mint")
                 mint=StrToReal(argv[i+1]);
-            if (string(argv[i])=="-maxt")
+            else if (string(argv[i])=="-maxt")
                 maxt=StrToReal(argv[i+1]);
-            if (string(argv[i])=="-totxs")
+            else if (string(argv[i])=="-totxs")
                 mode=MODE_TOTXS;
-            if (string(argv[i])=="-A/p")
+            else if (string(argv[i])=="-A/p")
                 mode=MODE_Ap;
-            if (string(argv[i])=="-A/p_x")
+            else if (string(argv[i])=="-A/p_x")
                 mode=MODE_Ap_X;
-            if (string(argv[i])=="-totxs_q2")
+            else if (string(argv[i])=="-totxs_q2")
                 mode=MODE_TOTXS_Q;
-            if (string(argv[i])=="-t")
+            else if (string(argv[i])=="-t")
                 t=StrToReal(argv[i+1]);
-            if (string(argv[i])=="-maxQ2")
+            else if (string(argv[i])=="-maxQ2")
                 maxQsqr=StrToReal(argv[i+1]);
-            if (string(argv[i])=="-iimfile")
+            else if (string(argv[i])=="-iimfile")
                 iim_file=string(argv[i+1]);
-            if (string(argv[i])=="-xgfile")
+            else if (string(argv[i])=="-xgfile")
                 xgfile=string(argv[i+1]);
-            if (string(argv[i])=="-Mv")
+            else if (string(argv[i])=="-Mv")
                 M_v=StrToReal(argv[i+1]);
-            if (string(argv[i])=="-Mn")
+            else if (string(argv[i])=="-Mn")
                 M_n=StrToReal(argv[i+1]);
-            if (string(argv[i])=="-xg") {
+            else if (string(argv[i])=="-Bp")
+                bp=StrToReal(argv[i+1]);
+            else if (string(argv[i])=="-xg") {
                 xgval=true;
                 r=StrToReal(argv[i+1]);
             }
-            if (string(argv[i])=="-scalex")
+            else if (string(argv[i])=="-scalex")
                 scalex=true;
-            if (string(argv[i])=="-dipole")
+            else if (string(argv[i])=="-dipole")
             {
                 if (string(argv[i+1])=="ipsat")
                     model=MODEL_IPSAT;
@@ -167,7 +171,7 @@ int main(int argc, char* argv[])
                     return -1;
                 }
             }
-            if (string(argv[i])=="-gdist")
+            else if (string(argv[i])=="-gdist")
             {
                 if (string(argv[i+1])=="dglap")
                     gdist_model=GDIST_DGLAP;
@@ -177,6 +181,11 @@ int main(int argc, char* argv[])
                     cerr << "Gluon distribution " << argv[i+1] 
                         << "is not valid " << endl;
              }
+            else if (string(argv[i]).substr(0,1)=="-")
+            {
+                cerr << "Unrecognized parameter " << argv[i] << endl;
+                return -1;
+            }
                 
         }
     }
@@ -194,9 +203,9 @@ int main(int argc, char* argv[])
         bjorkx = (Qsqr + SQR(M_v))/( Qsqr + SQR(W) + SQR(M_n) );
     }
     
-    if (w_set==false and scalex==true) // Scale x->x*(1+M^2/Q^2)
+    if (!w_set and scalex) // Scale x->x*(1+M^2/Q^2)
     {
-        if (Qsqr<0.00001){ cerr << "Q^2=0, can't scale fixed x" << endl; return -1;}
+        if (Qsqr<0.00001){ cerr << "Q^2=0, can't scale x" << endl; return -1;}
         bjorkx = bjorkx * (1 + SQR(M_v)/Qsqr);
     }
     
@@ -222,15 +231,15 @@ int main(int argc, char* argv[])
     else if (gdist_model==GDIST_TOY)
         gdist = new GDist_Toy();
     nuke.SetGDist(gdist);    
-    Dipxs *dsigmadb;
+    Dipxs *amplitude;
     if (model==MODEL_IPSAT)
-        dsigmadb = new Dipxs_IPSat(nuke);
+        amplitude = new Dipxs_IPSat(nuke, IPSAT_MODE_DEFAULT, bp);
     else if (model==MODEL_IPNONSAT)
-        dsigmadb = new Dipxs_IPNonSat(nuke);
+        amplitude = new Dipxs_IPNonSat(nuke, bp);
     else if (model==MODEL_IIM)
-        dsigmadb = new Dipxs_IIM(nuke, iim_file);
+        amplitude = new Dipxs_IIM(nuke, iim_file);
     else if (model==MODEL_IPSAT_NONSATP)
-        dsigmadb = new Dipxs_IPSat(nuke, IPSAT_MODE_NONSAT_P);
+        amplitude = new Dipxs_IPSat(nuke, IPSAT_MODE_NONSAT_P,bp);
 
     if (xgval)  // Print the value of xg(x,µ) and quit
     {
@@ -241,7 +250,7 @@ int main(int argc, char* argv[])
     }
 
 
-    Calculator calculator(dsigmadb, JPsi);
+    Calculator calculator(amplitude, JPsi);
 
     /*******************
      * \gamma^* N -> J/\Psi N cross section
@@ -352,7 +361,7 @@ int main(int argc, char* argv[])
         }
     }
     
-    delete dsigmadb;
+    delete amplitude;
     delete gdist;
     delete JPsi;
    

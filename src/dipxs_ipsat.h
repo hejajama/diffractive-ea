@@ -9,13 +9,14 @@
  
 #include "dipxs.h"
 #include "nucleus.h"
+#include "dipole.h"
 #include <vector>
  
 class Dipxs_IPSat : public Dipxs
 {
     public:
         Dipxs_IPSat(Nucleus &nucleus_);
-        Dipxs_IPSat(Nucleus &nucleus_, int mode_);
+        Dipxs_IPSat(Nucleus &nucleus_, int mode_, REAL bp=DEFAULT_B_p);
         // Amplitude squared averaged over nucleon configurations as a 
         // function of \Delta and r,r' (and x)
         // \int d^2 b_1 ... d^2 b_A T_A(b_1)...T_A(B_A) 
@@ -39,7 +40,7 @@ class Dipxs_IPSat : public Dipxs
         REAL FactorC(REAL rsqr, REAL xbjork);
     private:
         REAL Sigmap(REAL rsqr, REAL xbjork);
-        static const REAL B_p=4.0;   
+        REAL B_p;   
         REAL mode;    
 
 };

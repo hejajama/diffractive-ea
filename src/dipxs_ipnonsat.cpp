@@ -28,8 +28,15 @@ Dipxs_IPNonSat::Dipxs_IPNonSat(Nucleus &nucleus_) :
     Dipxs(nucleus_)
 {
     prevdelta=prevft=-1;
+    B_p=DEFAULT_B_p;
 }
 
+Dipxs_IPNonSat::Dipxs_IPNonSat(Nucleus &nucleus_, REAL bp) :
+     Dipxs(nucleus_)
+{
+    prevdelta=prevft=-1;
+    B_p=bp;
+}
 
 /* Amplitude squared averaged over nucleon configurations as a 
  * function of \Delta and r,r' (and x)
@@ -83,8 +90,7 @@ REAL Dipxs_IPNonSat::Dipxsection_sqr_avg(REAL rsqr, REAL r2sqr,
  */
 REAL Dipxs_IPNonSat::Dipxsection_proton(REAL rsqr, REAL xbj, REAL delta)
 {
-    REAL bp=B_p;
-    return Sigmap(rsqr, xbj)*exp(-bp*SQR(delta)/2.0);
+    return Sigmap(rsqr, xbj)*exp(-B_p*SQR(delta)/2.0);
 }
 
 /*

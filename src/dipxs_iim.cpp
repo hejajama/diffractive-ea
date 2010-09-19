@@ -169,9 +169,8 @@ REAL Dipxs_IIM::Dipxsection_sqr_avg(REAL rsqr, REAL r2sqr, REAL xbj,
  */
 REAL Dipxs_IIM::Dipxsection_proton(REAL rsqr, REAL xbj, REAL delta)
 {
-    REAL bd = B_D;
     REAL rq = Q_s(xbj)*sqrt(rsqr);
-    return 2*2*M_PI*bd*exp(-bd*SQR(delta)/2.0)*DipoleAmplitude(rq,xbj);
+    return 2*2*M_PI*B_D*exp(-B_D*SQR(delta)/2.0)*DipoleAmplitude(rq,xbj);
 }
 
 /* 
@@ -241,8 +240,8 @@ int Dipxs_IIM::ReadParameters(std::string file)
             lambda=StrToReal(line.substr(7));
         if (line.substr(0,6)=="gammac") 
             gammac=StrToReal(line.substr(7));
-        if (line.substr(0,3)=="B_D") 
-            B_D=StrToInt(line.substr(4));
+        if (line.substr(0,3)=="B_D")
+            B_D=StrToReal(line.substr(4));
     }
     f.close();
 
