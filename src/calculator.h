@@ -25,6 +25,7 @@ class Calculator
         REAL CrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx);  // d\sigma / dt
         REAL ProtonCrossSection_dt(REAL t, REAL Qsqr, REAL Bjorkx);
         REAL TotalCrossSection(REAL Qsqr, REAL bjorkx); 
+        REAL TotalProtonCrossSection(REAL Qsqr, REAL bjorkx);
         
         Dipxs* GetAmplitude();
         
@@ -45,6 +46,8 @@ struct inthelper_r
     REAL Qsqr;
     REAL bjorkx;
     REAL delta;
+    bool analytic_t;    // Perfrom t integral analytically
+    inthelper_r(){ analytic_t=false; }
 }; 
  
 // Integral helpers
@@ -56,7 +59,8 @@ REAL inthelperf_proton(REAL r, void* p);
 // Integration settings
 const REAL MAXR=4;
 const REAL MINR=0.05;   // r=0 doesn't work, K_{0,1}(0)=inf
-const REAL RINTACCURACY=0.002;
+const REAL RINTACCURACY=0.0001;
+const REAL TINTACCURACY=0.0001;
 const REAL TOTXS_MAXT=2;  // Max |t| in GeV^2 when calculating total xs
  
  

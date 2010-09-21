@@ -274,6 +274,8 @@ int main(int argc, char* argv[])
     {
         REAL result = calculator.TotalCrossSection(Qsqr, bjorkx);
         cout << "Total cross section: " << result*400.0*1000.0 << " nb" << endl;
+        result = calculator.TotalProtonCrossSection(Qsqr, bjorkx);
+        cout << "Total proton cross section: " << result*400.0*1000.0 << " nb" << endl;
     }
      
     else if (mode==MODE_TOTXS_Q)    // Total cross section as a function of Q^2

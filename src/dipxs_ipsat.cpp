@@ -166,6 +166,24 @@ REAL Dipxs_IPSat::Dipxsection_proton(REAL rsqr, REAL xbj, REAL delta)
     return result;
 }
 
+/*
+ * Analytically integrated dipole-proton cross section over |t|
+ * Works only if we use factorized version of the amplitude
+ */
+REAL Dipxs_IPSat::Dipxsection_proton(REAL rsqr, REAL xbj)
+{
+    if (!factorize)
+    {
+        std::cerr << "There is no analytical solution for t integral of "
+        << "dipole-proton cross section" << std::endl;
+        return 0;
+    }
+    return 4.0*M_PI*B_p*2.0/B_p
+        *( 1.0-exp(-nucleus.GetGDist()->Gluedist(xbj,rsqr)
+                *rsqr/(2.0*M_PI*B_p)) );
+}
+ 
+
 REAL inthelperf_satp(REAL b, void* p)
 {
     inthelper_ipsatavg* par = (inthelper_ipsatavg*)p;

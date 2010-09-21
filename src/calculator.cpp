@@ -55,7 +55,7 @@ REAL Calculator::ProtonCrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
     inthelp.amplitude=amplitude;
     inthelp.vm=wavef; inthelp.bjorkx=bjorkx;
     inthelp.delta=sqrt(t); inthelp.Qsqr=Qsqr;
-    inthelp.calculator=this;
+    inthelp.calculator=this; inthelp.analytic_t=false;
     fun.function=&inthelperf_proton;
     fun.params=&inthelp; 
         
@@ -86,7 +86,7 @@ REAL Calculator::TotalCrossSection(REAL Qsqr, REAL bjorkx)
     fun.params=&inthelp; 
         
     REAL result,abserr; size_t eval;
-    int status = gsl_integration_qng(&fun, 0, TOTXS_MAXT, 0, RINTACCURACY, 
+    int status = gsl_integration_qng(&fun, 0, TOTXS_MAXT, 0, TINTACCURACY, 
         &result, &abserr, &eval);
     if (status)
         std::cerr << "Total cross section integral failed to reach tolerance: "
@@ -96,7 +96,35 @@ REAL Calculator::TotalCrossSection(REAL Qsqr, REAL bjorkx)
     
 }
 
+/*
+ * Total cross section for dipole-proton scattering
+ * One can also use TotalCrossSection with A=1, but this method performs the 
+ * integration over |t| analytically.
+ */
+REAL Calculator::TotalProtonCrossSection(REAL Qsqr, REAL bjorkx)
+{
+    gsl_function fun;
+    inthelper_r inthelp;
+    inthelp.amplitude=amplitude;
+    inthelp.vm=wavef; inthelp.bjorkx=bjorkx;
+    inthelp.delta=-1; inthelp.Qsqr=Qsqr;
+    inthelp.analytic_t=true;
+    fun.function=&inthelperf_proton;
+    fun.params=&inthelp;
+        
+    REAL result,abserr; size_t eval;
+    
+    int status = gsl_integration_qng(&fun, MINR, MAXR, RINTACCURACY, RINTACCURACY, 
+        &result, &abserr, &eval);
+    if (status) std::cerr << "Error " << status << " at " << __FILE__ << ":"
+        << __LINE__ << ": Result " << result << ", abserror: " << abserr 
+        << " (total proton cross section)" << std::endl;
+        
+    return result*result/(16.0*M_PI);    
+    
+    
 
+}
 /*
  * Integral helpers
  */
@@ -144,6 +172,12 @@ REAL inthelperf_r2(REAL r2, void* p)
 REAL inthelperf_proton(REAL r, void* p)
 {
     inthelper_r* par = (inthelper_r*)p;
+    if (par->analytic_t)
+    {   // We are calculating total xs and performing t integral analytically
+        return 2.0*M_PI*r*par->vm->PsiSqr_tot_intz(par->Qsqr, r)
+        * par->amplitude->Dipxsection_proton(SQR(r), par->bjorkx);
+    
+    }
     return 2*M_PI*r*par->vm->PsiSqr_tot_intz(par->Qsqr, r)
         * par->amplitude->Dipxsection_proton(SQR(r), par->bjorkx,
          par->delta);

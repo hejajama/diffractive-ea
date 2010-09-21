@@ -30,6 +30,7 @@ class Dipxs_IPSat : public Dipxs
 
         // Dipole-proton amplitude
         REAL Dipxsection_proton(REAL rsqr, REAL xbj, REAL delta);
+        REAL Dipxsection_proton(REAL rsqr, REAL xbj);
 
 
         //REAL Dipxsection_b_avg_sqr(REAL rsqr, REAL r2sqr, Vec b, Vec b2, REAL xbjork ); // Impact parameter representation
