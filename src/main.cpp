@@ -58,6 +58,7 @@ int main(int argc, char* argv[])
     REAL maxt=0.3; REAL mint=0; 
     REAL t=0.5;
     REAL maxQsqr=30;
+    REAL minQsqr=0;
     int mode=MODE_DIFFXS;   // What to do
     REAL minx=1e-6;
     REAL maxx=1e-2;
@@ -67,6 +68,7 @@ int main(int argc, char* argv[])
     bool w_set=false;
     bool xgval=false;   // Print the value of xg(x,µ) and quit.
     bool scalex=false;  // Scale x so that x=x_bj*(1+M_V^2/Q^2)
+    bool factor_ipsat=true; // Factroize IPSat amplitude to T(b)(1-exp(-r^2...))
     REAL r=-1;
     REAL M_v=3.097; // Mass of the produced vector meson, 3.097 GeV = J/\Psi
     REAL M_n=0;     // Mass of nucleus/nucleon
@@ -85,14 +87,15 @@ int main(int argc, char* argv[])
             cout << "-gdist {dglap,toy} -xgfile file" << endl;
             cout << "-A number_of_nucleai -Mn nucleus_mass" << endl;
             cout << "-N number_of_data_points" << endl;
-            cout << "-Bp proton_shape (for ipsat and ipnonsat[TODO])" << endl;
+            cout << "-Bp proton_shape (for ipsat and ipnonsat)" << endl;
+            cout << "-nofactor (do not factorize amplitude in IPSat model)" << endl;
             cout << "-mint t_value, -maxt t_value" << endl;
             cout << "-iimfile filename (parameters for the IIM model)" << endl;
             cout << "-totxs (calculates total cross section)" << endl;
             cout << "-totxs_q2 (total cross section as a function of Q^2)" << endl;
             cout << "-A/p (nucleus cross section / A* "
                     <<"proton cross section as a function of Q^2)" << endl;
-            cout << "-t t, -maxQ2 maxq2 [GeV] (value of t and maximum of Q^2 in case of -A/p)" << endl;
+            cout << "-t t, -maxQ2 maxq2 -minQ2 minQ2[GeV] (value of t and max/min of Q^2)" << endl;
             cout << "-A/p_x (same as -A/p but as a function of x), -minx minx, -maxx maxx" << endl;
             cout << "-xg rval (print the value of xg(x,r) and quit) " << endl;
             cout << "-Mv mass (mass of the produced vector meson) " << endl;
@@ -127,6 +130,8 @@ int main(int argc, char* argv[])
                 mint=StrToReal(argv[i+1]);
             else if (string(argv[i])=="-maxt")
                 maxt=StrToReal(argv[i+1]);
+            else if (string(argv[i])=="-nofactor")
+                factor_ipsat=false;
             else if (string(argv[i])=="-totxs")
                 mode=MODE_TOTXS;
             else if (string(argv[i])=="-A/p")
@@ -139,6 +144,8 @@ int main(int argc, char* argv[])
                 t=StrToReal(argv[i+1]);
             else if (string(argv[i])=="-maxQ2")
                 maxQsqr=StrToReal(argv[i+1]);
+            else if (string(argv[i])=="-minQ2")
+                minQsqr=StrToReal(argv[i+1]);
             else if (string(argv[i])=="-iimfile")
                 iim_file=string(argv[i+1]);
             else if (string(argv[i])=="-xgfile")
@@ -233,7 +240,10 @@ int main(int argc, char* argv[])
     nuke.SetGDist(gdist);    
     Dipxs *amplitude;
     if (model==MODEL_IPSAT)
+    {
         amplitude = new Dipxs_IPSat(nuke, IPSAT_MODE_DEFAULT, bp);
+        ((Dipxs_IPSat*)amplitude)->SetFactorize(factor_ipsat);
+    }
     else if (model==MODEL_IPNONSAT)
         amplitude = new Dipxs_IPNonSat(nuke, bp);
     else if (model==MODEL_IIM)
@@ -269,10 +279,12 @@ int main(int argc, char* argv[])
     else if (mode==MODE_TOTXS_Q)    // Total cross section as a function of Q^2
     {                               // W fixed
         cout << "# Total cross section [nb], W=" << W << " GeV" << endl;
+        if (minQsqr==0) minQsqr=0.0001; // Qsqr=0 doesn't work
+        REAL multiplier = pow(maxQsqr/minQsqr, 1.0/points);
         #pragma omp parallel for
-        for (int i=1; i<=points; i++)
+        for (int i=0; i<=points; i++)
         {
-            REAL tmpqsqr = maxQsqr/points*i;
+            REAL tmpqsqr = minQsqr*pow(multiplier, i);
             bjorkx = tmpqsqr/(tmpqsqr+SQR(W))*(1+SQR(M_v)/tmpqsqr);
             //bjorkx = (tmpqsqr + SQR(M_v))/SQR(W);
             REAL xs = calculator.TotalCrossSection(tmpqsqr, bjorkx);

@@ -38,10 +38,12 @@ class Dipxs_IPSat : public Dipxs
     
         REAL GetB_p();
         REAL FactorC(REAL rsqr, REAL xbjork);
+        void SetFactorize(bool f);
     private:
         REAL Sigmap(REAL rsqr, REAL xbjork);
         REAL B_p;   
         REAL mode;    
+        bool factorize;
 
 };
 
@@ -56,6 +58,7 @@ const int IPSAT_MODE_NONSAT_P=2;
  * In IPSAT_MODE_DEFAULT the dipole-proton scattering amplitude is also
  * unitarized
  */
+
 
 
 #endif  // Dipxs_IPSAT_H

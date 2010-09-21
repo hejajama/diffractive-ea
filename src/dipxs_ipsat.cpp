@@ -11,11 +11,14 @@
 #include <gsl/gsl_integration.h>
 #include <gsl/gsl_sf_exp.h>
 #include <gsl/gsl_sf_gamma.h>
+#include <gsl/gsl_sf_bessel.h>
 #include <vector>
 
 #include "dipxs_ipsat.h"
 #include "dipole.h"
 
+// Integral helpers
+REAL inthelperf_satp(REAL b, void* p);  // Integrate over impact parameter 
 
 const REAL MAXB=90;
 
@@ -28,12 +31,14 @@ Dipxs_IPSat::Dipxs_IPSat(Nucleus &nucleus_) :
 {
     mode = IPSAT_MODE_DEFAULT;
     B_p=DEFAULT_B_p;
+    factorize=true;
 }
 
 Dipxs_IPSat::Dipxs_IPSat(Nucleus &nucleus_, int mode_, REAL bp) : Dipxs(nucleus_)
 {
     mode = mode_;
     B_p=bp;
+    factorize=true;
 }
 
 /* Amplitude squared averaged over nucleon configurations as a 
@@ -129,16 +134,47 @@ REAL Dipxs_IPSat::Dipxsection_sqr_avg(REAL rsqr, REAL r2sqr, REAL xbj,
  */
 REAL Dipxs_IPSat::Dipxsection_proton(REAL rsqr, REAL xbj, REAL delta)
 {
-    //return 4.0*M_PI*bp*FactorC(rsqr, xbj) * exp(-bp*SQR(delta)/2.0);
-    
     // Note: We cannot use FactorC() here as FactorC() depends on the mode
     // used: in NONSAT_P mode it doesn't saturate
     
-    return 4.0*M_PI*B_p*exp(-B_p*SQR(delta)/2.0)
-        * ( 1.0-exp(-nucleus.GetGDist()->Gluedist(xbj,rsqr)
-            *rsqr/(2.0*M_PI*B_p)) );
+    if (factorize) // Factorize T(b) dependency
+    {
+        return 4.0*M_PI*B_p*exp(-B_p*SQR(delta)/2.0)
+            * ( 1.0-exp(-nucleus.GetGDist()->Gluedist(xbj,rsqr)
+                *rsqr/(2.0*M_PI*B_p)) );
+    }
+    // Else: Integrate numerically over impact parameter dependence, oscillatory
+    // integral...
+    inthelper_ipsatavg helper;
+    helper.rsqr=rsqr; helper.xbj=xbj; helper.delta=delta;
+    helper.nuke=&nucleus; helper.dip=this;
     
+    gsl_function int_helper;
+    int_helper.function=&inthelperf_satp;
+    int_helper.params=&helper;
+    
+    size_t eval;
+    REAL result,abserr;
+
+    int status = gsl_integration_qng(&int_helper, 0, MAXB, 
+            0, AVGITACCURACY, &result, &abserr, &eval);
+    
+    if (status) std::cerr << "Error " << status << " at " << __FILE__ << ":"
+        << __LINE__ << ": Result " << result << ", abserror: " << abserr <<
+        ", t=" << SQR(delta) << " GeV^2 " << std::endl;
+        
+    return result;
 }
+
+REAL inthelperf_satp(REAL b, void* p)
+{
+    inthelper_ipsatavg* par = (inthelper_ipsatavg*)p;
+    return 2.0*M_PI*b*gsl_sf_bessel_J0(b*par->delta)*2.0*(1-exp(-par->rsqr
+         * par->nuke->GetGDist()->Gluedist(par->xbj, par->rsqr)
+         * exp(-SQR(b)/(2*par->dip->GetB_p()))/(4.0*M_PI*par->dip->GetB_p()) ));
+}
+
+
 
 /*
  * Non-averaged dipole cross section as a function of
@@ -201,4 +237,8 @@ REAL Dipxs_IPSat::GetB_p()
     return B_p;
 }
 
+void Dipxs_IPSat::SetFactorize(bool f)
+{  
+    factorize=f;
+}
 
