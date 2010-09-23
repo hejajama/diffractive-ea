@@ -97,6 +97,26 @@ REAL Dipxs::Dipxsection_proton(REAL rsqr, REAL xbj)
 }
 
 /*
+ * Coherent dipole-nucleus scattering amplitude averaged over nucleon
+ * configurations
+ */
+REAL Dipxs::CoherentDipxsection_avg(REAL rsqr, REAL xbj, 
+                REAL delta)
+{
+    std::cerr << "CoherentDipxsection_avg is not yet implemented" << std::endl;
+    return 0;
+}
+
+/* 
+ *And integrated over |t|
+ */
+REAL Dipxs::CoherentDipxsection_avg(REAL rsqr, REAL xbj)
+{
+    std::cerr << "CoherentDipxsection_sqr_avg integrated over |t| is not yet implemented" << std::endl;
+    return 0;
+}
+
+/*
  * Strong coupling constant as a function of r
  */
 REAL Dipxs::Alphas_r(REAL rsqr)
@@ -143,4 +163,15 @@ REAL inthelperf_protxs(REAL t, void* p)
     return par->amplitude->Dipxsection_proton(par->rsqr, par->xbj, sqrt(t));
 }
 
+/*
+ * Not yet implemented errors
+ */
+
+REAL Dipxs::Dipxsection(REAL rsqr, REAL xbj, Vec b, 
+                std::vector<Vec>& nucleons)
+{
+    std::cerr << "Dipxsection as a function of nucleon positions is not " <<
+       " implemented" << std::endl;
+    return 0;
+}
 

@@ -122,6 +122,52 @@ REAL Dipxs_IPSat::Dipxsection_sqr_avg(REAL rsqr, REAL r2sqr, REAL xbj,
     return result;
 }
 
+
+/* 
+ * Amplitude squared for coherent dipole-nucleus scattering
+ * |\int d^2 b_1...d^2 b_A T_A(b_1)...T_A(B_A)
+ *      *\int d^2 b e^(-ib*\Delta)
+ *      * (d\sigma^A/d^2 b)(b,r,x) |^2
+ *
+ * In IPSat model this can be derived to be
+ *
+ * \int d^2(-b*\Delta) 2(1 - exp(-A/2*T_A(b)*\sigma_dip^p(r,x)) )
+ *
+ * The nasty part here is that we have to perform the fourier transformation
+ * numerically. 
+ */
+
+REAL inthelperf_ipsat_coherentavg(REAL b, void* p)
+{
+    inthelper_ipsatavg* par=(inthelper_ipsatavg*)p;
+    int A = par->nuke->GetA();
+    return 2*M_PI*b*gsl_sf_bessel_J0(b*par->delta)*
+        (    1-exp(-A/2.0*par->nuke->FT_T_WS(b)  
+        * par->dip->Dipxsection_proton(par->rsqr, par->xbj) )  );
+}
+
+REAL Dipxs_IPSat::CoherentDipxsection_avg(REAL rsqr, REAL xbj, REAL delta)
+{
+    inthelper_ipsatavg helper;
+    helper.rsqr=rsqr; helper.xbj=xbj; helper.delta=delta;
+    helper.nuke=&nucleus; helper.dip=this;
+    
+    gsl_function int_helper;
+    int_helper.function=&inthelperf_ipsat_coherentavg;
+    int_helper.params=&helper;
+    
+    size_t eval;
+    REAL result,abserr;
+
+    int status = gsl_integration_qng(&int_helper, 0, MAXB, 
+            0, AVGITACCURACY, &result, &abserr, &eval);
+    if (status) std::cerr << "Error " << status << " at " << __FILE__ << ":"
+        << __LINE__ << ": Result " << result << ", abserror: " << abserr 
+        << " (t=" << delta*delta <<")" << endl;
+    return result;
+
+}
+
 /*
  * Dipole-proton amplitude as a function of \Delta
  * Integrated over impact parameter dependence

@@ -69,6 +69,7 @@ int main(int argc, char* argv[])
     bool xgval=false;   // Print the value of xg(x,µ) and quit.
     bool scalex=false;  // Scale x so that x=x_bj*(1+M_V^2/Q^2)
     bool factor_ipsat=true; // Factroize IPSat amplitude to T(b)(1-exp(-r^2...))
+    bool coherent_dt=false; // Calculate coherent d\sigma/dt
     REAL r=-1;
     REAL M_v=3.097; // Mass of the produced vector meson, 3.097 GeV = J/\Psi
     REAL M_n=0;     // Mass of nucleus/nucleon
@@ -87,6 +88,7 @@ int main(int argc, char* argv[])
             cout << "-gdist {dglap,toy} -xgfile file" << endl;
             cout << "-A number_of_nucleai -Mn nucleus_mass" << endl;
             cout << "-N number_of_data_points" << endl;
+            cout << "-coherent_dt (calculate coherent d\\sigma/dt)" << endl;
             cout << "-Bp proton_shape (for ipsat and ipnonsat)" << endl;
             cout << "-nofactor (do not factorize amplitude in IPSat model)" << endl;
             cout << "-mint t_value, -maxt t_value" << endl;
@@ -130,6 +132,8 @@ int main(int argc, char* argv[])
                 mint=StrToReal(argv[i+1]);
             else if (string(argv[i])=="-maxt")
                 maxt=StrToReal(argv[i+1]);
+            else if (string(argv[i])=="-coherent_dt")
+                coherent_dt=true;
             else if (string(argv[i])=="-nofactor")
                 factor_ipsat=false;
             else if (string(argv[i])=="-totxs")
@@ -209,7 +213,7 @@ int main(int argc, char* argv[])
         //   = (Q^2 + M_v^2) / (Q^2 + W^2 + M_n^2)
         bjorkx = (Qsqr + SQR(M_v))/( Qsqr + SQR(W) + SQR(M_n) );
     }
-    
+
     if (!w_set and scalex) // Scale x->x*(1+M^2/Q^2)
     {
         if (Qsqr<0.00001){ cerr << "Q^2=0, can't scale x" << endl; return -1;}
@@ -347,6 +351,33 @@ int main(int argc, char* argv[])
             }
         
         }
+    
+    }
+    
+    else if (coherent_dt)   // d\sigma^A/dt for coherent scattering
+    {
+        if (A==1) { 
+            std::cerr << "A=1, can't be coherent scattering." << std::endl;
+            return -1;
+        }
+        cout << "# d\\sigma/dt [1/GeV^4], coherent scattering " << endl;
+        // All iterations are independent, so this is straightforward to parallerize   
+        #pragma omp parallel for
+        for (int i=0; i<=points; i++)
+        {
+            REAL tmpt = (maxt-mint)/points*i;
+            REAL delta = sqrt(tmpt);
+            REAL result;
+            result = calculator.CoherentCrossSection_dt(tmpt, Qsqr, bjorkx);
+            #pragma omp critical
+            {
+                cout.precision(5);
+                cout << fixed << tmpt;
+                cout.precision(8);
+                cout << " " << result << endl;
+            }
+        }
+    
     
     }
 

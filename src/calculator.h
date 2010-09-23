@@ -23,6 +23,7 @@ class Calculator
     public:
         Calculator(Dipxs* amplitude_, WaveFunction* wavef_);
         REAL CrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx);  // d\sigma / dt
+        REAL CoherentCrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx);
         REAL ProtonCrossSection_dt(REAL t, REAL Qsqr, REAL Bjorkx);
         REAL TotalCrossSection(REAL Qsqr, REAL bjorkx); 
         REAL TotalProtonCrossSection(REAL Qsqr, REAL bjorkx);
@@ -47,7 +48,8 @@ struct inthelper_r
     REAL bjorkx;
     REAL delta;
     bool analytic_t;    // Perfrom t integral analytically
-    inthelper_r(){ analytic_t=false; }
+    bool coherent;  // Calculate coherent cross section, not quasi-elastic
+    inthelper_r(){ analytic_t=false; coherent=false; }
 }; 
  
 // Integral helpers
@@ -55,6 +57,7 @@ REAL inthelperf_r1(REAL r, void* p);
 REAL inthelperf_r2(REAL r, void* p);
 REAL inthelper_totxs(REAL t, void* p);
 REAL inthelperf_proton(REAL r, void* p);
+REAL inthelperf_coherent(REAL r, void* p);
 
 // Integration settings
 const REAL MAXR=4;

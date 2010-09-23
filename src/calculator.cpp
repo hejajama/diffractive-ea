@@ -46,6 +46,32 @@ REAL Calculator::CrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
 }
 
 /*
+ * Differential cross section for coherent \gamma^*A scattering
+ */
+REAL Calculator::CoherentCrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
+{
+    gsl_function fun;
+    inthelper_r inthelp;
+    inthelp.amplitude=amplitude;
+    inthelp.vm=wavef; inthelp.bjorkx=bjorkx;
+    inthelp.delta=sqrt(t); inthelp.Qsqr=Qsqr;
+    fun.function=&inthelperf_coherent;
+    fun.params=&inthelp;
+        
+    REAL result,abserr; size_t eval;
+    
+    int status = gsl_integration_qng(&fun, MINR, MAXR, RINTACCURACY, RINTACCURACY, 
+        &result, &abserr, &eval);
+    if (status) std::cerr << "Error " << status << " at " << __FILE__ << ":"
+        << __LINE__ << ": Result " << result << ", abserror: " << abserr 
+        << " (t=" << t <<")" << std::endl;
+        
+    result *= result*1.0/(16.0*M_PI);
+    return result;
+
+}
+
+/*
  * Differential cross section for dipole-proton scattering
  */
 REAL Calculator::ProtonCrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
@@ -182,6 +208,15 @@ REAL inthelperf_proton(REAL r, void* p)
         * par->amplitude->Dipxsection_proton(SQR(r), par->bjorkx,
          par->delta);
        
+}
+
+// Only one r integral for cohernet dipole-nucleus scattering
+REAL inthelperf_coherent(REAL r, void* p)
+{
+    inthelper_r* par = (inthelper_r*)p;
+    return 2*M_PI*r*par->vm->PsiSqr_tot_intz(par->Qsqr, r)
+        * par->amplitude->CoherentDipxsection_avg(SQR(r), par->bjorkx,
+         par->delta);
 }
 
 // Return pointer to dipole amplitude

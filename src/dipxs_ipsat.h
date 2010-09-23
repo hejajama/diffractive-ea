@@ -28,6 +28,12 @@ class Dipxs_IPSat : public Dipxs
         REAL Dipxsection(REAL rsqr, REAL xbjork, Vec b, 
             std::vector<Vec> &nucleons); // Non-averaged dipole cross section
 
+        // Amplitude squared for coherent scattering
+        // |\int d^2 b_1...d^2 b_A T_A(b_1)...T_A(B_A)
+        //      * \int d^2 b e^(-ib*\Delta)
+        //      * (d\sigma^A/d^2 b)(b,r,x) |^2
+        REAL CoherentDipxsection_avg(REAL rsqr, REAL xbj, REAL delta);
+
         // Dipole-proton amplitude
         REAL Dipxsection_proton(REAL rsqr, REAL xbj, REAL delta);
         REAL Dipxsection_proton(REAL rsqr, REAL xbj);

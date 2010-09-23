@@ -24,16 +24,25 @@ class Dipxs
         // Cross section (amplitude) as a function of impact parameter
         // and nucleon config. (d \sigma^2 / d^2 b)_(b_1, ..., b_A)
         virtual REAL Dipxsection(REAL rsqr, REAL xbj, Vec b, 
-                std::vector<Vec>& nucleons) = 0;
+                std::vector<Vec>& nucleons);
         // Amplitude squared averaged over nucleon configurations as a 
         // function of \Delta and r,r' (and x)
         // \int d^2 b_1 ... d^2 b_A T_A(b_1)...T_A(B_A) 
         //      * \int d^2 b d^2 b' e^(-i(b-b')*\Delta) 
-        //      * (d\sigma^2 / d^2 b)(b,r) (d\sgima^2 / d^2b)(b',r')
+        //      * (d\sigma^A / d^2 b)(b,r,x) (d\sigma^A / d^2b)(b',r',x)
         virtual REAL Dipxsection_sqr_avg(REAL rsqr, REAL r2sqr, REAL xbj, 
                 REAL delta)=0;
         // Cross section integrated over |t|
         virtual REAL Dipxsection_sqr_avg(REAL rsqr, REAL r2sqr, REAL xbj);
+        
+        // Amplitude squared for coherent scattering
+        // |\int d^2 b_1...d^2 b_A T_A(b_1)...T_A(B_A)
+        //      * \int d^2 b e^(-ib*\Delta)
+        //      * (d\sigma^A/d^2 b)(b,r,x) |^2
+        virtual REAL CoherentDipxsection_avg(REAL rsqr, REAL xbj, 
+                REAL delta);
+        // Integrated over |t|
+        virtual REAL CoherentDipxsection_avg(REAL rsqr, REAL xbj);
         
         // Scattering amplitude for dipole-proton scattering
         virtual REAL Dipxsection_proton(REAL rsqr, REAL xbj, REAL delta)=0;

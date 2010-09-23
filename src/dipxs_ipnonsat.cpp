@@ -73,7 +73,10 @@ REAL Dipxs_IPNonSat::Dipxsection_sqr_avg(REAL rsqr, REAL r2sqr,
     if (prevdelta==delta)
         result=prevft;
     else
+    {   
         result=nucleus.FT_T_WS(delta);
+        std::cout << "d: " << delta << " ft*ft: " << result*result << std::endl;
+    }
     
     REAL A = nucleus.GetA();
     
