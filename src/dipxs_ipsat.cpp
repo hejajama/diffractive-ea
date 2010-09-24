@@ -23,7 +23,7 @@ REAL inthelperf_satp(REAL b, void* p);  // Integrate over impact parameter
 const REAL MAXB=90;
 
 const REAL AVGITACCURACY = 0.001;
-const REAL COHAVGITACCURACY = 0.05; // Note: small as numerical FT is difficult
+const REAL OSCAVGITACCURACY = 0.05; // Note: small as numerical FT is difficult
 
 using std::cout; using std::endl; using std::cerr;
 
@@ -125,12 +125,13 @@ REAL Dipxs_IPSat::Dipxsection_sqr_avg(REAL rsqr, REAL r2sqr, REAL xbj,
 
 
 /* 
- * Amplitude squared for coherent dipole-nucleus scattering
+ * Amplitude for coherent dipole-nucleus scattering
  * |\int d^2 b_1...d^2 b_A T_A(b_1)...T_A(B_A)
  *      *\int d^2 b e^(-ib*\Delta)
  *      * (d\sigma^A/d^2 b)(b,r,x) |^2
  *
  * In IPSat model this can be derived to be
+ * (when assuming smooth and heavy nucleus)
  *
  * \int d^2(-b*\Delta) 2(1 - exp(-A/2*T_A(b)*\sigma_dip^p(r,x)) )
  *
@@ -161,7 +162,7 @@ REAL Dipxs_IPSat::CoherentDipxsection_avg(REAL rsqr, REAL xbj, REAL delta)
     REAL result,abserr;
 
     int status = gsl_integration_qng(&int_helper, 0, MAXB, 
-            0, COHAVGITACCURACY, &result, &abserr, &eval);
+            0, OSCAVGITACCURACY, &result, &abserr, &eval);
     if (status) std::cerr << "Error " << status << " at " << __FILE__ << ":"
         << __LINE__ << ": Result " << result << ", abserror: " << abserr 
         << " (t=" << delta*delta <<")" << endl;
@@ -204,7 +205,7 @@ REAL Dipxs_IPSat::Dipxsection_proton(REAL rsqr, REAL xbj, REAL delta)
     REAL result,abserr;
 
     int status = gsl_integration_qng(&int_helper, 0, MAXB, 
-            0, AVGITACCURACY, &result, &abserr, &eval);
+            0, OSCAVGITACCURACY, &result, &abserr, &eval);
     
     if (status) std::cerr << "Error " << status << " at " << __FILE__ << ":"
         << __LINE__ << ": Result " << result << ", abserror: " << abserr <<

@@ -20,10 +20,16 @@ class Dipxs_IPNonSat : public Dipxs
         REAL Dipxsection_sqr_avg(REAL rsqr, REAL r2sqr, REAL xbjork, REAL delta);
         REAL Dipxsection(REAL rsqr, REAL xbjork, Vec b, 
                 std::vector<Vec>& nucleons); 
+        
+       // Amplitude squared for coherent scattering
+       REAL CoherentDipxsection_avg(REAL rsqr, REAL xbj, 
+                REAL delta);
                 
        // Dipole-proton amplitude
        REAL Dipxsection_proton(REAL rsqr, REAL xbj, REAL delta);
 
+        // Dipole-proton amplitude intergrated over |t|
+        REAL Dipxsection_proton(REAL rsqr, REAL xbj);
     
     private:
         REAL Sigmap(REAL rsqr, REAL xbjork);

@@ -75,7 +75,6 @@ REAL Dipxs_IPNonSat::Dipxsection_sqr_avg(REAL rsqr, REAL r2sqr,
     else
     {   
         result=nucleus.FT_T_WS(delta);
-        std::cout << "d: " << delta << " ft*ft: " << result*result << std::endl;
     }
     
     REAL A = nucleus.GetA();
@@ -86,6 +85,25 @@ REAL Dipxs_IPNonSat::Dipxsection_sqr_avg(REAL rsqr, REAL r2sqr,
         *A*(1.0+(A-1.0)*result*result);
 }
 
+
+/* 
+ * Amplitude for coherent dipole-nucleus scattering
+ * |\int d^2 b_1...d^2 b_A T_A(b_1)...T_A(B_A)
+ *      *\int d^2 b e^(-ib*\Delta)
+ *      * (d\sigma^A/d^2 b)(b,r,x) |^2
+ *
+ * Calculated by Caldwell and Kowalski, arXiv:0909:1254v1
+ *
+ * |A|^2 = A^2 Sigmap^2*Exp(-B_p*\Delta^2)*|\int d^2b exp(-ib.\Delta) T_A(b)|^2
+ */
+REAL Dipxs_IPNonSat::CoherentDipxsection_avg(REAL rsqr, REAL xbj, 
+                REAL delta)
+{                
+
+    return nucleus.GetA()*Sigmap(rsqr, xbj)
+        *nucleus.FT_T_WS(delta);
+}
+
 /*
  * Dipole-proton amplitude as a function of \Delta
  * Integrated over impact parameter dependence
@@ -94,6 +112,14 @@ REAL Dipxs_IPNonSat::Dipxsection_sqr_avg(REAL rsqr, REAL r2sqr,
 REAL Dipxs_IPNonSat::Dipxsection_proton(REAL rsqr, REAL xbj, REAL delta)
 {
     return Sigmap(rsqr, xbj)*exp(-B_p*SQR(delta)/2.0);
+}
+
+/*
+ * Dipole-proton amplitude integrated over |t|
+ */
+REAL Dipxs_IPNonSat::Dipxsection_proton(REAL rsqr, REAL xbj)
+{
+    return Sigmap(rsqr, xbj)*2.0/B_p;
 }
 
 /*
