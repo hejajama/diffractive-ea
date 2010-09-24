@@ -26,7 +26,10 @@ class Dipxs_IPNonSat : public Dipxs
                 REAL delta);
                 
        // Dipole-proton amplitude
-       REAL Dipxsection_proton(REAL rsqr, REAL xbj, REAL delta);;
+       REAL Dipxsection_proton(REAL rsqr, REAL xbj, REAL delta);
+       
+       // Total dipole-proton cross section (integrated over d^2 b) in 1/Gev^2
+       REAL TotalDipxsection_proton(REAL rsqr, REAL xbj);
     
     private:
         REAL Sigmap(REAL rsqr, REAL xbjork);

@@ -44,6 +44,10 @@ class Dipxs
         
         // Scattering amplitude for dipole-proton scattering
         virtual REAL Dipxsection_proton(REAL rsqr, REAL xbj, REAL delta)=0;
+        
+        // Total dipole-proton cross section in 1/Gev^2
+        // \int d^2 b d\sigma/d^2 b
+        virtual REAL TotalDipxsection_proton(REAL rsqr, REAL xbj);
                 
         // Wrapper, calls virtual Dipxsection with parameter Vec(x,y)
         REAL Dipxsection(REAL rsqr, REAL xbj, REAL x, REAL y,

@@ -158,10 +158,9 @@ REAL inthelperf_ipsat_coherentavg(REAL b, void* p)
 {
     inthelper_ipsatavg* par=(inthelper_ipsatavg*)p;
     int A = par->nuke->GetA();
-    return 0;
-    //return 2*M_PI*b*gsl_sf_bessel_J0(b*par->delta)*
-    //    (    1-exp(-A/2.0*par->nuke->T_WS(b)  
-    //    * par->dip->Dipxsection_proton(par->rsqr, par->xbj) )  );
+    return 2*M_PI*b*gsl_sf_bessel_J0(b*par->delta)*
+        (    1-exp(-A/2.0*par->nuke->T_WS(b)  
+        * par->dip->TotalDipxsection_proton(par->rsqr, par->xbj) )  );
 }
 
 REAL Dipxs_IPSat::CoherentDipxsection_avg(REAL rsqr, REAL xbj, REAL delta)
@@ -243,6 +242,21 @@ REAL inthelperf_satp(REAL b, void* p)
     return 2.0*M_PI*b*gsl_sf_bessel_J0(b*par->delta)*2.0*(1-exp(-par->rsqr
          * par->nuke->GetGDist()->Gluedist(par->xbj, par->rsqr)
          * exp(-SQR(b)/(2*par->dip->GetB_p()))/(4.0*M_PI*par->dip->GetB_p()) ));
+}
+
+/*
+ * Total dipole-proton cross section
+ * Calculated as \int d^2 b d\sigma/d^2 b
+ * = 2 * 2*\pi*B_p*(1-exp(-r^2*F(x,r)))
+ * = 4\pi B_p * (1-exp(-r^2 * Gluedist() / (2*\pi*B_p) ))
+ *
+ * Units: 1/GeV^2
+ */
+REAL Dipxs_IPSat::TotalDipxsection_proton(REAL rsqr, REAL xbj)
+{
+    
+    return 4.0*M_PI*B_p*(1 - exp(-rsqr*nucleus.GetGDist()->Gluedist(xbj, rsqr)
+        / (2.0*M_PI*B_p) ) );
 }
 
 

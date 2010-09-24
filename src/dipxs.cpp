@@ -140,3 +140,9 @@ REAL Dipxs::Dipxsection(REAL rsqr, REAL xbj, Vec b,
     return 0;
 }
 
+// Total dipole-proton cross section
+REAL Dipxs::TotalDipxsection_proton(REAL rsqr, REAL xbj)
+{
+    std::cerr << "TotalDipxsection_proton is not implemented " << std::endl;
+    return 0;
+}

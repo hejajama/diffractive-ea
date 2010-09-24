@@ -115,6 +115,19 @@ REAL Dipxs_IPNonSat::Dipxsection_proton(REAL rsqr, REAL xbj, REAL delta)
 }
 
 /*
+ * Total dipole-proton cross section
+ * Calculated as \int d^2 b d\sigma/d^2 b
+ * = \pi^2/3*r^2*\alpha_s(\mu^2)*xg(x,\mu^2) * \int d^2 b T_p(b)/(2*\pi*B_p)
+ * = 2 * Gdist() * r^2
+ *
+ * Units: 1/GeV^2
+ */
+REAL Dipxs_IPNonSat::TotalDipxsection_proton(REAL rsqr, REAL xbj)
+{
+    return 2.0*nucleus.GetGDist()->Gluedist(xbj, rsqr)*rsqr;
+}
+
+/*
  * Dipole cross section in impact parameter reprsesentation as a 
  * function of nucleon transversal positions
  * _NOT_ Averaged over nucleon connfigurations

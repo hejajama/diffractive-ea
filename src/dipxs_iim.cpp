@@ -7,38 +7,57 @@
  */
  
 #include "dipxs_iim.h"
+#include "nucleus.h"
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_integration.h>
 #include <gsl/gsl_sf_gamma.h>
+#include <gsl/gsl_sf_bessel.h>
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <sstream>
 #include <cstdlib>
 
+
 const REAL AVGITACCURACY = 0.001;
+const REAL FTINTACCURACY = 0.001; 
 const REAL MAXB=90;
+const size_t MAXITER_FT=1000;  // Max number of interations when 
+            // calculating the fourier transformation of the amplitude
 
 Dipxs_IIM::Dipxs_IIM(Nucleus& nuke) : Dipxs(nuke)
 {
-    prevdelta=prevft=-1;
     if(ReadParameters("iim.dat"))
     {
         std::cerr << "Could not read parameters from file iim.dat" 
             << std::endl;
         std::exit(EXIT_FAILURE);
     }
+    Intialize();
 }
 
 Dipxs_IIM::Dipxs_IIM(Nucleus& nuke, std::string file) : Dipxs(nuke)
 {
-    prevdelta=prevft=-1;
+
     if(ReadParameters(file))
     {
         std::cerr << "Could not read parameters from file " << file
             << std::endl;
         std::exit(EXIT_FAILURE);
     }
+    Intialize();
+}
+
+void Dipxs_IIM::Intialize()
+{
+    prevdelta=prevft=-1;
+    
+    ft_workspace_coh = gsl_integration_workspace_alloc(MAXITER_FT);
+}
+
+Dipxs_IIM::~Dipxs_IIM()
+{
+    gsl_integration_workspace_free(ft_workspace_coh);
 }
 
 /* Amplitude squared averaged over nucleon configurations as a 
@@ -160,6 +179,58 @@ REAL Dipxs_IIM::Dipxsection_sqr_avg(REAL rsqr, REAL r2sqr, REAL xbj,
 
 }
 
+/* 
+ * Amplitude for coherent dipole-nucleus scattering
+ * |\int d^2 b_1...d^2 b_A T_A(b_1)...T_A(B_A)
+ *      *\int d^2 b e^(-ib*\Delta)
+ *      * (d\sigma^A/d^2 b)(b,r,x) |^2
+ *
+ * In IIM model this can be derived to be
+ * \int d^2(-b*\Delta) 2(1 - exp(-A/2*T_A(b)*\sigma_dip^p(r,x)) )
+ *
+ * The nasty part here is that we have to perform the fourier transformation
+ * numerically. 
+ */
+
+struct inthelper_coherent
+{
+    REAL rsqr, delta, xbj;
+    Dipxs* dip;
+    Nucleus* nuke;
+};
+
+REAL inthelperf_iim_coherentavg(REAL b, void* p)
+{
+    inthelper_coherent* par=(inthelper_coherent*)p;
+    int A = par->nuke->GetA();
+    return 2*M_PI*b*gsl_sf_bessel_J0(b*par->delta)*
+        (    1-exp(-A/2.0*par->nuke->T_WS(b)  
+        * par->dip->TotalDipxsection_proton(par->rsqr, par->xbj) )  );
+}
+
+REAL Dipxs_IIM::CoherentDipxsection_avg(REAL rsqr, REAL xbj, REAL delta)
+{
+    inthelper_coherent helper;
+    helper.rsqr=rsqr; helper.xbj=xbj; helper.delta=delta;
+    helper.nuke=&nucleus; helper.dip=this;
+    
+    gsl_function int_helper;
+    int_helper.function=&inthelperf_iim_coherentavg;
+    int_helper.params=&helper;
+    
+    size_t eval; 
+    REAL result,abserr;
+    
+    int status=gsl_integration_qag(&int_helper, 0, MAXB, 0, FTINTACCURACY, 
+        MAXITER_FT, GSL_INTEG_GAUSS41, ft_workspace_coh, &result, &abserr);
+
+    if (status) std::cerr << "Error " << status << " at " << __FILE__ << ":"
+        << __LINE__ << ": Result " << result << ", abserror: " << abserr 
+        << " relerror: " << abserr/result << " (t=" << delta*delta <<")" << std::endl;
+    return result;
+
+}
+
 /*
  * Dipole-proton amplitude as a function of \Delta
  * Integrated over impact parameter dependence
@@ -170,13 +241,21 @@ REAL Dipxs_IIM::Dipxsection_sqr_avg(REAL rsqr, REAL r2sqr, REAL xbj,
 REAL Dipxs_IIM::Dipxsection_proton(REAL rsqr, REAL xbj, REAL delta)
 {
     REAL rq = Q_s(xbj)*sqrt(rsqr);
-    return 2*2*M_PI*B_D*exp(-B_D*SQR(delta)/2.0)*DipoleAmplitude(rq,xbj);
+    return 2.0*2.0*M_PI*B_D*exp(-B_D*SQR(delta)/2.0)*DipoleAmplitude(rq,xbj);
 }
 
 /*
- * Dipole-proton amplitude
+ * Total dipole-proton cross section
+ * Calculated as \int d^2 b d\sigma/d^2 b
+ * = 2 * 2 \pi B_D *DipoleAmplitude(r,x)
+ *
+ * Units: 1/GeV^2
  */
-
+REAL Dipxs_IIM::TotalDipxsection_proton(REAL rsqr, REAL xbj)
+{
+    REAL rq =Q_s(xbj)*sqrt(rsqr);
+    return 2.0*2.0*M_PI*B_D*DipoleAmplitude(rq,xbj);
+}
 
 /* 
  * Dipole scattering amplitude N(rQ,x)

@@ -13,6 +13,7 @@
 #include "dipxs.h"
 #include "nucleus.h"
 #include <vector>
+#include <gsl/gsl_integration.h>
 
 // How to generalize IIM model into qq-nucleus scattering
 // IPNONSAT: amplitude(b) = \sum_i amplitude_qq(b-b_i),
@@ -24,6 +25,7 @@ class Dipxs_IIM : public Dipxs
     public:
         Dipxs_IIM(Nucleus &nucleus_);
         Dipxs_IIM(Nucleus &nucleus_, std::string file);
+        ~Dipxs_IIM();
         // Amplitude squared averaged over nucleon configurations as a 
         // function of \Delta and r,r' (and x)
         // \int d^2 b_1 ... d^2 b_A T_A(b_1)...T_A(B_A) 
@@ -36,14 +38,21 @@ class Dipxs_IIM : public Dipxs
         REAL DipoleAmplitude(REAL r, REAL x);
         
         REAL Dipxsection_proton(REAL rsqr, REAL xbj, REAL delta);
-        // Total dipole-proton amplitude (intergrated over b)
-        REAL Dipxsection_proton(REAL rsqr, REAL xbj);
         
+        // Scattering amplitude for coherent gamma^*A scattering
+        REAL CoherentDipxsection_avg(REAL rsqr, REAL xbj, REAL delta);
+
+        // Total dipole-proton cross section (integrated over d^2 b) in 1/Gev^2
+        REAL TotalDipxsection_proton(REAL rsqr, REAL xbj);
+
         REAL Q_s(REAL x);       // Saturation scale
         REAL GetB_D();
     private:
+        void Intialize();
         int ReadParameters(std::string file);
         REAL prevft, prevdelta;     // To optimize Dipxsection_sqr_avg
+        
+        gsl_integration_workspace *ft_workspace_coh;
         
     
         // Parameters for the model
