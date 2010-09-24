@@ -11,12 +11,14 @@
 #include "nucleus.h"
 #include "dipole.h"
 #include <vector>
+#include <gsl/gsl_integration.h>
  
 class Dipxs_IPSat : public Dipxs
 {
     public:
         Dipxs_IPSat(Nucleus &nucleus_);
         Dipxs_IPSat(Nucleus &nucleus_, int mode_, REAL bp=DEFAULT_B_p);
+        ~Dipxs_IPSat();
         // Amplitude squared averaged over nucleon configurations as a 
         // function of \Delta and r,r' (and x)
         // \int d^2 b_1 ... d^2 b_A T_A(b_1)...T_A(B_A) 
@@ -36,7 +38,6 @@ class Dipxs_IPSat : public Dipxs
 
         // Dipole-proton amplitude
         REAL Dipxsection_proton(REAL rsqr, REAL xbj, REAL delta);
-        REAL Dipxsection_proton(REAL rsqr, REAL xbj);
 
 
         //REAL Dipxsection_b_avg_sqr(REAL rsqr, REAL r2sqr, Vec b, Vec b2, REAL xbjork ); // Impact parameter representation
@@ -47,10 +48,16 @@ class Dipxs_IPSat : public Dipxs
         REAL FactorC(REAL rsqr, REAL xbjork);
         void SetFactorize(bool f);
     private:
+        void Intialize();
         REAL Sigmap(REAL rsqr, REAL xbjork);
         REAL B_p;   
         REAL mode;    
         bool factorize;
+        gsl_integration_workspace *ft_workspace;
+        gsl_integration_workspace *ft_workspace_proton;
+        
+        static const size_t MAXITER_FT=1000;  // Max number of interations when 
+            // calculating the fourier transformation of the amplitude
 
 };
 

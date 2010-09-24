@@ -41,12 +41,9 @@ class Dipxs
         //      * (d\sigma^A/d^2 b)(b,r,x) |^2
         virtual REAL CoherentDipxsection_avg(REAL rsqr, REAL xbj, 
                 REAL delta);
-        // Integrated over |t|
-        virtual REAL CoherentDipxsection_avg(REAL rsqr, REAL xbj);
         
         // Scattering amplitude for dipole-proton scattering
         virtual REAL Dipxsection_proton(REAL rsqr, REAL xbj, REAL delta)=0;
-        virtual REAL Dipxsection_proton(REAL rsqr, REAL xbj);
                 
         // Wrapper, calls virtual Dipxsection with parameter Vec(x,y)
         REAL Dipxsection(REAL rsqr, REAL xbj, REAL x, REAL y,

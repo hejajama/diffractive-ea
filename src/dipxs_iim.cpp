@@ -173,6 +173,11 @@ REAL Dipxs_IIM::Dipxsection_proton(REAL rsqr, REAL xbj, REAL delta)
     return 2*2*M_PI*B_D*exp(-B_D*SQR(delta)/2.0)*DipoleAmplitude(rq,xbj);
 }
 
+/*
+ * Dipole-proton amplitude
+ */
+
+
 /* 
  * Dipole scattering amplitude N(rQ,x)
  */

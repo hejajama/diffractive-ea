@@ -6,7 +6,7 @@
 import os
 
 # Dipole models
-models=["ipsat", "ipnonsat", "iim", "ipsat_nonsatp"]
+models=["ipsat", "ipnonsat", "iim", "ipsat -coherent_dt", "ipnonsat coherent_dt"]
 # Gluon distributions
 gdists=["dglap"]
 #Q^2 values
@@ -15,7 +15,7 @@ Q2vals=[0,10]
 A=197 # Gold
 N=200
 mint=0
-maxt=0.7
+maxt=0.5
 num_of_threads=4
 bjorkx=0.0001
 gd="dglap"

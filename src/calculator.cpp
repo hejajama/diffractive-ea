@@ -129,7 +129,8 @@ REAL Calculator::TotalCrossSection(REAL Qsqr, REAL bjorkx)
  */
 REAL Calculator::TotalProtonCrossSection(REAL Qsqr, REAL bjorkx)
 {
-    gsl_function fun;
+    std::cerr << "Proton Cross Section calculation may not work!" << std::endl;
+    /*gsl_function fun;
     inthelper_r inthelp;
     inthelp.amplitude=amplitude;
     inthelp.vm=wavef; inthelp.bjorkx=bjorkx;
@@ -147,7 +148,8 @@ REAL Calculator::TotalProtonCrossSection(REAL Qsqr, REAL bjorkx)
         << " (total proton cross section)" << std::endl;
         
     return result*result/(16.0*M_PI);    
-    
+    */
+    return 0;
     
 
 }
@@ -200,8 +202,10 @@ REAL inthelperf_proton(REAL r, void* p)
     inthelper_r* par = (inthelper_r*)p;
     if (par->analytic_t)
     {   // We are calculating total xs and performing t integral analytically
-        return 2.0*M_PI*r*par->vm->PsiSqr_tot_intz(par->Qsqr, r)
-        * par->amplitude->Dipxsection_proton(SQR(r), par->bjorkx);
+        //return 2.0*M_PI*r*par->vm->PsiSqr_tot_intz(par->Qsqr, r)
+        // * par->amplitude->Dipxsection_proton(SQR(r), par->bjorkx);
+        std::cerr << "Analytic integration over t is not implemented " 
+            << " (inthelperf_proton)" << std::endl;
     
     }
     return 2*M_PI*r*par->vm->PsiSqr_tot_intz(par->Qsqr, r)

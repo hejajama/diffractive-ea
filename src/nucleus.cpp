@@ -163,7 +163,7 @@ REAL Nucleus::T_WS(REAL b)
     int_helper.params=&param;
     
     int status = gsl_integration_qng(&int_helper, 0, MaxR(), 
-            WSINTACCURACY, WSINTACCURACY, &result, &abserr, &eval);
+            0, WSINTACCURACY, &result, &abserr, &eval);
     if (status) { 
         std::cerr << "WS integral in T_WS failed with code " 
             << gsl_strerror(status) << std::endl;

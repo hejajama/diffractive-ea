@@ -31,10 +31,14 @@ class Dipxs_IIM : public Dipxs
         //      * (d\sigma^2 / d^2 b)(b,r) (d\sgima^2 / d^2b)(b',r')
         REAL Dipxsection_sqr_avg(REAL rsqr, REAL r2sqr, REAL xbj, 
                 REAL delta);
-        REAL Dipxsection_proton(REAL rsqr, REAL xbj, REAL delta);
         REAL Dipxsection(REAL rsqr, REAL xbjork, Vec b, 
             std::vector<Vec> &nucleons); // Non-averaged dipole cross section
         REAL DipoleAmplitude(REAL r, REAL x);
+        
+        REAL Dipxsection_proton(REAL rsqr, REAL xbj, REAL delta);
+        // Total dipole-proton amplitude (intergrated over b)
+        REAL Dipxsection_proton(REAL rsqr, REAL xbj);
+        
         REAL Q_s(REAL x);       // Saturation scale
         REAL GetB_D();
     private:

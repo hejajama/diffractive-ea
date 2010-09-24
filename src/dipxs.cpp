@@ -71,32 +71,6 @@ REAL Dipxs::Dipxsection_sqr_avg(REAL rsqr, REAL r2sqr, REAL xbj)
 }
 
 /*
- * Dipole-proton cross section integrated over \delta
- * Similar as Dipxsection_sqr_avg
- */
-REAL Dipxs::Dipxsection_proton(REAL rsqr, REAL xbj)
-{
-    gsl_function fun;   
-    inthelper_dipxs inthelp;
-    inthelp.amplitude=this;
-    inthelp.xbj=xbj;
-    inthelp.rsqr=rsqr; 
-    fun.function=&inthelperf_protxs;
-    fun.params=&inthelp; 
-        
-    REAL result,abserr; size_t eval;
-    int status = gsl_integration_qng(&fun, 0, TOTXS_MAXT, 0, TINTACCURACY, 
-        &result, &abserr, &eval);
-    if (status)
-        std::cerr << "Total cross section integral failed to reach tolerance: "
-        << "Result: " << result << ", abserr: " << abserr << std::endl;
-    
-    return result;
-
-
-}
-
-/*
  * Coherent dipole-nucleus scattering amplitude averaged over nucleon
  * configurations
  */
@@ -104,15 +78,6 @@ REAL Dipxs::CoherentDipxsection_avg(REAL rsqr, REAL xbj,
                 REAL delta)
 {
     std::cerr << "CoherentDipxsection_avg is not yet implemented" << std::endl;
-    return 0;
-}
-
-/* 
- *And integrated over |t|
- */
-REAL Dipxs::CoherentDipxsection_avg(REAL rsqr, REAL xbj)
-{
-    std::cerr << "CoherentDipxsection_sqr_avg integrated over |t| is not yet implemented" << std::endl;
     return 0;
 }
 

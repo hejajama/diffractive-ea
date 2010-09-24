@@ -23,7 +23,7 @@ REAL inthelperf_satp(REAL b, void* p);  // Integrate over impact parameter
 const REAL MAXB=90;
 
 const REAL AVGITACCURACY = 0.001;
-const REAL OSCAVGITACCURACY = 0.05; // Note: small as numerical FT is difficult
+const REAL FTINTACCURACY = 0.001; 
 
 using std::cout; using std::endl; using std::cerr;
 
@@ -33,6 +33,7 @@ Dipxs_IPSat::Dipxs_IPSat(Nucleus &nucleus_) :
     mode = IPSAT_MODE_DEFAULT;
     B_p=DEFAULT_B_p;
     factorize=true;
+    Intialize();
 }
 
 Dipxs_IPSat::Dipxs_IPSat(Nucleus &nucleus_, int mode_, REAL bp) : Dipxs(nucleus_)
@@ -40,6 +41,20 @@ Dipxs_IPSat::Dipxs_IPSat(Nucleus &nucleus_, int mode_, REAL bp) : Dipxs(nucleus_
     mode = mode_;
     B_p=bp;
     factorize=true;
+    Intialize();
+}
+
+void Dipxs_IPSat::Intialize()
+{
+    factorize=true,
+    ft_workspace = gsl_integration_workspace_alloc(MAXITER_FT);
+    ft_workspace_proton = gsl_integration_workspace_alloc(MAXITER_FT);
+}
+
+Dipxs_IPSat::~Dipxs_IPSat()
+{
+    gsl_integration_workspace_free(ft_workspace);
+    gsl_integration_workspace_free(ft_workspace_proton);
 }
 
 /* Amplitude squared averaged over nucleon configurations as a 
@@ -143,9 +158,10 @@ REAL inthelperf_ipsat_coherentavg(REAL b, void* p)
 {
     inthelper_ipsatavg* par=(inthelper_ipsatavg*)p;
     int A = par->nuke->GetA();
-    return 2*M_PI*b*gsl_sf_bessel_J0(b*par->delta)*
-        (    1-exp(-A/2.0*par->nuke->T_WS(b)  
-        * par->dip->Dipxsection_proton(par->rsqr, par->xbj) )  );
+    return 0;
+    //return 2*M_PI*b*gsl_sf_bessel_J0(b*par->delta)*
+    //    (    1-exp(-A/2.0*par->nuke->T_WS(b)  
+    //    * par->dip->Dipxsection_proton(par->rsqr, par->xbj) )  );
 }
 
 REAL Dipxs_IPSat::CoherentDipxsection_avg(REAL rsqr, REAL xbj, REAL delta)
@@ -158,14 +174,18 @@ REAL Dipxs_IPSat::CoherentDipxsection_avg(REAL rsqr, REAL xbj, REAL delta)
     int_helper.function=&inthelperf_ipsat_coherentavg;
     int_helper.params=&helper;
     
-    size_t eval;
+    size_t eval; 
     REAL result,abserr;
 
-    int status = gsl_integration_qng(&int_helper, 0, MAXB, 
-            0, OSCAVGITACCURACY, &result, &abserr, &eval);
+    //int status = gsl_integration_qng(&int_helper, 0, MAXB, 
+    //        0, OSCAVGITACCURACY, &result, &abserr, &eval);
+    
+    int status=gsl_integration_qag(&int_helper, 0, MAXB, 0, FTINTACCURACY, 
+        MAXITER_FT, GSL_INTEG_GAUSS41, ft_workspace, &result, &abserr);
+
     if (status) std::cerr << "Error " << status << " at " << __FILE__ << ":"
         << __LINE__ << ": Result " << result << ", abserror: " << abserr 
-        << " (t=" << delta*delta <<")" << endl;
+        << " relerror: " << abserr/result << " (t=" << delta*delta <<")" << endl;
     return result;
 
 }
@@ -203,9 +223,10 @@ REAL Dipxs_IPSat::Dipxsection_proton(REAL rsqr, REAL xbj, REAL delta)
     
     size_t eval;
     REAL result,abserr;
-
     int status = gsl_integration_qng(&int_helper, 0, MAXB, 
-            0, OSCAVGITACCURACY, &result, &abserr, &eval);
+            0, FTINTACCURACY, &result, &abserr, &eval);
+    //int status=gsl_integration_qag(&int_helper, 0, MAXB, 0, FTINTACCURACY, 
+    //    MAXITER_FT, GSL_INTEG_GAUSS41, ft_workspace_proton, &result, &abserr);
     
     if (status) std::cerr << "Error " << status << " at " << __FILE__ << ":"
         << __LINE__ << ": Result " << result << ", abserror: " << abserr <<
@@ -214,23 +235,7 @@ REAL Dipxs_IPSat::Dipxsection_proton(REAL rsqr, REAL xbj, REAL delta)
     return result;
 }
 
-/*
- * Analytically integrated dipole-proton cross section over |t|
- * Works only if we use factorized version of the amplitude
- */
-REAL Dipxs_IPSat::Dipxsection_proton(REAL rsqr, REAL xbj)
-{
-    if (!factorize)
-    {
-        std::cerr << "There is no analytical solution for t integral of "
-        << "dipole-proton cross section" << std::endl;
-        return 0;
-    }
-    return 4.0*M_PI*B_p*2.0/B_p
-        *( 1.0-exp(-nucleus.GetGDist()->Gluedist(xbj,rsqr)
-                *rsqr/(2.0*M_PI*B_p)) );
-}
- 
+
 
 REAL inthelperf_satp(REAL b, void* p)
 {

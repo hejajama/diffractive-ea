@@ -115,14 +115,6 @@ REAL Dipxs_IPNonSat::Dipxsection_proton(REAL rsqr, REAL xbj, REAL delta)
 }
 
 /*
- * Dipole-proton amplitude integrated over |t|
- */
-REAL Dipxs_IPNonSat::Dipxsection_proton(REAL rsqr, REAL xbj)
-{
-    return Sigmap(rsqr, xbj)*2.0/B_p;
-}
-
-/*
  * Dipole cross section in impact parameter reprsesentation as a 
  * function of nucleon transversal positions
  * _NOT_ Averaged over nucleon connfigurations
