@@ -23,6 +23,7 @@ REAL inthelperf_satp(REAL b, void* p);  // Integrate over impact parameter
 const REAL MAXB=90;
 
 const REAL AVGITACCURACY = 0.001;
+const REAL COHAVGITACCURACY = 0.05; // Note: small as numerical FT is difficult
 
 using std::cout; using std::endl; using std::cerr;
 
@@ -142,7 +143,7 @@ REAL inthelperf_ipsat_coherentavg(REAL b, void* p)
     inthelper_ipsatavg* par=(inthelper_ipsatavg*)p;
     int A = par->nuke->GetA();
     return 2*M_PI*b*gsl_sf_bessel_J0(b*par->delta)*
-        (    1-exp(-A/2.0*par->nuke->FT_T_WS(b)  
+        (    1-exp(-A/2.0*par->nuke->T_WS(b)  
         * par->dip->Dipxsection_proton(par->rsqr, par->xbj) )  );
 }
 
@@ -160,7 +161,7 @@ REAL Dipxs_IPSat::CoherentDipxsection_avg(REAL rsqr, REAL xbj, REAL delta)
     REAL result,abserr;
 
     int status = gsl_integration_qng(&int_helper, 0, MAXB, 
-            0, AVGITACCURACY, &result, &abserr, &eval);
+            0, COHAVGITACCURACY, &result, &abserr, &eval);
     if (status) std::cerr << "Error " << status << " at " << __FILE__ << ":"
         << __LINE__ << ": Result " << result << ", abserror: " << abserr 
         << " (t=" << delta*delta <<")" << endl;
