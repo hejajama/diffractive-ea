@@ -16,7 +16,7 @@
 \newcommand{\der}{\mathrm{d}}
 \newcommand{\A}{\mathcal{A}}
 
-\title{Numerical Code to Calculate Electron-Nucleus Scattering Cross Section}
+\title{Numerical Code to Calculate Diffractive $\gamma^*$-Nucleus Scattering Cross Section}
 \author{Heikki Mäntysaari}
 \date{}
 
@@ -24,26 +24,29 @@
 \maketitle
 \begin{center}\today\end{center}
 \begin{abstract}
-This program calculates numerically quasi-elastic diffractive deep inealastic $\gamma^*$-nuclues cross section. In this document the physical background of the numerical code is described. The structure of the code is not described in this document.
+This program calculates numerically both elastic and quasi-elastic diffractive deep inealastic $\gamma^*$-nuclues cross section. This document describes the physical background of the numerical code.
 \end{abstract}
 
 
 \section{Introduction}
 For a $\gamma^*A \rightarrow VA$ scattering ($V$ is e.g. a vector meson) we have the following formula for an amplitude \cite{Caldwell:2009ke}
 \begin{equation}
-	\A^{\gamma^* A}(x,Q,\Delta) =	\sum_f \int \der^2 r \int_0^1 \frac{\der z}{4\pi} \Psi_V^*(r,z,Q) \A_{q\bar q}(x,r,\Delta) \Psi(r,z,Q).
+	\A^{\gamma^* A}(x,Q,\Delta) =	\sum_f \int \der^2 r \int_0^1 \frac{\der z}{4\pi} \Psi_V^*(r,z,Q) 2\A_{q\bar q}(x,r,\Delta) \Psi(r,z,Q).
 \end{equation}
-Here $\A_{q\bar q}$ is the scattering amplitude for dipole-nucleus scattering. 
+Here $\A_{q\bar q}$ is the scattering amplitude for dipole-nucleus scattering. We also define amplitude and $\der \sigma/\der^2 b$ so that
+\begin{equation}
+	\frac{\der \sigma}{\der^2 b} = 2\A(x,r,b).
+\end{equation}
 
 When we calculate the quasi-elastic cross section we have to sum over all possible excited states of nucleus and any breakup of the nucleus into colorless nuclei. In addition, the cross section must be averaged over nucleon configurations. This is possible to do using the completness relation $\sum_n \Psi_{A_n}(b_1,\dots,b_i) \Psi_{A_n}^*(b_1',\dots,b_i') = \prod_i \delta(b_i-b_i')$. Here $\Psi_{A_n}$ is the wave function of nucleus at state $A_n$. As a result we get
 \begin{equation}
 \begin{split}
 	\label{eq:Asqr}
 	|\A^{\gamma^* A}|^2 &= \int \der^2 r \int \frac{\der z}{4\pi} (\Psi_V^*\Psi)(r,z,Q) \int \der^2 r' \int \frac{\der z'}{4\pi} (\Psi_V^*\Psi)(r',z',Q) \\
-	&\quad  \times |\A_{q\bar q}|^2(x,r,r',\Delta).
+	&\quad  \times \langle|2\A_{q\bar q}|^2(x,r,r',\Delta)\rangle_N.
 \end{split}
 \end{equation}
-$|\A_{q\bar q}(\Delta)|^2$ is the dipole-nucleus scattering amplitude squared averaged over nucleon configurations and summed over possible states of nucleus (completness relation is used here). $\A(\Delta)$ can be obtained by means of Fourier transformation:
+The program calculates the integrals in the same order as how they are written in eq. \eqref{eq:Asqr}. $\langle|\A_{q\bar q}(\Delta)|^2\rangle_N$ is the dipole-nucleus scattering amplitude squared averaged over nucleon configurations and summed over possible final states of nucleus (completness relation is used here when deriving eq. \eqref{eq:Asqr}). $\A(\Delta)$ can be obtained by means of Fourier transformation:
 \begin{equation}
 	\A_{q\bar q}(\Delta) = \int \der^2 b e^{-ib\cdot \Delta} 2\A_{q\bar q}(b) = i\int \der^2 b e^{-ib\cdot \Delta} \frac{\der \sigma_{q\bar q}}{\der^2 b}
 \end{equation}
@@ -53,7 +56,7 @@ Notice that
 \end{equation}
 where $\hat S$ is the scattering matrix elment. 
 
-In this program $|\A_{q\bar q}(b)|^2$ depends on the given dipole model and it is implemented as \code{Dipxs::Dipxsection\_sqr\_avg}. The rest of eq. \eqref{eq:Asqr} is implemented in \code{Calculator::CrossSection\_dt} and does not depend on the used dipole model.
+In this program $|\A_{q\bar q}(\Delta)|^2$ depends on the given dipole model and it is implemented as \code{Dipxs::Dipxsection\_sqr\_avg}. The rest of eq. \eqref{eq:Asqr} is implemented in \code{Calculator} class and does not depend on the used dipole model.
 
 The amplitude squared can be used to obtain the differential cross section:
 \begin{equation}
@@ -69,26 +72,38 @@ Code: This model is implemented as a class \code{Dipxs\_IPNonSat}.
 Ip Non-Sat is the most simple model for dipole-proton cross section. It is derived in e.g. \cite{Caldwell:2009ke} by Kowalski and Caldwell. In this model the dipole-proton amplitude is given by
 \begin{equation}
 	\label{eq:nonsat-d2b}
-	\frac{\der \sigma_{q\bar q}}{\der^2 b} = \frac{\pi^2}{3}r^2 \alpha_s(µ^2)xg(x,µ^2) T_p(b). 
+	\frac{\der \sigma_{q\bar q}}{\der^2 b} = \frac{\pi^2}{N_C}r^2 \alpha_s(µ^2)xg(x,µ^2) T_p(b). 
 \end{equation}
-The proton shape function is approximated to be gaussian \cite{Caldwell:2009ke}:
+We assume that $N_C=3$. The proton shape function is approximated to be gaussian normalized to unity \cite{Caldwell:2009ke}:
 \begin{equation}
-	T_p(b) = \frac{e^{-b^2/(2B_G)}}{4\pi B_G},
+	T_p'(b) = \frac{e^{-b^2/(2B_p)}}{2\pi B_p},
 \end{equation}
 where $B_G=\unit{4.0}{\giga\electronvolt^{-2}}$.
 
+From now on we use the wollowing notation:
+\begin{align}
+	T_p(b) &= e^{-b^2/(2B_p)} \\
+	F(x,r^2) &= \frac{1}{2\pi B_p} \frac{\pi^2}{2 N_C} \alpha_s\left(\mu^2 \right) xg\left(x, \mu^2\right) \, .
+\end{align}
+Here $\mu^2 = \mu_0^2 + C/r^2$, and we use parameters $\mu_0 = \unit{1.16999996}{\giga\electronvolt^2}$ and $C=4.0$. $xg(x,\mu^2)$ is the dimensionless gluon density, see some notes about it in chapter \ref{gdist}. The two-body correlations are neglected.
+
 This amplitude can be used to (see \cite{Caldwell:2009ke}) derive the amplitude squared for the quasi-elastic dipole-nucleus scattering:
 \begin{equation}
-	|\A_{q\bar q}|^2(x,r,r',\Delta) = \kappa(r) \kappa(r') e^{-B_p \Delta^2} A  \left[ 1 + (A-1) \left| \int \der^2 b e^{-ib \cdot \Delta} T_A(b)\right|^2 \right] . 
+\begin{split}
+	\langle|\A_{q\bar q}|^2(x,r,r',\Delta)\rangle_N &= (2\pi B_p)^2 r^2F(x,r)r'^2F(x,r') e^{-B_p \Delta^2} A  \\
+	& \quad \times \left[ 1 + (A-1) \left| \int \der^2 b e^{-ib \cdot \Delta} T_A(b)\right|^2 \right] . 
+\end{split}
 \end{equation}
-Here 
-\begin{equation}
-	\label{eq:kappa}
-	\kappa(r) = \frac{\pi^2}{3}r^2\alpha_s(\mu^2)xg(x,\mu^2).
-\end{equation}
-$xg(x,\mu^2)$ is the dimensionless gluon density, see some notes about it in chapter \ref{gdist}. The two-body correlations are neglected.
+%Here 
+%\begin{equation}
+%	\label{eq:kappa}
+%	\kappa(r) = \frac{\pi^2}{3}r^2\alpha_s(\mu^2)xg(x,\mu^2).
+%\end{equation}
 
-For dipole-proton scattering we just substitute \eqref{eq:nonsat-d2b} into eq. \eqref{eq:eq:Asqr}.
+For dipole-proton scattering we just substitute \eqref{eq:nonsat-d2b} into eq. \eqref{eq:Asqr}. We can also derive result for coherent scattering \cite{Caldwell:2009ke}:
+\begin{equation}
+	|\langle \A_{q\bar q}(x,r,\Delta)\rangle_N|^2 = A^2 (2\pi B_p)^2 (r^2F(x,r))^2 \left| \int \der^2 b T_A(b) e^{-ib \cdot \Delta} \right|^2 .
+\end{equation}
 
 \subsection{IP Sat}
 \label{ipsat}
@@ -96,36 +111,93 @@ Code: This model is implemented as a class \code{Dipxs\_IPSat}.
 
 IP Sat model takes into account the unitarity requirement of the scattering matrix $S$. In this model the dipole-proton scattering amplitude can be written as \cite{PhysRevD.68.114005}
 \begin{equation}
-	\label{ipsat-d2b}
-	\frac{\der \sigma_{q\bar q}}{\der^2 b} = 2\left[1- \exp \left(-\frac{\pi^2}{3\cdot 2}r^2 \alpha_s(µ^2)xg(x,µ^2) T_p(b)\right) \right].
+	\label{eq:ipsat-d2b}
+	\frac{\der \sigma_{q\bar q}}{\der^2 b} = 2\left[1- \exp \left(-\frac{\pi^2}{N_C\cdot 2}r^2 \alpha_s(µ^2)xg(x,µ^2) \frac{T_p(b)}{2\pi B_p} \right) \right].
+\end{equation}
+In order to simplify calculation we assume that we can factorize the impact parameter dependency of eq. \eqref{eq:ipsat-d2b} to get
+\begin{equation}
+	\label{eq:ipsat-d2b-f}
+	\frac{\der \sigma_{q\bar q}}{\der^2 b} \approx 2T(b) \left[1 - e^{-r^2F(x,r)} \right].
 \end{equation}
 
-This can be generalized to the dipole-nucleon scattering by means of the product of $\hat S$ matrix elements.
-For the dipole-nucleu scattering we use the equation $\hat S(b) = \prod_i \hat S(b-b_i)$. Thus
+This can be generalized to the dipole-nucleus scattering by means of the product of $\hat S$ matrix elements. For dipole-nucleus scattering we use the equation $\hat S(b) = \prod_i \hat S(b-b_i)$. Thus
 \begin{equation}
 	\label{eq:ipsat-a}
-	\A(x,r,b) = 1 - \prod_i \left( 1-C(r)e^{-(b-b_i)^2/(2B_p)} \right).
+	\A(x,r,b) = 1 - \prod_i \left( 1-C(r)T(b-b_i) \right),
+\end{equation}
+and
+\begin{equation}
+	\frac{\der \sigma_{q\bar q}^A}{\der^2 b} = 2\A(x,r,b).
 \end{equation}
 Here
 \begin{equation}
-	C(r) = 1-e^{-\kappa(r)/(4\pi B_p)}.
+	C(r) = 1-e^{-r^2F(x,r)}.
 \end{equation}
-$\kappa(r)$ is defined in eq \eqref{eq:kappa}.
 
 Neglecting terms that do not contribute at large $\Delta$ and taking the large $A$ limit we obtain the result
 \begin{equation}
 \label{eq:ipsat-asqr}
 \begin{split}
-	|\A|^2(x,r,r',\Delta) &= 16\pi B_p \int \der^2 b_2 \sum_{n=1}^A \binom{A}{n} e^{-B_p \Delta^2/n} e^{-2A\pi B_p T_A(b_2)[C(r)+C(r')]} \\
+	\langle |\A|^2(x,r,r',\Delta) \rangle_N &= 16\pi B_p \int \der^2 b_2 \sum_{n=1}^A \binom{A}{n} e^{-B_p \Delta^2/n} e^{-2A\pi B_p T_A(b_2)[C(r)+C(r')]} \\
 	&\quad \times \left(\frac{\pi B_p C(r)C(r') 2 T_A(b_2)}{1-2\pi B_p T_A(b_2)[C(r)+C(r')]}\right)^n.
 \end{split}
 \end{equation}
 
-It is also interesting to see what happens if $C(r)=\frac{\kappa(r)}{4\pi B_p}$. This means that we use the result \eqref{eq:nonsat-d2b} for dipole-proton scattering (so, we do not require the unitarity for dipole-proton scattering), but we still take into account the possibility to scatter from multiple nucleons at the same time. This possibility is implemented in \code{Dipxs\_IPSat} class, and can be used if the mode is set to \code{IPSAT\_MODE\_NONSAT\_P}.
+Equation \eqref{eq:ipsat-asqr} can be derived as follows:
+\begin{align*}
+	\frac{1}{4}&\left \langle \left| \frac{\der \sigma_{q\bar q}^A}{\der^2 b} \right|^2 \right \rangle_N = \int \left(\prod_i \der^2 b_i T_A(b_i) \right) \A(x,r,b) \A^*(x,r',b') \\
+	& = 1 - \prod_i \left(1 - C(r) \int \der^2 b_i T_A(b_i) T(b-b_i) \right) \\
+	& - \prod_i \left(1- C(r') \int \der^2 b_i T_A(b_i) T(b'-b_i)) \right) \\
+	& + \prod_i \left[ 1 - C(r) \int \der^2 b_i T_A(b_i) T(b-b_i) - C(r')\int \der^2 b_i T_A(b_i)T(b'-b_i)  \right. \\
+	&\left. \,\, + C(r)C(r')\int \der^2 b_i T_A(b_i) T(b-b_i)T(b'-b_i) \right]
+\end{align*}
+Now the integrals can be calculated when assuming that $T_A$ is a smooth function when compared with $T$. So in every integral except the last one we change variable to $b_i'=b_i-b$, so we have to integrate $\int \der^2 b_i' T_A(b_i'+b) T(b_i')$. Now $T(b_i')=0$ when $b_i' \sim \unit{1}{\femto\meter}$, and $T_A(b+b_i')\approx T_A(b)$ when $b_i < \unit{1}{\femto\meter}$. Thus 
+\begin{equation}
+	\int \der^2 b_i T_A(b_i)T(b-b_i) \approx T_A(b) \int \der^2 b_i' T(b_i') = T_A(b)2\pi B_p.
+\end{equation}
+
+The last integral can be calculated when noticing that
+\begin{equation}
+	T(b-b_i)T(b'-b_i) = \exp\left( - \frac{2(b_i - \frac{1}{2}(b+b'))^2 + \frac{1}{2}(b-b')^2}{2B_p} \right).
+\end{equation}
+Changing integration variable to $b_i' = \frac{1}{2}(b+b')-b_i$ and using the smoothness of $T_A$ we find that
+\begin{equation}
+	\int \der^2 b_i T_A(b_i)T(b-b_i)T(b'-b_i) \approx T_A\left( \frac{1}{2}(b+b') \right) e^{-(b-b')^2/(4B_p)} \pi B_p.
+\end{equation}
+Thus we get
+\begin{equation}
+\begin{split}
+	\frac{1}{4}\left \langle \left| \frac{\der \sigma_{q\bar q}^A}{\der^2 b} \right|^2 \right \rangle_N &= 1 - \left(1-C(r)2\pi B_p T_A(b)\right)^A - \left(1-C(r')2\pi B_p T_A(b') \right)^A \\
+	&\quad +  \bigg[ 1 - 2\pi B_p(C(r)T_A(b)+C(r')T_A(b'))  \\
+	&\quad \left. + C(r)C(r')\pi B_p T_A\left(\frac{1}{2}(b+b')\right) e^{-(b-b')^2/(4B_p)} \right]^A.
+\end{split}
+\end{equation}
+
+In order to calculate the amplitude in momentum space we have to compute the fourier transformation:
+\begin{equation}
+	\frac{1}{4} \langle |\A(x,r,r',\Delta)|^2 \rangle = \int \der^2 b \der^2 b' e^{-i(b-b')\cdot \Delta} \left \langle \left| \frac{\der \sigma_{q\bar q}^A}{\der^2 b} \right|^2 \right \rangle_N.
+\end{equation}
+We can compute this by making a change of variables to $b_1 = b-b'$ and $b_2 = \frac{1}{2}(b+b')$. As the function is highly oscillatory, we can neglect terms not containing $e^{-b_1^2}$ due to the strong suppression. So we neglect everything but the last $[\dots ]^A$ term which we expand using the binome factor. We also use the smoothness of $T_A$: now $b_1$ is small so $T_A(b)=T_A(\frac{1}{2}(b_1+2b_2)) \approx T_A(b_2)$ and similarly $T_A(b')\approx T_A(b_2)$. So at the end we get
+\begin{equation}
+\begin{split}
+	\frac{1}{4} \langle |&\A(x,r,r',\Delta)|^2 \rangle = \int \der^2 b_1 \der^2 b_2 e^{-ib_1 \cdot \Delta} \sum_{n=1}^A \binom{A}{n} e^{-nb_1^2/(4B_p)}  \\
+	& \times \left(1-2\pi B_p T(b_2)[C(r)+C(r')] \right)^{A-n} \left( T_A(b_2)\pi B_p C(r)C(r') \right)^n 
+\end{split}
+\end{equation}
+Calculating $b_1$ integral and writing $()^{A-n} = ()^A ()^{-n}$, and taking the limit of large $A$ we can write
+\begin{equation}
+\begin{split}
+	\frac{1}{4} \langle |&\A(x,r,r',\Delta)|^2 \rangle = 4\pi B_p \int \der^2 b_2  \sum_{n=1}^A \binom{A}{n} \frac{1}{n} e^{-B_p\Delta^2/n}  \\
+	&\times e^{-A\cdot 2\pi B_p T_A(b_2)[C(r)+C(r')]} \left( \frac{\pi B_p C(r)C(r')T_A(b2)}{1-2\pi B_p T_A(b_2) [ C(r)+C(r')]} \right)^n.
+\end{split}
+\end{equation}
+Numerical calculations show that terms with $n>1$ can be neglected.
+
+It is also interesting to see what happens if $C(r)=r^2F(x,r)$. This means that we use the result \eqref{eq:nonsat-d2b} for dipole-proton scattering (so, we do not require the unitarity for dipole-proton scattering), but we still take into account the possibility to scatter from multiple nucleons at the same time. This possibility is implemented in \code{Dipxs\_IPSat} class, and can be used if the mode is set to \code{IPSAT\_MODE\_NONSAT\_P}.
 
 For dipole-proton scattering we make the same approximation as it is done when deriving eq. \eqref{eq:ipsat-asqr}:
 \begin{equation}
-	\frac{\der \sigma_{q\bar q}}{\der^2 b} = 2 e^{T_p(b)}C.
+	\frac{\der \sigma_{q\bar q}}{\der^2 b} = 2 T_p(b)\left( 1-e^{-r^2F(x,r) } \right).
 \end{equation}
 
 \subsection{IIM}

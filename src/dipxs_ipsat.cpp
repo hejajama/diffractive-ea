@@ -290,9 +290,12 @@ REAL Dipxs_IPSat::Dipxsection(REAL rsqr, REAL xbjork, Vec b,
 /*
  * FactorC
  * Defined to simplify equations
- * C = 1 - exp(-Pi^2/NC*r^2*\alpha_s*xg/(4*Pi*Bp))
- *   = 1 - exp(-sigmap / (4*Pi*Bp) )
- *   = 1 - exp(-Gluedist()*r^2 / (2*Pi*Bp))
+ * C = 1 - exp(-Pi^2/(2*NC)*r^2*\alpha_s*xg/(2*Pi*Bp))
+ *   = 1 - exp(-F(x,r^2)*r^2 )
+ *   = 1 - exp(-sigmap/2 * / (2*Pi*Bp) )
+ *   = 1 - exp(-Gluedist()*r^2 / (2Pi*Bp))
+ *
+ * In IPSAT_MODE_NONSAT_P case we expand this to the first order in r^2
  */
 REAL Dipxs_IPSat::FactorC(REAL rsqr, REAL xbjork)
 {
@@ -300,14 +303,13 @@ REAL Dipxs_IPSat::FactorC(REAL rsqr, REAL xbjork)
         return 1.0-exp(-nucleus.GetGDist()->Gluedist(xbjork,rsqr)
             *rsqr/(2.0*M_PI*B_p));    
     else if (mode==IPSAT_MODE_NONSAT_P)
-        return 2.0*nucleus.GetGDist()->Gluedist(xbjork,rsqr)*rsqr / (4.0*M_PI*B_p);
+        return nucleus.GetGDist()->Gluedist(xbjork,rsqr)*rsqr / (2.0*M_PI*B_p);
     else
         std::cerr << "Error: mode not set for Dipxs_IPSat. " << std::endl;
 }
 
 /*
  * Sigmap
- * Total dipole-proton cross section
  * \pi^2/Nc*r^2*alpha_s(mu(r)^2)*xg(x,mu(r)^2)
  * = 2*r^2*Gluedist(x,r)
  */
