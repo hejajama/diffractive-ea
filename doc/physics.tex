@@ -15,6 +15,7 @@
 \newcommand{\code}[1]{\texttt{#1}}
 \newcommand{\der}{\mathrm{d}}
 \newcommand{\A}{\mathcal{A}}
+\newcommand{\N}{\mathcal{N}}
 
 \title{Numerical Code to Calculate Diffractive $\gamma^*$-Nucleus Scattering Cross Section}
 \author{Heikki Mäntysaari}
@@ -123,7 +124,7 @@ In order to simplify calculation we assume that we can factorize the impact para
 This can be generalized to the dipole-nucleus scattering by means of the product of $\hat S$ matrix elements. For dipole-nucleus scattering we use the equation $\hat S(b) = \prod_i \hat S(b-b_i)$. Thus
 \begin{equation}
 	\label{eq:ipsat-a}
-	\A(x,r,b) = 1 - \prod_i \left( 1-C(r)T(b-b_i) \right),
+	\A(x,r,b) = 1 - \prod_i \left( 1-\N(r)T(b-b_i) \right),
 \end{equation}
 and
 \begin{equation}
@@ -131,25 +132,25 @@ and
 \end{equation}
 Here
 \begin{equation}
-	C(r) = 1-e^{-r^2F(x,r)}.
+	\N(r) = 1-e^{-r^2F(x,r)}.
 \end{equation}
 
 Neglecting terms that do not contribute at large $\Delta$ and taking the large $A$ limit we obtain the result
 \begin{equation}
 \label{eq:ipsat-asqr}
 \begin{split}
-	\langle |\A|^2(x,r,r',\Delta) \rangle_N &= 16\pi B_p \int \der^2 b_2 \sum_{n=1}^A \binom{A}{n} e^{-B_p \Delta^2/n} e^{-2A\pi B_p T_A(b_2)[C(r)+C(r')]} \\
-	&\quad \times \left(\frac{\pi B_p C(r)C(r') 2 T_A(b_2)}{1-2\pi B_p T_A(b_2)[C(r)+C(r')]}\right)^n.
+	\langle |\A|^2(x,r,r',\Delta) \rangle_N &= 16\pi B_p \int \der^2 b_2 \sum_{n=1}^A \binom{A}{n} e^{-B_p \Delta^2/n} e^{-2A\pi B_p T_A(b_2)[\N(r)+\N(r')]} \\
+	&\quad \times \left(\frac{\pi B_p \N(r)\N(r') 2 T_A(b_2)}{1-2\pi B_p T_A(b_2)[\N(r)+\N(r')]}\right)^n.
 \end{split}
 \end{equation}
 
 Equation \eqref{eq:ipsat-asqr} can be derived as follows:
 \begin{align*}
 	\frac{1}{4}&\left \langle \left| \frac{\der \sigma_{q\bar q}^A}{\der^2 b} \right|^2 \right \rangle_N = \int \left(\prod_i \der^2 b_i T_A(b_i) \right) \A(x,r,b) \A^*(x,r',b') \\
-	& = 1 - \prod_i \left(1 - C(r) \int \der^2 b_i T_A(b_i) T(b-b_i) \right) \\
-	& - \prod_i \left(1- C(r') \int \der^2 b_i T_A(b_i) T(b'-b_i)) \right) \\
-	& + \prod_i \left[ 1 - C(r) \int \der^2 b_i T_A(b_i) T(b-b_i) - C(r')\int \der^2 b_i T_A(b_i)T(b'-b_i)  \right. \\
-	&\left. \,\, + C(r)C(r')\int \der^2 b_i T_A(b_i) T(b-b_i)T(b'-b_i) \right]
+	& = 1 - \prod_i \left(1 - \N(r) \int \der^2 b_i T_A(b_i) T(b-b_i) \right) \\
+	& - \prod_i \left(1- \N(r') \int \der^2 b_i T_A(b_i) T(b'-b_i)) \right) \\
+	& + \prod_i \left[ 1 - \N(r) \int \der^2 b_i T_A(b_i) T(b-b_i) - \N(r')\int \der^2 b_i T_A(b_i)T(b'-b_i)  \right. \\
+	&\left. \,\, + \N(r)\N(r')\int \der^2 b_i T_A(b_i) T(b-b_i)T(b'-b_i) \right]
 \end{align*}
 Now the integrals can be calculated when assuming that $T_A$ is a smooth function when compared with $T$. So in every integral except the last one we change variable to $b_i'=b_i-b$, so we have to integrate $\int \der^2 b_i' T_A(b_i'+b) T(b_i')$. Now $T(b_i')=0$ when $b_i' \sim \unit{1}{\femto\meter}$, and $T_A(b+b_i')\approx T_A(b)$ when $b_i < \unit{1}{\femto\meter}$. Thus 
 \begin{equation}
@@ -167,9 +168,9 @@ Changing integration variable to $b_i' = \frac{1}{2}(b+b')-b_i$ and using the sm
 Thus we get
 \begin{equation}
 \begin{split}
-	\frac{1}{4}\left \langle \left| \frac{\der \sigma_{q\bar q}^A}{\der^2 b} \right|^2 \right \rangle_N &= 1 - \left(1-C(r)2\pi B_p T_A(b)\right)^A - \left(1-C(r')2\pi B_p T_A(b') \right)^A \\
-	&\quad +  \bigg[ 1 - 2\pi B_p(C(r)T_A(b)+C(r')T_A(b'))  \\
-	&\quad \left. + C(r)C(r')\pi B_p T_A\left(\frac{1}{2}(b+b')\right) e^{-(b-b')^2/(4B_p)} \right]^A.
+	\frac{1}{4}\left \langle \left| \frac{\der \sigma_{q\bar q}^A}{\der^2 b} \right|^2 \right \rangle_N &= 1 - \left(1-\N(r)2\pi B_p T_A(b)\right)^A - \left(1-\N(r')2\pi B_p T_A(b') \right)^A \\
+	&\quad +  \bigg[ 1 - 2\pi B_p(\N(r)T_A(b)+\N(r')T_A(b'))  \\
+	&\quad \left. + \N(r)\N(r')\pi B_p T_A\left(\frac{1}{2}(b+b')\right) e^{-(b-b')^2/(4B_p)} \right]^A.
 \end{split}
 \end{equation}
 
@@ -181,19 +182,29 @@ We can compute this by making a change of variables to $b_1 = b-b'$ and $b_2 = \
 \begin{equation}
 \begin{split}
 	\frac{1}{4} \langle |&\A(x,r,r',\Delta)|^2 \rangle = \int \der^2 b_1 \der^2 b_2 e^{-ib_1 \cdot \Delta} \sum_{n=1}^A \binom{A}{n} e^{-nb_1^2/(4B_p)}  \\
-	& \times \left(1-2\pi B_p T(b_2)[C(r)+C(r')] \right)^{A-n} \left( T_A(b_2)\pi B_p C(r)C(r') \right)^n 
+	& \times \left(1-2\pi B_p T(b_2)[\N(r)+\N(r')] \right)^{A-n} \left( T_A(b_2)\pi B_p \N(r)\N(r') \right)^n 
 \end{split}
 \end{equation}
 Calculating $b_1$ integral and writing $()^{A-n} = ()^A ()^{-n}$, and taking the limit of large $A$ we can write
 \begin{equation}
 \begin{split}
 	\frac{1}{4} \langle |&\A(x,r,r',\Delta)|^2 \rangle = 4\pi B_p \int \der^2 b_2  \sum_{n=1}^A \binom{A}{n} \frac{1}{n} e^{-B_p\Delta^2/n}  \\
-	&\times e^{-A\cdot 2\pi B_p T_A(b_2)[C(r)+C(r')]} \left( \frac{\pi B_p C(r)C(r')T_A(b2)}{1-2\pi B_p T_A(b_2) [ C(r)+C(r')]} \right)^n.
+	&\times e^{-A\cdot 2\pi B_p T_A(b_2)[\N(r)+\N(r')]} \left( \frac{\pi B_p \N(r)\N(r')T_A(b_2)}{1-2\pi B_p T_A(b_2) [ \N(r)+\N(r')]} \right)^n.
 \end{split}
 \end{equation}
 Numerical calculations show that terms with $n>1$ can be neglected.
 
-It is also interesting to see what happens if $C(r)=r^2F(x,r)$. This means that we use the result \eqref{eq:nonsat-d2b} for dipole-proton scattering (so, we do not require the unitarity for dipole-proton scattering), but we still take into account the possibility to scatter from multiple nucleons at the same time. This possibility is implemented in \code{Dipxs\_IPSat} class, and can be used if the mode is set to \code{IPSAT\_MODE\_NONSAT\_P}.
+For coherent scattering we can derive \cite{PhysRevD.68.114005} the formula which is valid in smooth nucleus limit:
+\begin{equation}
+	\frac{1}{2}|\langle \A(x,r,\Delta)\rangle_N|^2 = 1 - \exp\left( 1 - A\frac{1}{2}T_A(b)\sigma_\text{dip}^p(r,x) \right).
+\end{equation}
+Here
+\begin{equation}
+	\sigma_\text{dip}^p(r,x) = \int \der^2 b \frac{\der \sigma}{\der^2 b} = 2\cdot 2\pi B_p[1-e^{-r^2F(x,r)}]
+\end{equation}
+is the total $q\bar qp$ cross section.
+
+It is also interesting to see what happens if $\N(r)=r^2F(x,r)$. This means that we use the result \eqref{eq:nonsat-d2b} for dipole-proton scattering (so, we do not require the unitarity for dipole-proton scattering), but we still take into account the possibility to scatter from multiple nucleons at the same time. This possibility is implemented in \code{Dipxs\_IPSat} class, and can be used if the mode is set to \code{IPSAT\_MODE\_NONSAT\_P}.
 
 For dipole-proton scattering we make the same approximation as it is done when deriving eq. \eqref{eq:ipsat-asqr}:
 \begin{equation}
@@ -244,7 +255,7 @@ Writing $\hat S^A(b) = \prod_i \hat S(b-b_i)$ we figure out that
 \begin{equation}
 	\A(x,r,b) = 1 - \prod_i \left( 1-S(b)N(rQ_s,x) \right).
 \end{equation}
-Comparing this with eq. \eqref{eq:ipsat-a} one can see the similar form of the amplitude. Thus we can proceed as with the IPSat model and finally obtain the formula similar to \eqref{eq:ipsat-asqr} (large $\Delta$ and $A$). Only difference is that now $C(r)=N(rQ_s,x)$.
+Comparing this with eq. \eqref{eq:ipsat-a} one can see the similar form of the amplitude. Thus we can proceed as with the IPSat model and finally obtain the formula similar to \eqref{eq:ipsat-asqr} (large $\Delta$ and $A$). Only difference is that now $\N(r)=N(rQ_s,x)$.
 
 \section{Vector Meson Wave Function}
 We have to calculate the overlap between a virtual photon and a vector meson wave functions. It is quite easy to implement a new model, just derive the class from the class \code{WaveFunction}.
