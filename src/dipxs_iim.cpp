@@ -64,7 +64,7 @@ Dipxs_IIM::~Dipxs_IIM()
  * function of \Delta and r,r' (and x)
  * \int d^2 b_1 ... d^2 b_A T_A(b_1)...T_A(B_A) 
  *      * \int d^2 b d^2 b' e^(-i(b-b')*\Delta) 
- *      * (d\sigma^2 / d^2 b)(b,r) (d\sgima^2 / d^2b)(b',r')
+ *      * 1/2*(d\sigma^2 / d^2 b)(b,r) 1/2*(d\sgima^2 / d^2b)(b',r')
  *
  * IIM model we use:
  * A = S(b)N(r,x), where
@@ -114,14 +114,14 @@ REAL inthelperf_iimavg(REAL b, void* p)
                  )  ,i);    
     }
     
-    sum*=16*M_PI*B_D;
+    sum*=4*M_PI*B_D;
     
     // 2D integral -> 1D
     sum*=2*M_PI*b;
     return sum;
 }
  
-REAL Dipxs_IIM::Dipxsection_sqr_avg(REAL rsqr, REAL r2sqr, REAL xbj, 
+REAL Dipxs_IIM::DipoleAmplitude_sqr_avg(REAL rsqr, REAL r2sqr, REAL xbj, 
                 REAL delta)
 {
     REAL r1 = sqrt(rsqr); REAL r2 = sqrt(r2sqr);    // Stupid..
@@ -134,6 +134,8 @@ REAL Dipxs_IIM::Dipxsection_sqr_avg(REAL rsqr, REAL r2sqr, REAL xbj,
  
     if (IIM_MODE==IIM_IPNONSAT)
     {
+        std::cerr << "IIM mode IIM_IPNONSAT may not work! Test it more, " 
+            << "and check factors 2" << std::endl;
         // Generalize to qq-nucleus scattering as it was done with IPNonSat
         // model: amplitude=\sum_i amplitude_qq(b-b_i)
     
@@ -183,7 +185,7 @@ REAL Dipxs_IIM::Dipxsection_sqr_avg(REAL rsqr, REAL r2sqr, REAL xbj,
  * Amplitude for coherent dipole-nucleus scattering
  * \int d^2 b_1...d^2 b_A T_A(b_1)...T_A(B_A)
  *      *\int d^2 b e^(-ib*\Delta)
- *      * (d\sigma^A/d^2 b)(b,r,x) 
+ *      * 1/2*(d\sigma^A / d^2b )(b,r,x) 
  *
  * In IIM model this can be derived to be
  * \int d^2(-b*\Delta) (1 - exp(-A/2*T_A(b)*\sigma_dip^p(r,x)) )
@@ -204,11 +206,11 @@ REAL inthelperf_iim_coherentavg(REAL b, void* p)
     inthelper_coherent* par=(inthelper_coherent*)p;
     int A = par->nuke->GetA();
     return 2*M_PI*b*gsl_sf_bessel_J0(b*par->delta)*
-        (    1-exp(-A/2.0*par->nuke->T_WS(b)  
+         (1-exp(-A/2.0*par->nuke->T_WS(b)  
         * par->dip->TotalDipxsection_proton(par->rsqr, par->xbj) )  );
 }
 
-REAL Dipxs_IIM::CoherentDipxsection_avg(REAL rsqr, REAL xbj, REAL delta)
+REAL Dipxs_IIM::CoherentDipoleAmplitude_avg(REAL rsqr, REAL xbj, REAL delta)
 {
     inthelper_coherent helper;
     helper.rsqr=rsqr; helper.xbj=xbj; helper.delta=delta;
@@ -236,12 +238,11 @@ REAL Dipxs_IIM::CoherentDipxsection_avg(REAL rsqr, REAL xbj, REAL delta)
  * Integrated over impact parameter dependence
  * 
  * 2 \pi B_D exp(-B_D*\Delta^2/2) * DipoleAmplitude(rq,x) * 2
- * Last * 2 is due to the fact that d\sigma/d^2b = 2 * amplitude
  */
-REAL Dipxs_IIM::Dipxsection_proton(REAL rsqr, REAL xbj, REAL delta)
+REAL Dipxs_IIM::DipoleAmplitude_proton(REAL rsqr, REAL xbj, REAL delta)
 {
     REAL rq = Q_s(xbj)*sqrt(rsqr);
-    return 2.0*2.0*M_PI*B_D*exp(-B_D*SQR(delta)/2.0)*DipoleAmplitude(rq,xbj);
+    return 2.0*M_PI*B_D*exp(-B_D*SQR(delta)/2.0)*DipoleAmplitude(rq,xbj);
 }
 
 /*

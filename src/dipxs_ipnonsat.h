@@ -17,16 +17,16 @@ class Dipxs_IPNonSat : public Dipxs
     public:
         Dipxs_IPNonSat(Nucleus &nucleus_);
         Dipxs_IPNonSat(Nucleus &nucleus_, REAL bp);
-        REAL Dipxsection_sqr_avg(REAL rsqr, REAL r2sqr, REAL xbjork, REAL delta);
+        REAL DipoleAmplitude_sqr_avg(REAL rsqr, REAL r2sqr, REAL xbjork, REAL delta);
         REAL Dipxsection(REAL rsqr, REAL xbjork, Vec b, 
                 std::vector<Vec>& nucleons); 
         
-       // Amplitude squared for coherent scattering
-       REAL CoherentDipxsection_avg(REAL rsqr, REAL xbj, 
+       // Averaged amplitude for coherent scattering
+       REAL CoherentDipoleAmplitude_avg(REAL rsqr, REAL xbj, 
                 REAL delta);
                 
        // Dipole-proton amplitude
-       REAL Dipxsection_proton(REAL rsqr, REAL xbj, REAL delta);
+       REAL DipoleAmplitude_proton(REAL rsqr, REAL xbj, REAL delta);
        
        // Total dipole-proton cross section (integrated over d^2 b) in 1/Gev^2
        REAL TotalDipxsection_proton(REAL rsqr, REAL xbj);

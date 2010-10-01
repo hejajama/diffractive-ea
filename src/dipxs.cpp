@@ -66,6 +66,9 @@ REAL Dipxs::Dipxsection_sqr_avg(REAL rsqr, REAL r2sqr, REAL xbj)
         std::cerr << "Total cross section integral failed to reach tolerance: "
         << "Result: " << result << ", abserr: " << abserr << std::endl;
     
+    std::cerr << "Dipxs::Dipxsection_sqr_avg may not work, test it before use!"
+        << std::endl;
+    
     return result;
 
 }
@@ -74,10 +77,17 @@ REAL Dipxs::Dipxsection_sqr_avg(REAL rsqr, REAL r2sqr, REAL xbj)
  * Coherent dipole-nucleus scattering amplitude averaged over nucleon
  * configurations
  */
+ REAL Dipxs::CoherentDipoleAmplitude_avg(REAL rsqr, REAL xbj, 
+                REAL delta)
+{
+    std::cerr << "CoherentDipoleAmplitude_avg is not yet implemented" << std::endl;
+    return 0;
+}
+
 REAL Dipxs::CoherentDipxsection_avg(REAL rsqr, REAL xbj, 
                 REAL delta)
 {
-    std::cerr << "CoherentDipxsection_avg is not yet implemented" << std::endl;
+    std::cerr << "Dipxs::CoherentDipxsection_avg is deprecated." << std::endl;
     return 0;
 }
 
@@ -118,14 +128,14 @@ std::ostream& operator<<(std::ostream& os, Dipxs& ic)
 REAL inthelperf_dipxs(REAL t, void* p)
 {
     inthelper_dipxs* par = (inthelper_dipxs*)p;
-    return par->amplitude->Dipxsection_sqr_avg(par->rsqr, par->r2sqr, par->xbj, sqrt(t));
+    return par->amplitude->DipoleAmplitude_sqr_avg(par->rsqr, par->r2sqr, par->xbj, sqrt(t));
 }
 
 // Integral helper for dipole-proton integration over t
 REAL inthelperf_protxs(REAL t, void* p)
 {
     inthelper_dipxs* par = (inthelper_dipxs*)p;
-    return par->amplitude->Dipxsection_proton(par->rsqr, par->xbj, sqrt(t));
+    return par->amplitude->DipoleAmplitude_proton(par->rsqr, par->xbj, sqrt(t));
 }
 
 /*
@@ -146,3 +156,11 @@ REAL Dipxs::TotalDipxsection_proton(REAL rsqr, REAL xbj)
     std::cerr << "TotalDipxsection_proton is not implemented " << std::endl;
     return 0;
 }
+
+// Deprecated
+REAL Dipxs::Dipxsecton_sqr_avg(REAL r, REAL r2, REAL x, REAL d)
+{
+    std::cerr << "Dipxs::Dipxsection_sqr_avg is deprecated! Use DipoleAmplitude_sqr_avg"
+        << " instead!" << std::endl;
+}
+

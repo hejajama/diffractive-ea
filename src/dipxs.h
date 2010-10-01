@@ -30,20 +30,24 @@ class Dipxs
         // \int d^2 b_1 ... d^2 b_A T_A(b_1)...T_A(B_A) 
         //      * \int d^2 b d^2 b' e^(-i(b-b')*\Delta) 
         //      * (d\sigma^A / d^2 b)(b,r,x) (d\sigma^A / d^2b)(b',r',x)
-        virtual REAL Dipxsection_sqr_avg(REAL rsqr, REAL r2sqr, REAL xbj, 
+        virtual REAL DipoleAmplitude_sqr_avg(REAL rsqr, REAL r2sqr, REAL xbj, 
                 REAL delta)=0;
+        // Deprecated:
+        REAL Dipxsecton_sqr_avg(REAL r, REAL r2, REAL x, REAL d);
         // Cross section integrated over |t|
         virtual REAL Dipxsection_sqr_avg(REAL rsqr, REAL r2sqr, REAL xbj);
         
-        // Amplitude squared for coherent scattering
-        // |\int d^2 b_1...d^2 b_A T_A(b_1)...T_A(B_A)
+        // Coherent scattering amplitude
+        // \int d^2 b_1...d^2 b_A T_A(b_1)...T_A(B_A)
         //      * \int d^2 b e^(-ib*\Delta)
-        //      * (d\sigma^A/d^2 b)(b,r,x) |^2
-        virtual REAL CoherentDipxsection_avg(REAL rsqr, REAL xbj, 
-                REAL delta);
+        //      * A(b,r,x) 
+        virtual REAL CoherentDipoleAmplitude_avg(REAL rsqr, REAL xbj, 
+                REAL delta);   
+        REAL CoherentDipxsection_avg(REAL rsqr, REAL xbj, 
+                REAL delta); // Deprecated
         
         // Scattering amplitude for dipole-proton scattering
-        virtual REAL Dipxsection_proton(REAL rsqr, REAL xbj, REAL delta)=0;
+        virtual REAL DipoleAmplitude_proton(REAL rsqr, REAL xbj, REAL delta)=0;
         
         // Total dipole-proton cross section in 1/Gev^2
         // \int d^2 b d\sigma/d^2 b

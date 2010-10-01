@@ -64,7 +64,8 @@ Dipxs_IPSat::~Dipxs_IPSat()
  *      * (d\sigma^2 / d^2 b)(b,r) (d\sgima^2 / d^2b)(b',r')
  *
  * This quantity is calculated by using the following approximation which
- * works only for heavy nucleai if delta is big :
+ * works only for heavy nucleai if delta is large :
+ * <|d\sigma/d^2 b|^2> = 
  * 16\pi B_p \int d^2 b \sum_{n=1}^A 1/n*exp(-B_p*\Delta^2/n)
  *    * exp(-2*A*\pi*B_p*T_A(b)*(C(r)+C(r'))) 
       * [ Pi*Bp*C(r)*C(r')*T_A(b)
@@ -107,14 +108,14 @@ REAL inthelperf_ipsatavg(REAL b, void* p)
                 ))  ,i);    
     }
     
-    sum*=16*M_PI*B_p;
+    sum*=4*M_PI*B_p;
     
     // 2D integral -> 1D
     sum*=2*M_PI*b;
     return sum;
 }
 
-REAL Dipxs_IPSat::Dipxsection_sqr_avg(REAL rsqr, REAL r2sqr, REAL xbj, 
+REAL Dipxs_IPSat::DipoleAmplitude_sqr_avg(REAL rsqr, REAL r2sqr, REAL xbj, 
                 REAL delta)
 {
 
@@ -163,7 +164,7 @@ REAL inthelperf_ipsat_coherentavg(REAL b, void* p)
         * par->dip->TotalDipxsection_proton(par->rsqr, par->xbj) )  );
 }
 
-REAL Dipxs_IPSat::CoherentDipxsection_avg(REAL rsqr, REAL xbj, REAL delta)
+REAL Dipxs_IPSat::CoherentDipoleAmplitude_avg(REAL rsqr, REAL xbj, REAL delta)
 {
     inthelper_ipsatavg helper;
     helper.rsqr=rsqr; helper.xbj=xbj; helper.delta=delta;
@@ -211,24 +212,26 @@ REAL Dipxs_IPSat::TotalDipxsection_proton(REAL rsqr, REAL xbj)
 /*
  * Dipole-proton amplitude as a function of \Delta
  * Integrated over impact parameter dependence
- * A = 4*Pi*B_p*C exp(-B_p \Delta^2 / 2)
+ * A = 2*Pi*B_p*C exp(-B_p \Delta^2 / 2)
  * 
  * Otherwise same as Dipxs_IPNonSAT::Dipxsection_proton but
  * we take into account the unitarity requirement.
  *
  * It is also approximated that 1-exp(-r^2T(b)...) = T(b)(1-exp(...))
  */
-REAL Dipxs_IPSat::Dipxsection_proton(REAL rsqr, REAL xbj, REAL delta)
+REAL Dipxs_IPSat::DipoleAmplitude_proton(REAL rsqr, REAL xbj, REAL delta)
 {
     // Note: We cannot use FactorC() here as FactorC() depends on the mode
     // used: in NONSAT_P mode it doesn't saturate
     
     if (factorize) // Factorize T(b) dependency
     {
-        return 4.0*M_PI*B_p*exp(-B_p*SQR(delta)/2.0)
+        return 2.0*M_PI*B_p*exp(-B_p*SQR(delta)/2.0)
             * ( 1.0-exp(-nucleus.GetGDist()->Gluedist(xbj,rsqr)
                 *rsqr/(2.0*M_PI*B_p)) );
     }
+    std::cerr << "Check factor 2 for nonfactorized IPSat::Dipxsection_proton"
+        << std::endl;
     // Else: Integrate numerically over impact parameter dependence, oscillatory
     // integral...
     inthelper_ipsatavg helper;
@@ -286,7 +289,7 @@ REAL Dipxs_IPSat::Dipxsection(REAL rsqr, REAL xbjork, Vec b,
         tmp.SetY(b.GetY()-nucleons[i].GetY());
         ex+=nucleus.Tp(tmp);        
     }
-    result = 2.0*(1.0-exp(-2*nucleus.GetGDist()->Gluedist(xbjork,rsqr)/2.0*ex));
+    result = 1.0*(1.0-exp(-2*nucleus.GetGDist()->Gluedist(xbjork,rsqr)/2.0*ex));
     return result;
 }
 

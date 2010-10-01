@@ -31,16 +31,16 @@ class Dipxs_IIM : public Dipxs
         // \int d^2 b_1 ... d^2 b_A T_A(b_1)...T_A(B_A) 
         //      * \int d^2 b d^2 b' e^(-i(b-b')*\Delta) 
         //      * (d\sigma^2 / d^2 b)(b,r) (d\sgima^2 / d^2b)(b',r')
-        REAL Dipxsection_sqr_avg(REAL rsqr, REAL r2sqr, REAL xbj, 
+        REAL DipoleAmplitude_sqr_avg(REAL rsqr, REAL r2sqr, REAL xbj, 
                 REAL delta);
         REAL Dipxsection(REAL rsqr, REAL xbjork, Vec b, 
             std::vector<Vec> &nucleons); // Non-averaged dipole cross section
         REAL DipoleAmplitude(REAL r, REAL x);
         
-        REAL Dipxsection_proton(REAL rsqr, REAL xbj, REAL delta);
+        REAL DipoleAmplitude_proton(REAL rsqr, REAL xbj, REAL delta);
         
         // Scattering amplitude for coherent gamma^*A scattering
-        REAL CoherentDipxsection_avg(REAL rsqr, REAL xbj, REAL delta);
+        REAL CoherentDipoleAmplitude_avg(REAL rsqr, REAL xbj, REAL delta);
 
         // Total dipole-proton cross section (integrated over d^2 b) in 1/Gev^2
         REAL TotalDipxsection_proton(REAL rsqr, REAL xbj);

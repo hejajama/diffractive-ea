@@ -40,7 +40,7 @@ const int MODEL_IPSAT_NONSATP=4;
 const int GDIST_DGLAP=1; const int GDIST_TOY=2;
 
 const int MODE_TOTXS=1; const int MODE_DIFFXS=2; const int MODE_Ap=3;
-const int MODE_Ap_X=4; const int MODE_TOTXS_Q=5;
+const int MODE_Ap_X=4; const int MODE_TOTXS_Q=5; const int MODE_COHERENT_DT=6;
 
 void Cleanup(); 
 
@@ -69,7 +69,6 @@ int main(int argc, char* argv[])
     bool xgval=false;   // Print the value of xg(x,µ) and quit.
     bool scalex=false;  // Scale x so that x=x_bj*(1+M_V^2/Q^2)
     bool factor_ipsat=true; // Factroize IPSat amplitude to T(b)(1-exp(-r^2...))
-    bool coherent_dt=false; // Calculate coherent d\sigma/dt
     REAL r=-1;
     REAL M_v=3.097; // Mass of the produced vector meson, 3.097 GeV = J/\Psi
     REAL M_n=0;     // Mass of nucleus/nucleon
@@ -82,7 +81,7 @@ int main(int argc, char* argv[])
     {
         if (string(argv[1])=="--help")
         {
-            cout << "Usage: -x bjorkx -Q2 Q^2 -W W (specify only x or W)" << endl;
+            cout << "Usage: -x x_pomeron -Q2 Q^2 -W W (specify only x or W)" << endl;
             cout << "-scalex (scale x by factor 1+M_V^2/Q^2) (can't be used with -W)" << endl;
             cout << "-dipole {ipsat,ipnonsat,iim,ipsat_nonsatp}" << endl;
             cout << "-gdist {dglap,toy} -xgfile file" << endl;
@@ -133,7 +132,7 @@ int main(int argc, char* argv[])
             else if (string(argv[i])=="-maxt")
                 maxt=StrToReal(argv[i+1]);
             else if (string(argv[i])=="-coherent_dt")
-                coherent_dt=true;
+                mode=MODE_COHERENT_DT;
             else if (string(argv[i])=="-nofactor")
                 factor_ipsat=false;
             else if (string(argv[i])=="-totxs")
@@ -253,7 +252,10 @@ int main(int argc, char* argv[])
     else if (model==MODEL_IIM)
         amplitude = new Dipxs_IIM(nuke, iim_file);
     else if (model==MODEL_IPSAT_NONSATP)
+    {
         amplitude = new Dipxs_IPSat(nuke, IPSAT_MODE_NONSAT_P,bp);
+        ((Dipxs_IPSat*)amplitude)->SetFactorize(factor_ipsat);
+    }
 
     if (xgval)  // Print the value of xg(x,µ) and quit
     {
@@ -334,10 +336,14 @@ int main(int argc, char* argv[])
         cout << "# t=" << t << ", Q^2=" << Qsqr << endl;
         cout << "# x-dependence of nucleus_xs / A*proton_xs" << endl;
         
+        if (minx==0) minx=1e-6; // x=0 doesn't work
+        REAL multiplier = pow(maxx/minx, 1.0/points);
+            
         #pragma omp parallel for
         for (int i=0; i<points; i++)
         {
-            REAL tmpx = minx + (maxx-minx)/points*i;
+            //REAL tmpx = minx + (maxx-minx)/points*i;
+            REAL tmpx = minx*pow(multiplier,i);
             REAL protonxs = calculator.ProtonCrossSection_dt(t, Qsqr, tmpx);
             REAL nukexs = calculator.CrossSection_dt(t, Qsqr, tmpx);
             #pragma omp critical
@@ -352,7 +358,7 @@ int main(int argc, char* argv[])
     
     }
     
-    else if (coherent_dt)   // d\sigma^A/dt for coherent scattering
+    else if (mode==MODE_COHERENT_DT)   // d\sigma^A/dt for coherent scattering
     {
         if (A==1) { 
             std::cerr << "A=1, can't be coherent scattering." << std::endl;
@@ -383,11 +389,12 @@ int main(int argc, char* argv[])
     else    // dsigma/dt as a function of t
     {
         cout << "# d\\sigma/dt [1/GeV^4] " << endl;
+        cout << "# x_pomeron = " << bjorkx << ", Q^2 = " << Qsqr << endl;
         // All iterations are independent, so this is straightforward to parallerize   
         #pragma omp parallel for
         for (int i=0; i<=points; i++)
         {
-            REAL tmpt = (maxt-mint)/points*i;
+            REAL tmpt = mint+(maxt-mint)/points*i;
             REAL delta = sqrt(tmpt);
             REAL result;
             if (A==1)

@@ -51,10 +51,11 @@ Dipxs_IPNonSat::Dipxs_IPNonSat(Nucleus &nucleus_, REAL bp) :
  * Here we neglect two-body correlations
  *
  * Case A=1 (dipole-proton collision) is handled separately:
- * |A|^2 = sigmap(r)*sigmap(r')*exp(-B_p*\Delta^2)
+ * |A|^2 = 1/4*sigmap(r)*sigmap(r')*exp(-B_p*\Delta^2)
+ * Factor 1/4 as this is amplitude, not Fourier transformed d\sigma/d^2b
  */
 
-REAL Dipxs_IPNonSat::Dipxsection_sqr_avg(REAL rsqr, REAL r2sqr, 
+REAL Dipxs_IPNonSat::DipoleAmplitude_sqr_avg(REAL rsqr, REAL r2sqr, 
     REAL xbjork, REAL delta)
 {
     REAL result;
@@ -63,7 +64,7 @@ REAL Dipxs_IPNonSat::Dipxsection_sqr_avg(REAL rsqr, REAL r2sqr,
     // do not sum over nucleus states / average over nucleons
     if (nucleus.GetA()==1)
     {
-        result=Sigmap(rsqr, xbjork)*Sigmap(r2sqr, xbjork)*exp(-bp*SQR(delta));    
+        result=Sigmap(rsqr, xbjork)/2.0*Sigmap(r2sqr, xbjork)/2.0*exp(-bp*SQR(delta));    
         return result;
     }    
     // Dipole-nucleus
@@ -81,7 +82,7 @@ REAL Dipxs_IPNonSat::Dipxsection_sqr_avg(REAL rsqr, REAL r2sqr,
     
     prevdelta=delta; prevft=result;
     
-    return Sigmap(rsqr,xbjork)*Sigmap(r2sqr,xbjork)*exp(-bp*SQR(delta))
+    return Sigmap(rsqr,xbjork)/2.0*Sigmap(r2sqr,xbjork)/2.0*exp(-bp*SQR(delta))
         *A*(1.0+(A-1.0)*result*result);
 }
 
@@ -90,13 +91,13 @@ REAL Dipxs_IPNonSat::Dipxsection_sqr_avg(REAL rsqr, REAL r2sqr,
  * Amplitude for coherent dipole-nucleus scattering
  * \int d^2 b_1...d^2 b_A T_A(b_1)...T_A(B_A)
  *      *\int d^2 b e^(-ib*\Delta)
- *      * 1/2*(d\sigma^A/d^2 b)(b,r,x)
+ *      * 1/2*(d\sigma^A / d^2 B)(b,r,x)
  *
  * Calculated by Caldwell and Kowalski, arXiv:0909:1254v1
  *
  * A = 1/2*A*Sigmap*Exp(-B_p*\Delta^2/2)*\int d^2b exp(-ib.\Delta) T_A(b)
  */
-REAL Dipxs_IPNonSat::CoherentDipxsection_avg(REAL rsqr, REAL xbj, 
+REAL Dipxs_IPNonSat::CoherentDipoleAmplitude_avg(REAL rsqr, REAL xbj, 
                 REAL delta)
 {                
 
@@ -107,11 +108,11 @@ REAL Dipxs_IPNonSat::CoherentDipxsection_avg(REAL rsqr, REAL xbj,
 /*
  * Dipole-proton amplitude as a function of \Delta
  * Integrated over impact parameter dependence
- * |A|^2 = sigmap(r)^2 exp(-B_p \Delta^2)
+ * A = sigmap(r)/2 * exp(-B_p \Delta^2/2)
  */
-REAL Dipxs_IPNonSat::Dipxsection_proton(REAL rsqr, REAL xbj, REAL delta)
+REAL Dipxs_IPNonSat::DipoleAmplitude_proton(REAL rsqr, REAL xbj, REAL delta)
 {
-    return Sigmap(rsqr, xbj)*exp(-B_p*SQR(delta)/2.0);
+    return Sigmap(rsqr, xbj)/2.0*exp(-B_p*SQR(delta)/2.0);
 }
 
 /*

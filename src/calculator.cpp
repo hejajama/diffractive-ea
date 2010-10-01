@@ -40,8 +40,9 @@ REAL Calculator::CrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
     if (status) std::cerr << "Error " << status << " at " << __FILE__ << ":"
         << __LINE__ << ": Result " << result << ", abserror: " << abserr 
         << " (t=" << t <<")" << std::endl;
-        
-    result *= 1.0/(16.0*M_PI);
+    
+    // Factor 4 as we integrate amplitude, not d\sigma/d^2b = 2A
+    result *= 4.0/(16.0*M_PI);
     return result;
 }
 
@@ -54,7 +55,7 @@ REAL inthelperf_coherent(REAL r, void* p)
 {
     inthelper_r* par = (inthelper_r*)p;
     return 2*M_PI*r*par->vm->PsiSqr_tot_intz(par->Qsqr, r)
-        * par->amplitude->CoherentDipxsection_avg(SQR(r), par->bjorkx,
+        * par->amplitude->CoherentDipoleAmplitude_avg(SQR(r), par->bjorkx,
          par->delta);
 }
 
@@ -104,7 +105,8 @@ REAL Calculator::ProtonCrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
         << __LINE__ << ": Result " << result << ", abserror: " << abserr 
         << " (t=" << t <<")" << std::endl;
     
-    return result*result/(16.0*M_PI);
+    // Multiply by 4 as we used amplitude, not d\sigma/d^2b = 2A
+    return 4*result*result/(16.0*M_PI);
 
 }
 
@@ -203,7 +205,7 @@ REAL inthelperf_r2(REAL r2, void* p)
 {
     inthelper_r* par = (inthelper_r*)p;
     return 2*M_PI*r2 * par->vm->PsiSqr_tot_intz(par->Qsqr, r2) 
-            * par->amplitude->Dipxsection_sqr_avg(SQR(par->r), SQR(r2), 
+            * par->amplitude->DipoleAmplitude_sqr_avg(SQR(par->r), SQR(r2), 
                     par->bjorkx, par->delta);
 
 }
@@ -221,7 +223,7 @@ REAL inthelperf_proton(REAL r, void* p)
     
     }
     return 2*M_PI*r*par->vm->PsiSqr_tot_intz(par->Qsqr, r)
-        * par->amplitude->Dipxsection_proton(SQR(r), par->bjorkx,
+        * par->amplitude->DipoleAmplitude_proton(SQR(r), par->bjorkx,
          par->delta);
        
 }

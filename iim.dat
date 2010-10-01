@@ -23,7 +23,8 @@ gammac:0.7376
 # Note: B_D=4 is suggested by Kowalski (arXiv: hep-ph/0909.1254v1), and
 # B_D=5.591 is suggested by Marquet. Ip Non-Sat and IP Sat models use B_D=4
 # Unit: GeV^(-2)
-B_D:4.0
+#B_D:4.0
+B_D:5.591
 
 # alpha and beta are defined so that the amplitude and its derivative are 
 # continuous
