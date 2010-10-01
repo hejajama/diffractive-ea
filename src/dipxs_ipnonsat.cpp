@@ -88,19 +88,19 @@ REAL Dipxs_IPNonSat::Dipxsection_sqr_avg(REAL rsqr, REAL r2sqr,
 
 /* 
  * Amplitude for coherent dipole-nucleus scattering
- * |\int d^2 b_1...d^2 b_A T_A(b_1)...T_A(B_A)
+ * \int d^2 b_1...d^2 b_A T_A(b_1)...T_A(B_A)
  *      *\int d^2 b e^(-ib*\Delta)
- *      * (d\sigma^A/d^2 b)(b,r,x) |^2
+ *      * 1/2*(d\sigma^A/d^2 b)(b,r,x)
  *
  * Calculated by Caldwell and Kowalski, arXiv:0909:1254v1
  *
- * |A|^2 = A^2 Sigmap^2*Exp(-B_p*\Delta^2)*|\int d^2b exp(-ib.\Delta) T_A(b)|^2
+ * A = 1/2*A*Sigmap*Exp(-B_p*\Delta^2/2)*\int d^2b exp(-ib.\Delta) T_A(b)
  */
 REAL Dipxs_IPNonSat::CoherentDipxsection_avg(REAL rsqr, REAL xbj, 
                 REAL delta)
 {                
 
-    return nucleus.GetA()*Sigmap(rsqr, xbj)
+    return 1.0/2.0*nucleus.GetA()*Sigmap(rsqr, xbj)*exp(-B_p*SQR(delta)/2.0)
         *nucleus.FT_T_WS(delta);
 }
 

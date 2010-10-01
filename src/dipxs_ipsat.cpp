@@ -141,14 +141,14 @@ REAL Dipxs_IPSat::Dipxsection_sqr_avg(REAL rsqr, REAL r2sqr, REAL xbj,
 
 /* 
  * Amplitude for coherent dipole-nucleus scattering
- * |\int d^2 b_1...d^2 b_A T_A(b_1)...T_A(B_A)
+ * \int d^2 b_1...d^2 b_A T_A(b_1)...T_A(B_A)
  *      *\int d^2 b e^(-ib*\Delta)
- *      * (d\sigma^A/d^2 b)(b,r,x) |^2
+ *      * 1/2*(d\sigma^A/d^2 b)(b,r,x)
  *
  * In IPSat model this can be derived to be
  * (when assuming smooth and heavy nucleus)
  *
- * \int d^2(-b*\Delta) 2(1 - exp(-A/2*T_A(b)*\sigma_dip^p(r,x)) )
+ * A = \int d^2(-b*\Delta) (1 - exp(-A/2*T_A(b)*\sigma_dip^p(r,x)) )
  *
  * The nasty part here is that we have to perform the fourier transformation
  * numerically. 
@@ -187,6 +187,25 @@ REAL Dipxs_IPSat::CoherentDipxsection_avg(REAL rsqr, REAL xbj, REAL delta)
         << " relerror: " << abserr/result << " (t=" << delta*delta <<")" << endl;
     return result;
 
+}
+
+/*
+ * Total dipole-proton cross section
+ * Calculated as \int d^2 b d\sigma/d^2 b
+ * = 2 * 2*\pi*B_p*(1-exp(-r^2*F(x,r)))
+ * = 4\pi B_p * (1-exp(-r^2 * Gluedist() / (2*\pi*B_p) ))
+ *
+ * Units: 1/GeV^2
+ */
+REAL Dipxs_IPSat::TotalDipxsection_proton(REAL rsqr, REAL xbj)
+{
+    if (!factorize)
+    {
+        std::cerr << "Nonfactorized Dipxs_IPSat::TotalDipxsecton_proton " 
+            << " is not implemented, using factorized one. " << std::endl;
+    }   
+    return 4.0*M_PI*B_p*(1 - exp(-rsqr*nucleus.GetGDist()->Gluedist(xbj, rsqr)
+        / (2.0*M_PI*B_p) ) );
 }
 
 /*
@@ -243,22 +262,6 @@ REAL inthelperf_satp(REAL b, void* p)
          * par->nuke->GetGDist()->Gluedist(par->xbj, par->rsqr)
          * exp(-SQR(b)/(2*par->dip->GetB_p()))/(4.0*M_PI*par->dip->GetB_p()) ));
 }
-
-/*
- * Total dipole-proton cross section
- * Calculated as \int d^2 b d\sigma/d^2 b
- * = 2 * 2*\pi*B_p*(1-exp(-r^2*F(x,r)))
- * = 4\pi B_p * (1-exp(-r^2 * Gluedist() / (2*\pi*B_p) ))
- *
- * Units: 1/GeV^2
- */
-REAL Dipxs_IPSat::TotalDipxsection_proton(REAL rsqr, REAL xbj)
-{
-    
-    return 4.0*M_PI*B_p*(1 - exp(-rsqr*nucleus.GetGDist()->Gluedist(xbj, rsqr)
-        / (2.0*M_PI*B_p) ) );
-}
-
 
 
 /*

@@ -6,7 +6,7 @@
 import os
 
 # Dipole models
-models=["ipsat", "ipnonsat", "iim", "ipsat -coherent_dt", "ipnonsat coherent_dt"]
+models=["ipsat", "ipnonsat", "iim", "ipsat -coherent_dt", "ipnonsat -coherent_dt"]
 # Gluon distributions
 gdists=["dglap"]
 #Q^2 values

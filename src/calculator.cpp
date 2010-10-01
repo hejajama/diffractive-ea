@@ -48,6 +48,16 @@ REAL Calculator::CrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
 /*
  * Differential cross section for coherent \gamma^*A scattering
  */
+ 
+// Only one r integral for cohernet dipole-nucleus scattering
+REAL inthelperf_coherent(REAL r, void* p)
+{
+    inthelper_r* par = (inthelper_r*)p;
+    return 2*M_PI*r*par->vm->PsiSqr_tot_intz(par->Qsqr, r)
+        * par->amplitude->CoherentDipxsection_avg(SQR(r), par->bjorkx,
+         par->delta);
+}
+
 REAL Calculator::CoherentCrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
 {
     gsl_function fun;
@@ -66,7 +76,9 @@ REAL Calculator::CoherentCrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
         << __LINE__ << ": Result " << result << ", abserror: " << abserr 
         << " (t=" << t <<")" << std::endl;
         
-    result *= result*1.0/(16.0*M_PI);
+    // Multiply by 4 as CoherentDipxsection_avg returns an amplitude which
+    // must be multiplied by 2 and we square the result at the end
+    result *= result*4.0/(16.0*M_PI);  
     return result;
 
 }
@@ -214,14 +226,7 @@ REAL inthelperf_proton(REAL r, void* p)
        
 }
 
-// Only one r integral for cohernet dipole-nucleus scattering
-REAL inthelperf_coherent(REAL r, void* p)
-{
-    inthelper_r* par = (inthelper_r*)p;
-    return 2*M_PI*r*par->vm->PsiSqr_tot_intz(par->Qsqr, r)
-        * par->amplitude->CoherentDipxsection_avg(SQR(r), par->bjorkx,
-         par->delta);
-}
+
 
 // Return pointer to dipole amplitude
 Dipxs* Calculator::GetAmplitude()

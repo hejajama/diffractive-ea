@@ -181,12 +181,12 @@ REAL Dipxs_IIM::Dipxsection_sqr_avg(REAL rsqr, REAL r2sqr, REAL xbj,
 
 /* 
  * Amplitude for coherent dipole-nucleus scattering
- * |\int d^2 b_1...d^2 b_A T_A(b_1)...T_A(B_A)
+ * \int d^2 b_1...d^2 b_A T_A(b_1)...T_A(B_A)
  *      *\int d^2 b e^(-ib*\Delta)
- *      * (d\sigma^A/d^2 b)(b,r,x) |^2
+ *      * (d\sigma^A/d^2 b)(b,r,x) 
  *
  * In IIM model this can be derived to be
- * \int d^2(-b*\Delta) 2(1 - exp(-A/2*T_A(b)*\sigma_dip^p(r,x)) )
+ * \int d^2(-b*\Delta) (1 - exp(-A/2*T_A(b)*\sigma_dip^p(r,x)) )
  *
  * The nasty part here is that we have to perform the fourier transformation
  * numerically. 
