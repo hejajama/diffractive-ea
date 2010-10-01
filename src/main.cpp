@@ -131,6 +131,10 @@ int main(int argc, char* argv[])
                 mint=StrToReal(argv[i+1]);
             else if (string(argv[i])=="-maxt")
                 maxt=StrToReal(argv[i+1]);
+            else if (string(argv[i])=="-maxx")
+                maxx=StrToReal(argv[i+1]);
+            else if (string(argv[i])=="-minx")
+                minx=StrToReal(argv[i+1]);
             else if (string(argv[i])=="-coherent_dt")
                 mode=MODE_COHERENT_DT;
             else if (string(argv[i])=="-nofactor")
@@ -220,7 +224,7 @@ int main(int argc, char* argv[])
     }
     
     // Print values
-    cout << "# x=" << bjorkx << ", Q^2=" << Qsqr << " A=" << A;
+    cout << " A=" << A;
     if (A==1) cout << " (dipole-proton)";
     cout << endl;
     cout << "# GDist=" << gdist_model << ",  dipole model=" << model << endl;
@@ -348,7 +352,7 @@ int main(int argc, char* argv[])
             REAL nukexs = calculator.CrossSection_dt(t, Qsqr, tmpx);
             #pragma omp critical
             {
-                cout.precision(6);
+                cout.precision(8);
                 cout << fixed << tmpx;
                 cout.precision(8);
                 cout << " " << nukexs / (A*protonxs) << endl;

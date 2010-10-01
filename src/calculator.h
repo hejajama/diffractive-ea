@@ -62,8 +62,8 @@ REAL inthelperf_coherent(REAL r, void* p);
 // Integration settings
 const REAL MAXR=4;
 const REAL MINR=0.05;   // r=0 doesn't work, K_{0,1}(0)=inf
-const REAL RINTACCURACY=0.0001;
-const REAL TINTACCURACY=0.0001;
+const REAL RINTACCURACY=0.0005;
+const REAL TINTACCURACY=0.0005;
 const REAL TOTXS_MAXT=2;  // Max |t| in GeV^2 when calculating total xs
  
  

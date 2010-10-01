@@ -103,7 +103,7 @@ REAL Calculator::ProtonCrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
         &result, &abserr, &eval);
     if (status) std::cerr << "Error " << status << " at " << __FILE__ << ":"
         << __LINE__ << ": Result " << result << ", abserror: " << abserr 
-        << " (t=" << t <<")" << std::endl;
+        << " (t=" << t <<", Q^2=" << Qsqr<<", x=" << bjorkx <<")" << std::endl;
     
     // Multiply by 4 as we used amplitude, not d\sigma/d^2b = 2A
     return 4*result*result/(16.0*M_PI);

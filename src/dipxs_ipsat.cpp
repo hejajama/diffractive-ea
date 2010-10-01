@@ -226,9 +226,12 @@ REAL Dipxs_IPSat::DipoleAmplitude_proton(REAL rsqr, REAL xbj, REAL delta)
     
     if (factorize) // Factorize T(b) dependency
     {
+        /* If we want to allways use saturated dipole-proton amplitude
         return 2.0*M_PI*B_p*exp(-B_p*SQR(delta)/2.0)
             * ( 1.0-exp(-nucleus.GetGDist()->Gluedist(xbj,rsqr)
                 *rsqr/(2.0*M_PI*B_p)) );
+                */
+        return 2.0*M_PI*B_p*exp(-B_p*SQR(delta)/2.0)*FactorC(rsqr, xbj);
     }
     std::cerr << "Check factor 2 for nonfactorized IPSat::Dipxsection_proton"
         << std::endl;
