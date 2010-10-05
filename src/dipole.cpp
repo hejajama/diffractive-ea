@@ -10,7 +10,7 @@
 #include <string>
 #include <sstream>
 
-// eps(z,Q,r) = sqrt(z(1-z)*Q^2 - m^2)
+// eps(z,Q,r) = sqrt(z(1-z)*Q^2 + m^2)
 REAL epsfunsqr(REAL z, REAL Qsqr, REAL msqr)
 {
     return z*(1-z)*Qsqr + msqr;

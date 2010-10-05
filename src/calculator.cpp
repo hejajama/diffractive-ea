@@ -79,7 +79,8 @@ REAL Calculator::CoherentCrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
         
     // Multiply by 4 as CoherentDipxsection_avg returns an amplitude which
     // must be multiplied by 2 and we square the result at the end
-    result *= result*4.0/(16.0*M_PI);  
+    result *= result;
+    result *= 4.0/(16.0*M_PI);  
     return result;
 
 }
@@ -170,7 +171,8 @@ REAL Calculator::TotalProtonCrossSection(REAL Qsqr, REAL bjorkx)
 /*
  * Integral helpers
  */
- 
+
+// Integration over t 
 REAL inthelper_totxs(REAL t, void* p)
 {
     inthelper_r* par = (inthelper_r*)p;

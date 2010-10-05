@@ -214,7 +214,9 @@ int main(int argc, char* argv[])
         //bjorkx = Qsqr/(Qsqr + SQR(W));
         // x = x_bj*(1+M^2/Q^2) = Q^2/(Q^2+W^2+M_n^2)(1+M^2/Q^2)
         //   = (Q^2 + M_v^2) / (Q^2 + W^2 + M_n^2)
+        std::cout << "# x scaled from " << bjorkx << " to " ;
         bjorkx = (Qsqr + SQR(M_v))/( Qsqr + SQR(W) + SQR(M_n) );
+        cout << bjorkx << endl;
     }
 
     if (!w_set and scalex) // Scale x->x*(1+M^2/Q^2)
@@ -224,7 +226,7 @@ int main(int argc, char* argv[])
     }
     
     // Print values
-    cout << " A=" << A;
+    cout << "# A=" << A;
     if (A==1) cout << " (dipole-proton)";
     cout << endl;
     cout << "# GDist=" << gdist_model << ",  dipole model=" << model << endl;
@@ -275,15 +277,16 @@ int main(int argc, char* argv[])
     /*******************
      * \gamma^* N -> J/\Psi N cross section
      * Calculates:   d\sigma / dt = 1/(16*\pi)*
-     * \int d^2 r d^2 r' (jpsi)(r)*(jpsi)(r')*qqamplitude_sqr_avg(r,delta)
+     * \int d^2 r d^2 r' (jpsi)(r)*(jpsi)(r')*4*qqamplitude_sqr_avg(r,delta)
      * Here (jpsi) is the inner product between \gamma^* and J/\Psi (or VM) wave 
      * functions integrated over z \in [0,1]
      */
 
     if (mode==MODE_TOTXS)  // Calculate total cross section
     {
+        cout << "# x = " << bjorkx << ", Q^2=" << Qsqr << " Gev^2" << endl;
         REAL result = calculator.TotalCrossSection(Qsqr, bjorkx);
-        cout << "Total cross section: " << result*400.0*1000.0 << " nb" << endl;
+        cout << "Total cross section: " << result*NBGEVSQR << " nb" << endl;
     }
      
     else if (mode==MODE_TOTXS_Q)    // Total cross section as a function of Q^2
@@ -295,10 +298,10 @@ int main(int argc, char* argv[])
         for (int i=0; i<=points; i++)
         {
             REAL tmpqsqr = minQsqr*pow(multiplier, i);
-            bjorkx = tmpqsqr/(tmpqsqr+SQR(W))*(1+SQR(M_v)/tmpqsqr);
-            //bjorkx = (tmpqsqr + SQR(M_v))/SQR(W);
+            //bjorkx = tmpqsqr/(tmpqsqr+SQR(W))*(1+SQR(M_v)/tmpqsqr);
+            bjorkx = (tmpqsqr + SQR(M_v))/SQR(W);
             REAL xs = calculator.TotalCrossSection(tmpqsqr, bjorkx);
-            xs *= 400.0 * 1000.0;   // Gev^{-4} => nb/GeV^2   
+            xs *= NBGEVSQR;     // 1/Gev^2 -> nb  
             #pragma omp critical
             {
                 cout.precision(5);

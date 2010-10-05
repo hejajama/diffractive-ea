@@ -59,12 +59,11 @@ REAL Dipxs_IPNonSat::DipoleAmplitude_sqr_avg(REAL rsqr, REAL r2sqr,
     REAL xbjork, REAL delta)
 {
     REAL result;
-    REAL bp=B_p;
     // In case dipole-proton use just the transverse profile of proton and
     // do not sum over nucleus states / average over nucleons
     if (nucleus.GetA()==1)
     {
-        result=Sigmap(rsqr, xbjork)/2.0*Sigmap(r2sqr, xbjork)/2.0*exp(-bp*SQR(delta));    
+        result=Sigmap(rsqr, xbjork)/2.0*Sigmap(r2sqr, xbjork)/2.0*exp(-B_p*SQR(delta));    
         return result;
     }    
     // Dipole-nucleus
@@ -82,7 +81,7 @@ REAL Dipxs_IPNonSat::DipoleAmplitude_sqr_avg(REAL rsqr, REAL r2sqr,
     
     prevdelta=delta; prevft=result;
     
-    return Sigmap(rsqr,xbjork)/2.0*Sigmap(r2sqr,xbjork)/2.0*exp(-bp*SQR(delta))
+    return Sigmap(rsqr,xbjork)/2.0*Sigmap(r2sqr,xbjork)/2.0*exp(-B_p*SQR(delta))
         *A*(1.0+(A-1.0)*result*result);
 }
 

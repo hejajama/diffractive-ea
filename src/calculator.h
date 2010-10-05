@@ -12,8 +12,9 @@
 
 /*******************
  * \gamma^* N -> J/\Psi N cross section
- * Calculates:   d\sigma / dt = 1/(16*\pi)*
- * \int d^2 r d^2 r' (jpsi)(r)*(jpsi)(r')*qqamplitude_sqr_avg(r,delta)
+ * Calculates:   d\sigma / dt = 1/(16*\pi)*|
+ * \int d^2 r d^2 r' (jpsi)(r)*(jpsi)(r')*qqamplitude_sqr_avg(r,delta)|^2
+ * And total cross section by integrating over t
  * Here (jpsi) is the inner product between \gamma^* and J/\Psi (or VM) wave 
  * functions integrated over z \in [0,1]
  */

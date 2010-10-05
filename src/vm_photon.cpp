@@ -6,7 +6,6 @@
  
 #include "vm_photon.h"
 #include "dipole.h"
-#include <gsl/gsl_sf_exp.h>
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_sf_bessel.h>
 #include <gsl/gsl_integration.h>
@@ -185,30 +184,30 @@ REAL VM_Photon::PsiSqr_L_intz(REAL Qsqr, REAL r)
  */
 REAL VM_Photon::Psi_T(REAL r, REAL z)
 {
-    return N_T*SQR(z*(1-z))*gsl_sf_exp(-SQR(r)/(2.0*SQR(R_T)));
+    return N_T*SQR(z*(1-z))*exp(-SQR(r)/(2.0*SQR(R_T)));
 }
 
 REAL VM_Photon::Psi_L(REAL r, REAL z)
 {
-    return N_L*z*(1-z)*gsl_sf_exp(-SQR(r)/(2.0*SQR(R_L)));
+    return N_L*z*(1-z)*exp(-SQR(r)/(2.0*SQR(R_L)));
 }
 
 // \partial_r Psi_T(r,z)
 REAL VM_Photon::Psi_T_DR(REAL r, REAL z)
 {
-    return -1/(SQR(R_T))*N_T*r*SQR(z*(1-z))*gsl_sf_exp(-SQR(r)/(2.0*SQR(R_T)));
+    return -1/(SQR(R_T))*N_T*r*SQR(z*(1-z))*exp(-SQR(r)/(2.0*SQR(R_T)));
 }
 
 // \partial_r PSI_L(r,z)
 REAL VM_Photon::Psi_L_DR(REAL r, REAL z)
 {
-    return -1/(SQR(R_T))*N_L*r*z*(1-z)*gsl_sf_exp(-SQR(r)/(2.0*SQR(R_T)));
+    return -1.0*r/(SQR(R_L))*N_L*z*(1-z)*exp(-SQR(r)/(2.0*SQR(R_L)));
 }
 
 // \partial^2_r PSI_L(r,z)
 REAL VM_Photon::Psi_L_D2R(REAL r, REAL z)
 {
-    return (z-1)*z/gsl_pow_4(R_L) * (SQR(R_L)-SQR(r)) * N_L * gsl_sf_exp(-SQR(r)/(2.0*SQR(R_L)));
+    return N_L*(z-1)*z/pow(R_L,4) * (SQR(r)-SQR(R_L)) * exp(-SQR(r)/(2.0*SQR(R_L)));
 }
 
 std::string VM_Photon::GetParamString()

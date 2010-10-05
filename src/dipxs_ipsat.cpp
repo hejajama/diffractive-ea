@@ -108,7 +108,8 @@ REAL inthelperf_ipsatavg(REAL b, void* p)
                 ))  ,i);    
     }
     
-    sum*=4*M_PI*B_p;
+    sum*=4*M_PI*B_p;   // Factor 4, not 16, as we return the amplitude, not
+                        // d\sigma/d^2b
     
     // 2D integral -> 1D
     sum*=2*M_PI*b;
@@ -149,7 +150,7 @@ REAL Dipxs_IPSat::DipoleAmplitude_sqr_avg(REAL rsqr, REAL r2sqr, REAL xbj,
  * In IPSat model this can be derived to be
  * (when assuming smooth and heavy nucleus)
  *
- * A = \int d^2(-b*\Delta) (1 - exp(-A/2*T_A(b)*\sigma_dip^p(r,x)) )
+ * A = \int d^2 e^(-i b*\Delta) (1 - exp(-A/2*T_A(b)*\sigma_dip^p(r,x)) )
  *
  * The nasty part here is that we have to perform the fourier transformation
  * numerically. 

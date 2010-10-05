@@ -19,6 +19,9 @@ dashes = ['--', #    : dashed line
            '-']
 colors = [ "black", "blue", "red", '0.35']
 
+# 1/GeV^2 => nb
+NBGEVSQR = 1.0/(5.068*5.068)*1.0e7
+
 # Possibility to use , as a desimal separator
 import locale
 locale.setlocale(locale.LC_ALL,"fi_FI")
