@@ -25,7 +25,12 @@ gd="dglap"
 cmd = "OMP_NUM_THREADS="+str(num_of_threads) + " ./dipole -A " + str(A) \
     + " -N " + str(N)  + " -maxt " + str(maxt) \
     + " -x " + str(bjorkx) # + " -scalex"
+origmint=mint
 for mode in models:
+    if (mode=="ipnonsat"):
+        mint=0
+    else:
+        mint=origmint
     for q in Q2vals:
         filename = "data/q" + str(q) + "/" + mode + ".txt"
         fullcmd = cmd + " -Q2 " + str(q) + " -dipole " + mode \

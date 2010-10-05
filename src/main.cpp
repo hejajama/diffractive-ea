@@ -299,7 +299,8 @@ int main(int argc, char* argv[])
         {
             REAL tmpqsqr = minQsqr*pow(multiplier, i);
             //bjorkx = tmpqsqr/(tmpqsqr+SQR(W))*(1+SQR(M_v)/tmpqsqr);
-            bjorkx = (tmpqsqr + SQR(M_v))/SQR(W);
+            //bjorkx = (tmpqsqr + SQR(M_v))/SQR(W);
+            bjorkx = (tmpqsqr + SQR(M_v))/(SQR(W)+tmpqsqr);
             REAL xs = calculator.TotalCrossSection(tmpqsqr, bjorkx);
             xs *= NBGEVSQR;     // 1/Gev^2 -> nb  
             #pragma omp critical
@@ -372,6 +373,7 @@ int main(int argc, char* argv[])
             return -1;
         }
         cout << "# d\\sigma/dt [1/GeV^4], coherent scattering " << endl;
+        cout << "# x_pomeron = " << bjorkx << ", Q^2 = " << Qsqr << endl;
         // All iterations are independent, so this is straightforward to parallerize   
         #pragma omp parallel for
         for (int i=0; i<=points; i++)

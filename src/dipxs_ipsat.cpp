@@ -265,7 +265,7 @@ REAL Dipxs_IPSat::DipoleAmplitude_proton(REAL rsqr, REAL xbj, REAL delta)
 REAL inthelperf_satp(REAL b, void* p)
 {
     inthelper_ipsatavg* par = (inthelper_ipsatavg*)p;
-    return 2.0*M_PI*b*gsl_sf_bessel_J0(b*par->delta)*2.0*(1-exp(-par->rsqr
+    return 2.0*M_PI*b*gsl_sf_bessel_J0(b*par->delta)*(1-exp(-par->rsqr
          * par->nuke->GetGDist()->Gluedist(par->xbj, par->rsqr)
          * exp(-SQR(b)/(2*par->dip->GetB_p()))/(4.0*M_PI*par->dip->GetB_p()) ));
 }
@@ -278,6 +278,8 @@ REAL inthelperf_satp(REAL b, void* p)
 REAL Dipxs_IPSat::Dipxsection(REAL rsqr, REAL xbjork, Vec b, 
             std::vector<Vec> &nucleons)
 {
+    std::cerr << "Dipxs_IPSat::Dipxsection() may not work, test before using!"
+        << std::endl;
     if (nucleons.size() != nucleus.GetA())
     {
         std::cerr << "Dipxs_IPSat::Dipxsection: Got list of " 
