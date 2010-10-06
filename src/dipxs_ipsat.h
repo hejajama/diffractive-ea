@@ -54,7 +54,7 @@ class Dipxs_IPSat : public Dipxs
         void Intialize();
         REAL Sigmap(REAL rsqr, REAL xbjork);
         REAL B_p;   
-        REAL mode;    
+        int mode;    
         bool factorize;
         gsl_integration_workspace *ft_workspace;
         gsl_integration_workspace *ft_workspace_proton;

@@ -206,8 +206,7 @@ REAL Dipxs_IPSat::TotalDipxsection_proton(REAL rsqr, REAL xbj)
         std::cerr << "Nonfactorized Dipxs_IPSat::TotalDipxsecton_proton " 
             << " is not implemented, using factorized one. " << std::endl;
     }   
-    return 4.0*M_PI*B_p*(1 - exp(-rsqr*nucleus.GetGDist()->Gluedist(xbj, rsqr)
-        / (2.0*M_PI*B_p) ) );
+    return 4.0*M_PI*B_p*FactorC(rsqr, xbj);
 }
 
 /*
@@ -314,7 +313,7 @@ REAL Dipxs_IPSat::FactorC(REAL rsqr, REAL xbjork)
     if (mode==IPSAT_MODE_DEFAULT)
         return 1.0-exp(-nucleus.GetGDist()->Gluedist(xbjork,rsqr)
             *rsqr/(2.0*M_PI*B_p));    
-    else if (mode==IPSAT_MODE_NONSAT_P)
+    else if (mode==IPSAT_MODE_NONSAT_P) 
         return nucleus.GetGDist()->Gluedist(xbjork,rsqr)*rsqr / (2.0*M_PI*B_p);
     else
         std::cerr << "Error: mode not set for Dipxs_IPSat. " << std::endl;

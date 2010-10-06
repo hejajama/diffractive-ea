@@ -57,11 +57,11 @@ Notice that
 \end{equation}
 where $\hat S$ is the scattering matrix elment. 
 
-In this program $|\A_{q\bar q}(\Delta)|^2$ depends on the given dipole model and it is implemented as \code{Dipxs::Dipxsection\_sqr\_avg}. The rest of eq. \eqref{eq:Asqr} is implemented in \code{Calculator} class and does not depend on the used dipole model.
+In this program $|\A_{q\bar q}(\Delta)|^2$ depends on the given dipole model and it is implemented as \code{Dipxs::DipoleAmplitude\_sqr\_avg}, notice that it returns $|\A(\Delta)|/2^2$. The rest of eq. \eqref{eq:Asqr} is implemented in \code{Calculator} class and does not depend on the used dipole model.
 
 The amplitude squared can be used to obtain the differential cross section:
 \begin{equation}
-	\frac{\der \sigma}{\der t} = \frac{1}{16\pi} |\A|^2 .
+	\frac{\der \sigma}{\der t} = \frac{1}{16\pi} |\A(\Delta)|^2 .
 \end{equation}
 
 \section{Dipole cross section}
@@ -91,7 +91,7 @@ Here $\mu^2 = \mu_0^2 + C/r^2$, and we use parameters $\mu_0 = \unit{1.16999996}
 This amplitude can be used to (see \cite{Caldwell:2009ke}) derive the amplitude squared for the quasi-elastic dipole-nucleus scattering:
 \begin{equation}
 \begin{split}
-	\langle|\A_{q\bar q}|^2(x,r,r',\Delta)\rangle_N &= (2\pi B_p)^2 r^2F(x,r)r'^2F(x,r') e^{-B_p \Delta^2} A  \\
+	\langle|\A_{q\bar q}|^2(x,r,r',\Delta)\rangle_N &= 2^2(2\pi B_p)^2 r^2F(x,r)r'^2F(x,r') e^{-B_p \Delta^2} A  \\
 	& \quad \times \left[ 1 + (A-1) \left| \int \der^2 b e^{-ib \cdot \Delta} T_A(b)\right|^2 \right] . 
 \end{split}
 \end{equation}
@@ -103,7 +103,7 @@ This amplitude can be used to (see \cite{Caldwell:2009ke}) derive the amplitude 
 
 For dipole-proton scattering we just substitute \eqref{eq:nonsat-d2b} into eq. \eqref{eq:Asqr}. We can also derive result for coherent scattering \cite{Caldwell:2009ke}:
 \begin{equation}
-	|\langle \A_{q\bar q}(x,r,\Delta)\rangle_N|^2 = A^2 (2\pi B_p)^2 (r^2F(x,r))^2 \left| \int \der^2 b T_A(b) e^{-ib \cdot \Delta} \right|^2 .
+	|\langle \A_{q\bar q}(x,r,\Delta)\rangle_N|^2 = A^2 2^2 (2\pi B_p)^2 (r^2F(x,r))^2 \left| \int \der^2 b T_A(b) e^{-ib \cdot \Delta} \right|^2 .
 \end{equation}
 
 \subsection{IP Sat}
@@ -176,19 +176,19 @@ Thus we get
 
 In order to calculate the amplitude in momentum space we have to compute the fourier transformation:
 \begin{equation}
-	\frac{1}{4} \langle |\A(x,r,r',\Delta)|^2 \rangle = \int \der^2 b \der^2 b' e^{-i(b-b')\cdot \Delta} \left \langle \left| \frac{\der \sigma_{q\bar q}^A}{\der^2 b} \right|^2 \right \rangle_N.
+	\langle |\A(x,r,r',\Delta)|^2 \rangle = \int \der^2 b \der^2 b' e^{-i(b-b')\cdot \Delta} \left \langle \left| \frac{\der \sigma_{q\bar q}^A}{\der^2 b} \right|^2 \right \rangle_N.
 \end{equation}
 We can compute this by making a change of variables to $b_1 = b-b'$ and $b_2 = \frac{1}{2}(b+b')$. As the function is highly oscillatory, we can neglect terms not containing $e^{-b_1^2}$ due to the strong suppression. So we neglect everything but the last $[\dots ]^A$ term which we expand using the binome factor. We also use the smoothness of $T_A$: now $b_1$ is small so $T_A(b)=T_A(\frac{1}{2}(b_1+2b_2)) \approx T_A(b_2)$ and similarly $T_A(b')\approx T_A(b_2)$. So at the end we get
 \begin{equation}
 \begin{split}
-	\frac{1}{4} \langle |&\A(x,r,r',\Delta)|^2 \rangle = \int \der^2 b_1 \der^2 b_2 e^{-ib_1 \cdot \Delta} \sum_{n=1}^A \binom{A}{n} e^{-nb_1^2/(4B_p)}  \\
+	\langle |&\A(x,r,r',\Delta)|^2 \rangle = 4\int \der^2 b_1 \der^2 b_2 e^{-ib_1 \cdot \Delta} \sum_{n=1}^A \binom{A}{n} e^{-nb_1^2/(4B_p)}  \\
 	& \times \left(1-2\pi B_p T(b_2)[\N(r)+\N(r')] \right)^{A-n} \left( T_A(b_2)\pi B_p \N(r)\N(r') \right)^n 
 \end{split}
 \end{equation}
 Calculating $b_1$ integral and writing $()^{A-n} = ()^A ()^{-n}$, and taking the limit of large $A$ we can write
 \begin{equation}
 \begin{split}
-	\frac{1}{4} \langle |&\A(x,r,r',\Delta)|^2 \rangle = 4\pi B_p \int \der^2 b_2  \sum_{n=1}^A \binom{A}{n} \frac{1}{n} e^{-B_p\Delta^2/n}  \\
+	\langle |&\A(x,r,r',\Delta)|^2 \rangle = 16\pi B_p \int \der^2 b_2  \sum_{n=1}^A \binom{A}{n} \frac{1}{n} e^{-B_p\Delta^2/n}  \\
 	&\times e^{-A\cdot 2\pi B_p T_A(b_2)[\N(r)+\N(r')]} \left( \frac{\pi B_p \N(r)\N(r')T_A(b_2)}{1-2\pi B_p T_A(b_2) [ \N(r)+\N(r')]} \right)^n.
 \end{split}
 \end{equation}
@@ -196,11 +196,11 @@ Numerical calculations show that terms with $n>1$ can be neglected.
 
 For coherent scattering we can derive \cite{PhysRevD.68.114005} the formula which is valid in smooth nucleus limit:
 \begin{equation}
-	\frac{1}{2}|\langle \A(x,r,\Delta)\rangle_N|^2 = 1 - \exp\left( 1 - A\frac{1}{2}T_A(b)\sigma_\text{dip}^p(r,x) \right).
+	\frac{1}{2}\left\langle \A(x,r,\Delta)\right\rangle_N\ = 1 - \exp\left( 1 - A\frac{1}{2}T_A(b)\sigma_\text{dip}^p(r,x) \right).
 \end{equation}
 Here
 \begin{equation}
-	\sigma_\text{dip}^p(r,x) = \int \der^2 b \frac{\der \sigma}{\der^2 b} = 2\cdot 2\pi B_p[1-e^{-r^2F(x,r)}]
+	\sigma_\text{dip}^p(r,x) = \int \der^2 b \frac{\der \sigma_{q\bar q}^p}{\der^2 b} = 2\cdot 2\pi B_p[1-e^{-r^2F(x,r)}]
 \end{equation}
 is the total $q\bar qp$ cross section.
 
@@ -238,15 +238,16 @@ N(rQ_s,x) = \begin{cases}
 \end{equation}
 In this heavy-quark improved model the parameters are: $\eta = 9.9$, $\gamma_c = 0.7376$, $\lambda=0.2197$ and $N_0 = 0.7$. $\alpha$ and $\beta$ are determined from the requirement that $N$ and its derivative are continuous at $rQ_s=2$. Using the parameters introduced here one finds that $\alpha = 0.615065$ and $\beta = 1.00642$.
 
-This model can be generalized to dipole-nucleus scattering in two different ways. If we neglect the possibility to scatter from multiple nucleons at the same time we can write $S(b) = \sum_i S(b-b_i)$ and get the result
-\begin{equation}
-\begin{split}
-	|\A_{q\bar q}|^2(x,r,r',\Delta) &= 4\pi^2B_D^2 e^{-B_D \Delta^2} N(rQ_s,x)N(r'Q_s,x) A \\
-	&\quad \times \left[1 + (A-1) \left| \int \der^2 b e^{-ib \cdot \Delta} T_A(b) \right|^2 \right] . 
-\end{split}
-\end{equation}
+%This model can be generalized to dipole-nucleus scattering in two different ways. If we neglect the possibility to scatter from multiple nucleons at the same time we can write $S(b) = \sum_i S(b-b_i)$ and get the result
+%\begin{equation}
+%\begin{split}
+%	|\A_{q\bar q}|^2(x,r,r',\Delta) &= 4\pi^2B_D^2 e^{-B_D \Delta^2} N(rQ_s,x)N(r'Q_s,x) A \\
+%	&\quad \times \left[1 + (A-1) \left| \int \der^2 b e^{-ib \cdot \Delta} T_A(b) \right|^2 \right] . 
+%\end{split}
+%\end{equation}
 
-Better way is to calculate the amplitude as a product of $\hat S$ matrix elements (note here that $\hat S$ refers to the scattering matrix and $S(b)$ is the impact-parameter dependence of the dipole-proton amplitude). 
+%Better way is to calculate
+This mode lcan be generalized to dipole-nucleus scattering similarly as we did with the IPsat model: we write the amplitude as a product of $\hat S$ matrix elements (note here that $\hat S$ refers to the scattering matrix and $S(b)$ is the impact-parameter dependence of the dipole-proton amplitude). 
 \begin{equation}
 	\hat S = 1-S(b)N(rQ_s,x).
 \end{equation}
@@ -273,7 +274,7 @@ Here
 	\phi_T(r,z) &= N_T \left[ z(1-z)\right]^2 e^{-r^2/(2R_T^2)}, \\
 	\phi_L(r,z) &= N_L z(1-z) e^{-r^2/(2R_L^2)}.
 \end{align}
-We also use notation $\nabla_r^2 = (1/r)\partial_r + \partial_r^2$.
+We also use notation $\nabla_r^2 = (1/r)\partial_r + \partial_r^2$. $\epsilon^2=z(1-z)Q^2+m_f^2$.
 
 Parameters for $J/\Psi$ production are: $M_V = \unit{3.097}{\giga\electronvolt}$, $m_f = \unit{1.4}{\giga\electronvolt}$, $N_T = 1.23$, $R_T^2 = \unit{6.5}{\giga\electronvolt^{-2}}$, $N_L=0.83$, $R_L^2 = \unit{3.0}{\giga\electronvolt^{-2}}$, $e_f = 2/3 e$, $\delta = 0$ or 1.
 
