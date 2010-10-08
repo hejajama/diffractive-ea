@@ -17,9 +17,9 @@ A=197 # Gold
 N=200
 mint_coherent=0
 mint=0.1
-maxt=0.5
+maxt=0.3
 num_of_threads=4
-bjorkx=0.0001
+bjorkx=0.001
 gd="dglap"
 
 cmd = "OMP_NUM_THREADS="+str(num_of_threads) + " ./dipole -A " + str(A) \

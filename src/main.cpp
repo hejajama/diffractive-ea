@@ -320,11 +320,14 @@ int main(int argc, char* argv[])
     {         
         cout << "# t=" << t << ", x = " << bjorkx <<  endl;
         cout << "# Q^2   nucleus_xs / A*proton_xs" << endl;
+        if (minQsqr==0) minQsqr=0.0001; // Qsqr=0 doesn't work
+        REAL multiplier = pow(maxQsqr/minQsqr, 1.0/points);
         
         #pragma omp parallel for
         for (int i=0; i<=points; i++)
         {
-            REAL tmpqsqr=maxQsqr/points*i;
+            //REAL tmpqsqr=maxQsqr/points*i;
+            REAL tmpqsqr = minQsqr*pow(multiplier, i);
             REAL protonxs = calculator.ProtonCrossSection_dt(t, tmpqsqr, bjorkx);
             REAL nukexs = calculator.CrossSection_dt(t, tmpqsqr, bjorkx);
             #pragma omp critical

@@ -177,7 +177,8 @@ REAL Dipxs_IIM::DipoleAmplitude_sqr_avg(REAL rsqr, REAL r2sqr, REAL xbj,
         return result;
      
      }
-     
+     std::cerr << "IIM mode is not set!" << std::endl;
+     return 0;
 
 }
 
