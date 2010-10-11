@@ -41,6 +41,7 @@ const int GDIST_DGLAP=1; const int GDIST_TOY=2;
 
 const int MODE_TOTXS=1; const int MODE_DIFFXS=2; const int MODE_Ap=3;
 const int MODE_Ap_X=4; const int MODE_TOTXS_Q=5; const int MODE_COHERENT_DT=6;
+const int MODE_VM_INTZ=7;
 
 void Cleanup(); 
 
@@ -68,6 +69,7 @@ int main(int argc, char* argv[])
     bool w_set=false;
     bool xgval=false;   // Print the value of xg(x,µ) and quit.
     bool scalex=false;  // Scale x so that x=x_bj*(1+M_V^2/Q^2)
+    bool output_fm=false;   // Use fm's when printing the value of r
     bool factor_ipsat=true; // Factroize IPSat amplitude to T(b)(1-exp(-r^2...))
     REAL r=-1;
     REAL M_v=3.097; // Mass of the produced vector meson, 3.097 GeV = J/\Psi
@@ -100,6 +102,7 @@ int main(int argc, char* argv[])
             cout << "-A/p_x (same as -A/p but as a function of x), -minx minx, -maxx maxx" << endl;
             cout << "-xg rval (print the value of xg(x,r) and quit) " << endl;
             cout << "-Mv mass (mass of the produced vector meson) " << endl;
+            cout << "-vm_intz (print \\int d^z/(4\\pi) r Psi^*Psi) -fm (print r in fm)" << endl;
             cout << endl;
             cout << "Default values: x="<<bjorkx <<", Q^2="<<Qsqr 
                 << " A="<<A<<", N="<<points<<", mint="<<mint<<", maxt="<<maxt<< endl;
@@ -169,6 +172,10 @@ int main(int argc, char* argv[])
             }
             else if (string(argv[i])=="-scalex")
                 scalex=true;
+            else if (string(argv[i])=="-vm_intz")
+                mode=MODE_VM_INTZ;
+            else if (string(argv[i])=="-fm")
+                output_fm=true;
             else if (string(argv[i])=="-dipole")
             {
                 if (string(argv[i+1])=="ipsat")
@@ -398,7 +405,7 @@ int main(int argc, char* argv[])
     }
 
     
-    else    // dsigma/dt as a function of t
+    else if (mode==MODE_DIFFXS)   // dsigma/dt as a function of t
     {
         cout << "# d\\sigma/dt [1/GeV^4] " << endl;
         cout << "# x_pomeron = " << bjorkx << ", Q^2 = " << Qsqr << endl;
@@ -421,6 +428,28 @@ int main(int argc, char* argv[])
                 cout << " " << result << endl;
             }
         }
+    }
+    
+    else if (mode==MODE_VM_INTZ)
+    {
+        cout << "# 2\\pi r * \\int dz/(4\\pi) r Psi^*Psi, Q^2 = " << Qsqr << endl;
+        cout << "# " << *((VM_Photon*)JPsi) << endl;
+        REAL maxr=5;
+        for (int i=1; i<=points; i++)
+        {
+            REAL tmpr = (maxr-MINR)/points*i;
+            REAL val=tmpr*JPsi->PsiSqr_tot_intz(Qsqr, tmpr);
+            
+            // if we want r axis to be in units of fm
+            // Note: [\int d^2 r \int dz \Psi^*\Psi]=1, so we don't have to 
+            // multiply val by FMGEV
+            if (output_fm) { tmpr/=FMGEV; }
+            
+            cout << tmpr << " " << 2*M_PI*val << endl;
+            
+        
+        }
+    
     }
     
     delete amplitude;
