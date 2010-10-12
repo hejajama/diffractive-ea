@@ -233,8 +233,6 @@ REAL Dipxs_IPSat::DipoleAmplitude_proton(REAL rsqr, REAL xbj, REAL delta)
                 */
         return 2.0*M_PI*B_p*exp(-B_p*SQR(delta)/2.0)*FactorC(rsqr, xbj);
     }
-    std::cerr << "Check factor 2 for nonfactorized IPSat::Dipxsection_proton"
-        << std::endl;
     // Else: Integrate numerically over impact parameter dependence, oscillatory
     // integral...
     inthelper_ipsatavg helper;
@@ -247,10 +245,10 @@ REAL Dipxs_IPSat::DipoleAmplitude_proton(REAL rsqr, REAL xbj, REAL delta)
     
     size_t eval;
     REAL result,abserr;
-    int status = gsl_integration_qng(&int_helper, 0, MAXB, 
-            0, FTINTACCURACY, &result, &abserr, &eval);
-    //int status=gsl_integration_qag(&int_helper, 0, MAXB, 0, FTINTACCURACY, 
-    //    MAXITER_FT, GSL_INTEG_GAUSS41, ft_workspace_proton, &result, &abserr);
+    //int status = gsl_integration_qng(&int_helper, 0, MAXB, 
+    //        0, FTINTACCURACY, &result, &abserr, &eval);
+    int status=gsl_integration_qag(&int_helper, 0, MAXB, 0, FTINTACCURACY, 
+        MAXITER_FT, GSL_INTEG_GAUSS41, ft_workspace_proton, &result, &abserr);
     
     if (status) std::cerr << "Error " << status << " at " << __FILE__ << ":"
         << __LINE__ << ": Result " << result << ", abserror: " << abserr <<
@@ -266,7 +264,7 @@ REAL inthelperf_satp(REAL b, void* p)
     inthelper_ipsatavg* par = (inthelper_ipsatavg*)p;
     return 2.0*M_PI*b*gsl_sf_bessel_J0(b*par->delta)*(1-exp(-par->rsqr
          * par->nuke->GetGDist()->Gluedist(par->xbj, par->rsqr)
-         * exp(-SQR(b)/(2*par->dip->GetB_p()))/(4.0*M_PI*par->dip->GetB_p()) ));
+         * exp(-SQR(b)/(2*par->dip->GetB_p()))/(2.0*M_PI*par->dip->GetB_p()) ));
 }
 
 
