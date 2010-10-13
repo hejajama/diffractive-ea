@@ -17,7 +17,7 @@
 #include <gsl/gsl_errno.h>
 
 #include "dipole.h"
-#include "vm_photon.h"
+#include "gaus_lc.h"
 #include "vector.h"
 #include "nucleus.h"
 #include "dipxs_ipnonsat.h"
@@ -260,7 +260,7 @@ int main(int argc, char* argv[])
     
     // J/Psi wave function:  e_f, N_T, N_L, R_T, R_L, m_f, M_V, delta
     //VM_Photon JPsi(2.0/3.0, 1.23, 0.83, sqrt(6.5), sqrt(3.0), 1.4, 3.097, 1);
-    WaveFunction *JPsi = new VM_Photon("jpsi.dat");
+    WaveFunction *JPsi = new GausLC("jpsi.dat");
     JPsi->SetMode(polarization);
     
     // Intialize Dipxs and Nucleus
@@ -480,7 +480,7 @@ int main(int argc, char* argv[])
     else if (mode==MODE_VM_INTZ)
     {
         cout << "# 2\\pi r * \\int dz/(4\\pi) r Psi^*Psi, Q^2 = " << Qsqr << endl;
-        cout << "# " << *((VM_Photon*)JPsi) << endl;
+        cout << "# " << *((GausLC*)JPsi) << endl;
         REAL maxr=5;
         for (int i=1; i<=points; i++)
         {

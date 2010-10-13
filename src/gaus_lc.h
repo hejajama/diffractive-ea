@@ -1,5 +1,5 @@
-#ifndef VM_PHOTON_H
-#define VM_PHOTON_H
+#ifndef GausLC_H
+#define GausLC_H
 
 /*
  * Overlap between the photon and the vector meson wave functions
@@ -17,11 +17,11 @@
  * and Watt, see arXiv: hep-ph/0606272v2
  */
 
-class VM_Photon : public WaveFunction {
+class GausLC : public WaveFunction {
     public:
-        VM_Photon(REAL e_f_, REAL N_T_, REAL N_L_, REAL R_T_, REAL R_L_, 
+        GausLC(REAL e_f_, REAL N_T_, REAL N_L_, REAL R_T_, REAL R_L_, 
                 REAL m_f_, REAL M_V_, int delta_);
-        VM_Photon(std::string file);
+        GausLC(std::string file);
         
         // Overlap wave functions
         REAL PsiSqr_T(REAL Qsqr, REAL r, REAL z);
@@ -55,6 +55,6 @@ class VM_Photon : public WaveFunction {
         
 };
 
-std::ostream& operator<<(std::ostream& os, VM_Photon& ic);
+std::ostream& operator<<(std::ostream& os, GausLC& ic);
 
-#endif // VM_PHOTON_H
+#endif // GausLC_H

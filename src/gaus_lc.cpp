@@ -4,7 +4,7 @@
  * Heikki Mäntysaari <heikki.mantysaari@jyu.fi>, 2010
  */
  
-#include "vm_photon.h"
+#include "gaus_lc.h"
 #include "dipole.h"
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_sf_bessel.h>
@@ -18,7 +18,7 @@
 const REAL ZINTACCURACY=0.00001;
 
 
-VM_Photon::VM_Photon(REAL e_f_, REAL N_T_, REAL N_L_, REAL R_T_, REAL R_L_, 
+GausLC::GausLC(REAL e_f_, REAL N_T_, REAL N_L_, REAL R_T_, REAL R_L_, 
     REAL m_f_, REAL M_V_, int delta_=0 )
 {
     e_f=e_f_;
@@ -38,7 +38,7 @@ VM_Photon::VM_Photon(REAL e_f_, REAL N_T_, REAL N_L_, REAL R_T_, REAL R_L_,
  * key:value
  * Keys are: e_f, m_f, M_V, N_T, N_L, R_T, R_L and del
  */
-VM_Photon::VM_Photon(std::string file)
+GausLC::GausLC(std::string file)
 {
     std::ifstream f(file.c_str());
   
@@ -80,7 +80,7 @@ VM_Photon::VM_Photon(std::string file)
  * Transversially polarized component of the overlap
  */
 
-REAL VM_Photon::PsiSqr_T(REAL Qsqr, REAL r, REAL z)
+REAL GausLC::PsiSqr_T(REAL Qsqr, REAL r, REAL z)
 {
     REAL result;
     REAL epstmp=epsfun(z,Qsqr,SQR(m_f));
@@ -95,7 +95,7 @@ REAL VM_Photon::PsiSqr_T(REAL Qsqr, REAL r, REAL z)
  * Longitudinally polarized component of the overlap
  */
 
-REAL VM_Photon::PsiSqr_L(REAL Qsqr, REAL r, REAL z)
+REAL GausLC::PsiSqr_L(REAL Qsqr, REAL r, REAL z)
 {
     REAL epstmp=epsfun(z,Qsqr,SQR(m_f));
     REAL result;
@@ -116,7 +116,7 @@ REAL VM_Photon::PsiSqr_L(REAL Qsqr, REAL r, REAL z)
  * we need some helper structures
  */
 struct zinthelper{
-    VM_Photon *vm_p;
+    GausLC *vm_p;
     double  Qsqr;
     double  r;
 };
@@ -135,7 +135,7 @@ REAL  zhelperfuncL(REAL z, void * p){
 							z);
 }
 
-REAL VM_Photon::PsiSqr_T_intz(REAL Qsqr, REAL r)
+REAL GausLC::PsiSqr_T_intz(REAL Qsqr, REAL r)
 {
     REAL result,abserr;
     size_t eval;
@@ -157,7 +157,7 @@ REAL VM_Photon::PsiSqr_T_intz(REAL Qsqr, REAL r)
     return result;
 }
 
-REAL VM_Photon::PsiSqr_L_intz(REAL Qsqr, REAL r)
+REAL GausLC::PsiSqr_L_intz(REAL Qsqr, REAL r)
 {
     REAL result,abserr;
     size_t eval;
@@ -182,35 +182,35 @@ REAL VM_Photon::PsiSqr_L_intz(REAL Qsqr, REAL r)
 /*
  * Gaussian lightcone functions 
  */
-REAL VM_Photon::Psi_T(REAL r, REAL z)
+REAL GausLC::Psi_T(REAL r, REAL z)
 {
     return N_T*SQR(z*(1-z))*exp(-SQR(r)/(2.0*SQR(R_T)));
 }
 
-REAL VM_Photon::Psi_L(REAL r, REAL z)
+REAL GausLC::Psi_L(REAL r, REAL z)
 {
     return N_L*z*(1-z)*exp(-SQR(r)/(2.0*SQR(R_L)));
 }
 
 // \partial_r Psi_T(r,z)
-REAL VM_Photon::Psi_T_DR(REAL r, REAL z)
+REAL GausLC::Psi_T_DR(REAL r, REAL z)
 {
     return -1/(SQR(R_T))*N_T*r*SQR(z*(1-z))*exp(-SQR(r)/(2.0*SQR(R_T)));
 }
 
 // \partial_r PSI_L(r,z)
-REAL VM_Photon::Psi_L_DR(REAL r, REAL z)
+REAL GausLC::Psi_L_DR(REAL r, REAL z)
 {
     return -1.0*r/(SQR(R_L))*N_L*z*(1-z)*exp(-SQR(r)/(2.0*SQR(R_L)));
 }
 
 // \partial^2_r PSI_L(r,z)
-REAL VM_Photon::Psi_L_D2R(REAL r, REAL z)
+REAL GausLC::Psi_L_D2R(REAL r, REAL z)
 {
     return N_L*(z-1)*z/pow(R_L,4) * (SQR(r)-SQR(R_L)) * exp(-SQR(r)/(2.0*SQR(R_L)));
 }
 
-std::string VM_Photon::GetParamString()
+std::string GausLC::GetParamString()
 {
     std::stringstream str;
     str << "e_f = "
@@ -220,7 +220,7 @@ std::string VM_Photon::GetParamString()
     return str.str();
 }
 
-std::ostream& operator<<(std::ostream& os, VM_Photon& ic)
+std::ostream& operator<<(std::ostream& os, GausLC& ic)
 {
     return os << " Vector meson and photon wave function overlap. Params: "
         << ic.GetParamString() << " .";
