@@ -41,7 +41,7 @@ const int GDIST_DGLAP=1; const int GDIST_TOY=2;
 
 const int MODE_TOTXS=1; const int MODE_DIFFXS=2; const int MODE_Ap=3;
 const int MODE_Ap_X=4; const int MODE_TOTXS_Q=5; const int MODE_COHERENT_DT=6;
-const int MODE_VM_INTZ=7;
+const int MODE_VM_INTZ=7; const int MODE_TOTXS_RATIO_Q=8;
 
 void Cleanup(); 
 
@@ -75,6 +75,7 @@ int main(int argc, char* argv[])
     REAL M_v=3.097; // Mass of the produced vector meson, 3.097 GeV = J/\Psi
     REAL M_n=0;     // Mass of nucleus/nucleon
     REAL bp=DEFAULT_B_p;
+    int polarization = VM_MODE_TOT;
     
     string iim_file="iim.dat";  // Read parameters for IIM model from this file
             
@@ -96,6 +97,7 @@ int main(int argc, char* argv[])
             cout << "-iimfile filename (parameters for the IIM model)" << endl;
             cout << "-totxs (calculates total cross section)" << endl;
             cout << "-totxs_q2 (total cross section as a function of Q^2)" << endl;
+            cout << "-totxs_q2_l/t (longitudinal total xs / transversial total xs)" << endl;
             cout << "-A/p (nucleus cross section / A* "
                     <<"proton cross section as a function of Q^2)" << endl;
             cout << "-t t, -maxQ2 maxq2 -minQ2 minQ2[GeV] (value of t and max/min of Q^2)" << endl;
@@ -103,6 +105,7 @@ int main(int argc, char* argv[])
             cout << "-xg rval (print the value of xg(x,r) and quit) " << endl;
             cout << "-Mv mass (mass of the produced vector meson) " << endl;
             cout << "-vm_intz (print \\int d^z/(4\\pi) r Psi^*Psi) -fm (print r in fm)" << endl;
+            cout << "-pol {l, t, sum} (polarization of the VM, sum = l + t is default)" << endl;
             cout << endl;
             cout << "Default values: x="<<bjorkx <<", Q^2="<<Qsqr 
                 << " A="<<A<<", N="<<points<<", mint="<<mint<<", maxt="<<maxt<< endl;
@@ -150,6 +153,8 @@ int main(int argc, char* argv[])
                 mode=MODE_Ap_X;
             else if (string(argv[i])=="-totxs_q2")
                 mode=MODE_TOTXS_Q;
+            else if (string(argv[i])=="-totxs_q2_l/t")
+                mode=MODE_TOTXS_RATIO_Q;
             else if (string(argv[i])=="-t")
                 t=StrToReal(argv[i+1]);
             else if (string(argv[i])=="-maxQ2")
@@ -201,7 +206,19 @@ int main(int argc, char* argv[])
                 else
                     cerr << "Gluon distribution " << argv[i+1] 
                         << "is not valid " << endl;
-             }
+            } 
+            else if (string(argv[i])=="-pol")
+            {
+                if (string(argv[i+1])=="tot")
+                    polarization = VM_MODE_TOT;
+                else if (string(argv[i+1])=="t")
+                    polarization = VM_MODE_T;
+                else if (string(argv[i+1])=="l")
+                    polarization = VM_MODE_L;
+                else
+                    cerr << "Unrecognized polarization parameter " << argv[i+1]
+                        << endl;
+            }
             else if (string(argv[i]).substr(0,1)=="-")
             {
                 cerr << "Unrecognized parameter " << argv[i] << endl;
@@ -216,7 +233,7 @@ int main(int argc, char* argv[])
         cerr << "Both x and W set, don't know what to do. Exiting..." << endl;
         return -1;
     }
-    if (w_set)  // TODO: Check
+    if (w_set and mode!=MODE_TOTXS_Q)  // TODO: Check
     {
         //bjorkx = Qsqr/(Qsqr + SQR(W));
         // x = x_bj*(1+M^2/Q^2) = Q^2/(Q^2+W^2+M_n^2)(1+M^2/Q^2)
@@ -244,6 +261,7 @@ int main(int argc, char* argv[])
     // J/Psi wave function:  e_f, N_T, N_L, R_T, R_L, m_f, M_V, delta
     //VM_Photon JPsi(2.0/3.0, 1.23, 0.83, sqrt(6.5), sqrt(3.0), 1.4, 3.097, 1);
     WaveFunction *JPsi = new VM_Photon("jpsi.dat");
+    JPsi->SetMode(polarization);
     
     // Intialize Dipxs and Nucleus
     Nucleus nuke(A);
@@ -308,7 +326,9 @@ int main(int argc, char* argv[])
             //bjorkx = tmpqsqr/(tmpqsqr+SQR(W))*(1+SQR(M_v)/tmpqsqr);
             //bjorkx = (tmpqsqr + SQR(M_v))/SQR(W);
             bjorkx = (tmpqsqr + SQR(M_v))/(SQR(W)+tmpqsqr);
+            
             REAL xs = calculator.TotalCrossSection(tmpqsqr, bjorkx);
+
             xs *= NBGEVSQR;     // 1/Gev^2 -> nb  
             #pragma omp critical
             {
@@ -318,11 +338,38 @@ int main(int argc, char* argv[])
                 cout << " " << xs << endl;
             }
         
-        }
-    
-    
-    
+        }    
     }
+    
+    // Longitudinal cross section / transversial cross section as a 
+    // functio of Q^2 
+    else if (mode==MODE_TOTXS_RATIO_Q) 
+    {
+        cout << "# Longitudnal xs / transversioal xs, W=" << W << " GeV" << endl;
+        if (minQsqr==0) minQsqr=0.0001; // Qsqr=0 doesn't work
+        REAL multiplier = pow(maxQsqr/minQsqr, 1.0/points);
+        #pragma omp parallel for
+        for (int i=0; i<=points; i++)
+        {
+            REAL tmpqsqr = minQsqr*pow(multiplier, i);
+            bjorkx = (tmpqsqr + SQR(M_v))/(SQR(W)+tmpqsqr);
+            
+            JPsi->SetMode(VM_MODE_L);
+            REAL xsl = calculator.TotalCrossSection(tmpqsqr, bjorkx);
+            JPsi->SetMode(VM_MODE_T);
+            REAL xst = calculator.TotalCrossSection(tmpqsqr, bjorkx);
+           
+            #pragma omp critical
+            {
+                cout.precision(5);
+                cout << fixed << tmpqsqr;
+                cout.precision(8);
+                cout << " " << xsl/xst << endl;
+            }
+        
+        }
+    }
+    
     else if (mode==MODE_Ap)    // Calculate d\sigma^A/dt / A*d\sigma_p/dt as a function Q^2 at t
     {         
         cout << "# t=" << t << ", x = " << bjorkx <<  endl;
@@ -438,7 +485,7 @@ int main(int argc, char* argv[])
         for (int i=1; i<=points; i++)
         {
             REAL tmpr = (maxr-MINR)/points*i;
-            REAL val=tmpr*JPsi->PsiSqr_tot_intz(Qsqr, tmpr);
+            REAL val=tmpr*JPsi->PsiSqr_intz(Qsqr, tmpr);
             
             // if we want r axis to be in units of fm
             // Note: [\int d^2 r \int dz \Psi^*\Psi]=1, so we don't have to 

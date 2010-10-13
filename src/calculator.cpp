@@ -54,7 +54,7 @@ REAL Calculator::CrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
 REAL inthelperf_coherent(REAL r, void* p)
 {
     inthelper_r* par = (inthelper_r*)p;
-    return 2*M_PI*r*par->vm->PsiSqr_tot_intz(par->Qsqr, r)
+    return 2*M_PI*r*par->vm->PsiSqr_intz(par->Qsqr, r)
         * par->amplitude->CoherentDipoleAmplitude_avg(SQR(r), par->bjorkx,
          par->delta);
 }
@@ -109,6 +109,24 @@ REAL Calculator::ProtonCrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
     // Multiply by 4 as we used amplitude, not d\sigma/d^2b = 2A
     return 4*result*result/(16.0*M_PI);
 
+}
+
+// Only one r integral for dipole-proton scattering
+REAL inthelperf_proton(REAL r, void* p)
+{
+    inthelper_r* par = (inthelper_r*)p;
+    if (par->analytic_t)
+    {   // We are calculating total xs and performing t integral analytically
+        //return 2.0*M_PI*r*par->vm->PsiSqr_intz(par->Qsqr, r)
+        // * par->amplitude->Dipxsection_proton(SQR(r), par->bjorkx);
+        std::cerr << "Analytic integration over t is not implemented " 
+            << " (inthelperf_proton)" << std::endl;
+    
+    }
+    return 2*M_PI*r*par->vm->PsiSqr_intz(par->Qsqr, r)
+        * par->amplitude->DipoleAmplitude_proton(SQR(r), par->bjorkx,
+         par->delta);
+       
 }
 
 /*
@@ -199,38 +217,18 @@ REAL inthelperf_r1(REAL r, void* p)
         << __LINE__ << ": Result " << result << ", abserror: " << abserr 
         << " (t=" << par->delta*par->delta << ")" << std::endl;
     
-    return 2*M_PI*r*par->vm->PsiSqr_tot_intz(par->Qsqr, r)*result;
+    return 2*M_PI*r*par->vm->PsiSqr_intz(par->Qsqr, r)*result;
 }
 
 // Inner r' integral: \int dr' r' (jpsi)(r') * qqamplitude_avg_sqr(r,r')
 REAL inthelperf_r2(REAL r2, void* p)
 {
     inthelper_r* par = (inthelper_r*)p;
-    return 2*M_PI*r2 * par->vm->PsiSqr_tot_intz(par->Qsqr, r2) 
+    return 2*M_PI*r2 * par->vm->PsiSqr_intz(par->Qsqr, r2) 
             * par->amplitude->DipoleAmplitude_sqr_avg(SQR(par->r), SQR(r2), 
                     par->bjorkx, par->delta);
 
 }
-
-// Only one r integral for dipole-proton scattering
-REAL inthelperf_proton(REAL r, void* p)
-{
-    inthelper_r* par = (inthelper_r*)p;
-    if (par->analytic_t)
-    {   // We are calculating total xs and performing t integral analytically
-        //return 2.0*M_PI*r*par->vm->PsiSqr_tot_intz(par->Qsqr, r)
-        // * par->amplitude->Dipxsection_proton(SQR(r), par->bjorkx);
-        std::cerr << "Analytic integration over t is not implemented " 
-            << " (inthelperf_proton)" << std::endl;
-    
-    }
-    return 2*M_PI*r*par->vm->PsiSqr_tot_intz(par->Qsqr, r)
-        * par->amplitude->DipoleAmplitude_proton(SQR(r), par->bjorkx,
-         par->delta);
-       
-}
-
-
 
 // Return pointer to dipole amplitude
 Dipxs* Calculator::GetAmplitude()
