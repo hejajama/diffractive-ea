@@ -42,6 +42,7 @@ const int GDIST_DGLAP=1; const int GDIST_TOY=2;
 const int MODE_TOTXS=1; const int MODE_DIFFXS=2; const int MODE_Ap=3;
 const int MODE_Ap_X=4; const int MODE_TOTXS_Q=5; const int MODE_COHERENT_DT=6;
 const int MODE_VM_INTZ=7; const int MODE_TOTXS_RATIO_Q=8;
+const int MODE_DSIGMA_D2B_R=9;
 
 void Cleanup(); 
 
@@ -76,6 +77,7 @@ int main(int argc, char* argv[])
     REAL M_n=0;     // Mass of nucleus/nucleon
     REAL bp=DEFAULT_B_p;
     int polarization = VM_MODE_TOT;
+    REAL b=0;   // Impact parameter
     
     string iim_file="iim.dat";  // Read parameters for IIM model from this file
             
@@ -106,6 +108,7 @@ int main(int argc, char* argv[])
             cout << "-Mv mass (mass of the produced vector meson) " << endl;
             cout << "-vm_intz (print \\int d^z/(4\\pi) r Psi^*Psi) -fm (print r in fm)" << endl;
             cout << "-pol {l, t, sum} (polarization of the VM, sum = l + t is default)" << endl;
+            cout << "-dsigma/d2b_r impact_par (print d\\sgima_{q\bar q}/d^2 b) as a function of r)" << endl;
             cout << endl;
             cout << "Default values: x="<<bjorkx <<", Q^2="<<Qsqr 
                 << " A="<<A<<", N="<<points<<", mint="<<mint<<", maxt="<<maxt<< endl;
@@ -181,6 +184,11 @@ int main(int argc, char* argv[])
                 mode=MODE_VM_INTZ;
             else if (string(argv[i])=="-fm")
                 output_fm=true;
+            else if (string(argv[i])=="-dsigma_d2b_r")
+            {
+                mode=MODE_DSIGMA_D2B_R;
+                b = StrToReal(argv[i+1]);
+            }
             else if (string(argv[i])=="-dipole")
             {
                 if (string(argv[i+1])=="ipsat")
@@ -466,7 +474,7 @@ int main(int argc, char* argv[])
             if (A==1)
                 result = calculator.ProtonCrossSection_dt(tmpt, Qsqr, bjorkx);
             else
-                result = calculator.CrossSection_dt(tmpt, Qsqr, bjorkx);
+                result = calculator.CrossSection_dt(tmpt, Qsqr, bjorkx); 
             #pragma omp critical
             {
                 cout.precision(5);
@@ -496,7 +504,21 @@ int main(int argc, char* argv[])
             
         
         }
+    }
     
+    else if (mode==MODE_DSIGMA_D2B_R) 
+    {
+        cout << "# 1/2 * d\\sigma/d^2b for dipole-proton scattering" << endl;
+        cout << "# b = " << b << ", x = " << bjorkx << endl;
+        REAL maxr = 10; REAL minr=0.01;
+        REAL multiplier = pow(maxr/minr, 1.0/points);
+        
+        for (int i=1; i<=points; i++)
+        {
+            REAL tmpr = minr*pow(multiplier, i);
+            cout << tmpr << " " << amplitude->Qq_proton_amplitude(tmpr*tmpr, 
+                                    bjorkx, b) << endl;
+        }    
     }
     
     delete amplitude;

@@ -22,7 +22,7 @@ using namespace std;
 
 
 #define MINR 0.00000001
-const float fmgev=5.067731;
+//const float fmgev=5.067731;
 
 REAL interptransf(REAL rsqr){return -log(1.0+1.0/rsqr);} // transformation from rsqr to variable usen in interpolation
 
@@ -84,7 +84,7 @@ void DGLAPDist::Intialize(std::string file)
 	  gluedata >> linebuffer;
 	  if(!strcmp(linebuffer,"r2")){
 	    gluedata >> rsqrvals[i];
-	    rsqrvals[i] /= fmgev * fmgev;
+	    rsqrvals[i] /= FMGEV * FMGEV;
 	  } else {cerr << "Could not decipher gdistparams (r2) " << endl;exit(35);}
     }
   }

@@ -26,9 +26,6 @@ class Dipxs_IPSat : public Dipxs
         //      * (d\sigma^2 / d^2 b)(b,r) (d\sgima^2 / d^2b)(b',r')
         REAL DipoleAmplitude_sqr_avg(REAL rsqr, REAL r2sqr, REAL xbj, 
                 REAL delta);
-        
-        REAL Dipxsection(REAL rsqr, REAL xbjork, Vec b, 
-            std::vector<Vec> &nucleons); // Non-averaged dipole cross section
 
         // Averaged coherent scattering amplitude
         // \int d^2 b_1...d^2 b_A T_A(b_1)...T_A(B_A)
@@ -41,7 +38,11 @@ class Dipxs_IPSat : public Dipxs
         
         // Total dipole-proton cross section (integrated over d^2 b) in 1/Gev^2
         REAL TotalDipxsection_proton(REAL rsqr, REAL xbj);
-
+        
+        // 1/2*d\sigma/d^2b = q\barq-proton scattering amplitude
+        REAL Qq_proton_amplitude(REAL rsqr, REAL xbj, REAL b);
+        
+        
 
         //REAL Dipxsection_b_avg_sqr(REAL rsqr, REAL r2sqr, Vec b, Vec b2, REAL xbjork ); // Impact parameter representation
         

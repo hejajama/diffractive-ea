@@ -164,3 +164,10 @@ REAL Dipxs::Dipxsecton_sqr_avg(REAL r, REAL r2, REAL x, REAL d)
         << " instead!" << std::endl;
 }
 
+// Qq-proton/nucleus amplitude
+REAL Dipxs::Qq_proton_amplitude(REAL rsqr, REAL xbj, REAL b)
+{
+    std::cerr << "Dipxs::Qq_amplitude is not impelmented" << std::endl;
+}
+
+

@@ -19,7 +19,7 @@ class Dipxs
         Dipxs(Nucleus &nucleus_);
         ~Dipxs();
         
-        // These methods must be implemented by derived classes
+        // Some of these methods must be implemented in the derived classes
         
         // Cross section (amplitude) as a function of impact parameter
         // and nucleon config. (d \sigma^2 / d^2 b)_(b_1, ..., b_A)
@@ -56,6 +56,9 @@ class Dipxs
         // Wrapper, calls virtual Dipxsection with parameter Vec(x,y)
         REAL Dipxsection(REAL rsqr, REAL xbj, REAL x, REAL y,
                 std::vector<Vec>& nucleons);
+                
+        // 1/2*d\sigma/d^2b q\bar q-proton amplitude as a function of r/x/b
+        virtual REAL Qq_proton_amplitude(REAL rsqr, REAL xbj, REAL b);
 
         // Strong coupling constant as a function of dipole size
         REAL Alphas_r(REAL rsqr);

@@ -272,7 +272,7 @@ REAL inthelperf_satp(REAL b, void* p)
  * Non-averaged dipole cross section as a function of
  * nucleon transversial positions 
  */
-REAL Dipxs_IPSat::Dipxsection(REAL rsqr, REAL xbjork, Vec b, 
+/*REAL Dipxs_IPSat::Dipxsection(REAL rsqr, REAL xbjork, Vec b, 
             std::vector<Vec> &nucleons)
 {
     std::cerr << "Dipxs_IPSat::Dipxsection() may not work, test before using!"
@@ -294,6 +294,15 @@ REAL Dipxs_IPSat::Dipxsection(REAL rsqr, REAL xbjork, Vec b,
     }
     result = 1.0*(1.0-exp(-2*nucleus.GetGDist()->Gluedist(xbjork,rsqr)/2.0*ex));
     return result;
+}*/
+
+/*
+ * Dipole-proton scattering amplitude
+ */
+REAL Dipxs_IPSat::Qq_proton_amplitude(REAL rsqr, REAL xbj, REAL b)
+{
+    return 1.0-exp(-rsqr*nucleus.GetGDist()->Gluedist(xbj, rsqr)
+     *exp(-SQR(b)/(2.0*B_p))/(2*M_PI*B_p));
 }
 
 /*
