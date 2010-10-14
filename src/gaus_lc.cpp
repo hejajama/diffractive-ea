@@ -16,6 +16,7 @@
 #include <sstream>
 
 const REAL ZINTACCURACY=0.00001;
+const int MAXITER_ZINT=10000;
 
 
 GausLC::GausLC(REAL e_f_, REAL N_T_, REAL N_L_, REAL R_T_, REAL R_L_, 
@@ -147,8 +148,12 @@ REAL GausLC::PsiSqr_T_intz(REAL Qsqr, REAL r)
     int_helper.function=&zhelperfuncT;
     int_helper.params=&zintpar;
     
-    int status = gsl_integration_qng(&int_helper, 0,1, ZINTACCURACY, ZINTACCURACY, 
+    int status = gsl_integration_qng(&int_helper, 0,1,  0, ZINTACCURACY, 
         &result, &abserr, &eval);
+    //gsl_integration_workspace* ws = gsl_integration_workspace_alloc(MAXITER_ZINT);
+    //status = gsl_integration_qag(&int_helper, 0, 1, 0, ZINTACCURACY,
+    //    MAXITER_ZINT, GSL_INTEG_GAUSS51, ws, &result, &abserr);
+    //gsl_integration_workspace_free(ws);
     
     if(status){ std::cerr<< "z integral in Photon failed with code " 
         << gsl_strerror(status) << std::endl;}
@@ -171,6 +176,10 @@ REAL GausLC::PsiSqr_L_intz(REAL Qsqr, REAL r)
     
     int status = gsl_integration_qng(&int_helper, 0,1, ZINTACCURACY, ZINTACCURACY, 
         &result, &abserr, &eval);
+    //gsl_integration_workspace* ws = gsl_integration_workspace_alloc(MAXITER_ZINT);
+    //int status = gsl_integration_qag(&int_helper, 0, 1, 0, ZINTACCURACY,
+    //    MAXITER_ZINT, GSL_INTEG_GAUSS51, ws, &result, &abserr);
+    //gsl_integration_workspace_free(ws);
     
     if(status){ std::cerr<< "z integral in Photon failed with code " 
         << gsl_strerror(status) << std::endl;}

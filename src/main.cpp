@@ -489,6 +489,8 @@ int main(int argc, char* argv[])
     {
         cout << "# 2\\pi r * \\int dz/(4\\pi) r Psi^*Psi, Q^2 = " << Qsqr << endl;
         cout << "# " << *((GausLC*)JPsi) << endl;
+        if (output_fm) cout << "[r] = fm"; else cout << "[r] = GeV^(-1)";
+        cout << endl;
         REAL maxr=5;
         for (int i=1; i<=points; i++)
         {

@@ -57,8 +57,7 @@ class Dipxs_IPSat : public Dipxs
         REAL B_p;   
         int mode;    
         bool factorize;
-        gsl_integration_workspace *ft_workspace;
-        gsl_integration_workspace *ft_workspace_proton;
+
         
         static const size_t MAXITER_FT=1000;  // Max number of interations when 
             // calculating the fourier transformation of the amplitude

@@ -46,15 +46,12 @@ Dipxs_IPSat::Dipxs_IPSat(Nucleus &nucleus_, int mode_, REAL bp) : Dipxs(nucleus_
 
 void Dipxs_IPSat::Intialize()
 {
-    factorize=true,
-    ft_workspace = gsl_integration_workspace_alloc(MAXITER_FT);
-    ft_workspace_proton = gsl_integration_workspace_alloc(MAXITER_FT);
+    factorize=true;
 }
 
 Dipxs_IPSat::~Dipxs_IPSat()
 {
-    gsl_integration_workspace_free(ft_workspace);
-    gsl_integration_workspace_free(ft_workspace_proton);
+
 }
 
 /* Amplitude squared averaged over nucleon configurations as a 
@@ -180,9 +177,11 @@ REAL Dipxs_IPSat::CoherentDipoleAmplitude_avg(REAL rsqr, REAL xbj, REAL delta)
 
     //int status = gsl_integration_qng(&int_helper, 0, MAXB, 
     //        0, OSCAVGITACCURACY, &result, &abserr, &eval);
-    
+    gsl_integration_workspace *ft_workspace 
+     = gsl_integration_workspace_alloc(MAXITER_FT);
     int status=gsl_integration_qag(&int_helper, 0, MAXB, 0, FTINTACCURACY, 
         MAXITER_FT, GSL_INTEG_GAUSS41, ft_workspace, &result, &abserr);
+    gsl_integration_workspace_free(ft_workspace);
 
     if (status) std::cerr << "Error " << status << " at " << __FILE__ << ":"
         << __LINE__ << ": Result " << result << ", abserror: " << abserr 
@@ -247,9 +246,11 @@ REAL Dipxs_IPSat::DipoleAmplitude_proton(REAL rsqr, REAL xbj, REAL delta)
     REAL result,abserr;
     //int status = gsl_integration_qng(&int_helper, 0, MAXB, 
     //        0, FTINTACCURACY, &result, &abserr, &eval);
+    gsl_integration_workspace *ft_workspace 
+     = gsl_integration_workspace_alloc(MAXITER_FT);
     int status=gsl_integration_qag(&int_helper, 0, MAXB, 0, FTINTACCURACY, 
-        MAXITER_FT, GSL_INTEG_GAUSS41, ft_workspace_proton, &result, &abserr);
-    
+        MAXITER_FT, GSL_INTEG_GAUSS41, ft_workspace, &result, &abserr);
+    gsl_integration_workspace_free(ft_workspace);
     if (status) std::cerr << "Error " << status << " at " << __FILE__ << ":"
         << __LINE__ << ": Result " << result << ", abserror: " << abserr <<
         ", t=" << SQR(delta) << " GeV^2 " << std::endl;

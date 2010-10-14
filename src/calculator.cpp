@@ -71,7 +71,7 @@ REAL Calculator::CoherentCrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
         
     REAL result,abserr; size_t eval;
     
-    int status = gsl_integration_qng(&fun, MINR, MAXR, RINTACCURACY, RINTACCURACY, 
+    int status = gsl_integration_qng(&fun, MINR, MAXR, 0, RINTACCURACY, 
         &result, &abserr, &eval);
     if (status) std::cerr << "Error " << status << " at " << __FILE__ << ":"
         << __LINE__ << ": Result " << result << ", abserror: " << abserr 
