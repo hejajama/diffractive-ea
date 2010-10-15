@@ -23,7 +23,8 @@ REAL WaveFunction::PsiSqr_intz(REAL Qsqr, REAL r)
     switch (mode) 
     {
         case VM_MODE_TOT:
-            return PsiSqr_tot_intz(Qsqr, r);
+            std::cerr << "Can't calculate total wave function overlap in "
+             << "WaveFunction::PsiSqr_intz!" << std::endl;
             break;
         case VM_MODE_L:
             return PsiSqr_L_intz(Qsqr, r);

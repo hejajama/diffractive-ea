@@ -43,6 +43,7 @@ const int MODE_TOTXS=1; const int MODE_DIFFXS=2; const int MODE_Ap=3;
 const int MODE_Ap_X=4; const int MODE_TOTXS_Q=5; const int MODE_COHERENT_DT=6;
 const int MODE_VM_INTZ=7; const int MODE_TOTXS_RATIO_Q=8;
 const int MODE_DSIGMA_D2B_R=9; const int MODE_TOTXS_W=10;
+const int MODE_DSIGMA_DT_QQ=11;
 
 void Cleanup(); 
 
@@ -113,11 +114,13 @@ int main(int argc, char* argv[])
             cout << "-vm_intz (print \\int d^z/(4\\pi) r Psi^*Psi) -fm (print r in fm)" << endl;
             cout << "-pol {l, t, sum} (polarization of the VM, sum = l + t is default)" << endl;
             cout << "-dsigma/d2b_r impact_par (print d\\sgima_{q\bar q}/d^2 b) as a function of r)" << endl;
+            cout << "-dsigma/dt_qq (print d\\sigma_{q\bar q}/dt as a function of t), -r r (in GeV)" << endl;
             cout << endl;
             cout << "Default values: x="<<bjorkx <<", Q^2="<<Qsqr 
                 << " A="<<A<<", N="<<points<<", mint="<<mint<<", maxt="<<maxt<< endl;
             cout << "                dipxs=false, A/p=false, iimfile=" << iim_file << endl;
-            cout << "                t="<<t << ", minx=" << minx << ", maxx=" << maxx << endl;
+            cout << "                t="<<t << ", minx=" << minx << ", maxx=" << maxx 
+                 << " xgfile=" << xgfile << endl;
             cout << "                Mv=" << M_v << ", Mn=" << M_n << ", B_p=" << bp << endl;
             cout << "                minW=" << minW << ", maxW=" << maxW << endl;
 
@@ -167,6 +170,8 @@ int main(int argc, char* argv[])
                 mode=MODE_TOTXS_W;
             else if (string(argv[i])=="-t")
                 t=StrToReal(argv[i+1]);
+            else if (string(argv[i])=="-r")
+                r=StrToReal(argv[i+1]);
             else if (string(argv[i])=="-maxQ2")
                 maxQsqr=StrToReal(argv[i+1]);
             else if (string(argv[i])=="-minQ2")
@@ -195,11 +200,13 @@ int main(int argc, char* argv[])
                 mode=MODE_VM_INTZ;
             else if (string(argv[i])=="-fm")
                 output_fm=true;
-            else if (string(argv[i])=="-dsigma_d2b_r")
+            else if (string(argv[i])=="-dsigma/d2b_r")
             {
                 mode=MODE_DSIGMA_D2B_R;
                 b = StrToReal(argv[i+1]);
             }
+            else if (string(argv[i])=="-dsigma/dt_qq")
+                mode=MODE_DSIGMA_DT_QQ;
             else if (string(argv[i])=="-dipole")
             {
                 if (string(argv[i+1])=="ipsat")
@@ -329,8 +336,18 @@ int main(int argc, char* argv[])
     if (mode==MODE_TOTXS)  // Calculate total cross section
     {
         cout << "# x = " << bjorkx << ", Q^2=" << Qsqr << " Gev^2" << endl;
-        REAL result = calculator.TotalCrossSection(Qsqr, bjorkx);
-        cout << "Total cross section: " << result*NBGEVSQR << " nb" << endl;
+        REAL xs=0;
+        if (polarization==VM_MODE_TOT) // Sum transversial and longitudinal
+                                // polarization components
+            {
+                JPsi->SetMode(VM_MODE_L);
+                xs = calculator.TotalCrossSection(Qsqr, bjorkx);
+                JPsi->SetMode(VM_MODE_T);
+                xs += calculator.TotalCrossSection(Qsqr, bjorkx);
+            }
+            else
+                xs = calculator.TotalCrossSection(Qsqr, bjorkx);
+        cout << "Total cross section: " << xs*NBGEVSQR << " nb" << endl;
     }
      
     else if (mode==MODE_TOTXS_Q)    // Total cross section as a function of Q^2
@@ -595,9 +612,27 @@ int main(int argc, char* argv[])
         for (int i=1; i<=points; i++)
         {
             REAL tmpr = minr*pow(multiplier, i);
-            cout << tmpr << " " << amplitude->Qq_proton_amplitude(tmpr*tmpr, 
+            cout << tmpr << " " << 2.0*amplitude->Qq_proton_amplitude(tmpr*tmpr, 
                                     bjorkx, b) << endl;
         }    
+    }
+    
+    else if (mode==MODE_DSIGMA_DT_QQ)
+    {
+        cout << "#t [Gev^2]  d\\sigma_{q\\bar q}/dt  [nb]" << endl;
+        cout << "#r=" << r << "GeV^(-1), x=" << bjorkx << endl;
+    
+        for (int i=0; i<points; i++)
+        {
+            REAL tmpt = mint+(maxt-mint)/points*i;
+            cout << tmpt << " ";
+            REAL xs= 2.0*amplitude->DipoleAmplitude_proton(SQR(r), bjorkx, 
+                        sqrt(tmpt));
+            xs = SQR(xs);///(16*M_PI);  // Without 16\pi so we can compare with
+                                // KT article, PRD68, 114005
+            cout << xs << endl;
+        }
+    
     }
     
     delete amplitude;

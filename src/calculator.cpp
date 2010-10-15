@@ -37,7 +37,8 @@ REAL Calculator::CrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
     
     int status = gsl_integration_qng(&fun, MINR, MAXR, RINTACCURACY, RINTACCURACY, 
         &result, &abserr, &eval);
-    if (status) std::cerr << "Error " << status << " at " << __FILE__ << ":"
+    if (status and result>0.000001) 
+    std::cerr << "Error " << status << " at " << __FILE__ << ":"
         << __LINE__ << ": Result " << result << ", abserror: " << abserr 
         << " (t=" << t <<")" << std::endl;
     
@@ -73,7 +74,8 @@ REAL Calculator::CoherentCrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
     
     int status = gsl_integration_qng(&fun, MINR, MAXR, 0, RINTACCURACY, 
         &result, &abserr, &eval);
-    if (status) std::cerr << "Error " << status << " at " << __FILE__ << ":"
+    if (status and result>0.00001) 
+    std::cerr << "Error " << status << " at " << __FILE__ << ":"
         << __LINE__ << ": Result " << result << ", abserror: " << abserr 
         << " (t=" << t <<")" << std::endl;
         
@@ -102,7 +104,8 @@ REAL Calculator::ProtonCrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
     REAL result,abserr; size_t eval;
     int status = gsl_integration_qng(&fun, MINR, MAXR, 0, RINTACCURACY, 
         &result, &abserr, &eval);
-    if (status) std::cerr << "Error " << status << " at " << __FILE__ << ":"
+    if (status and result>0.000001) 
+    std::cerr << "Error " << status << " at " << __FILE__ << ":"
         << __LINE__ << ": Result " << result << ", abserror: " << abserr 
         << " (t=" << t <<", Q^2=" << Qsqr<<", x=" << bjorkx <<")" << std::endl;
     
@@ -147,7 +150,7 @@ REAL Calculator::TotalCrossSection(REAL Qsqr, REAL bjorkx)
     REAL result,abserr; size_t eval;
     int status = gsl_integration_qng(&fun, 0, TOTXS_MAXT, 0, TINTACCURACY, 
         &result, &abserr, &eval);
-    if (status)
+    if (status and result>0.00001)
         std::cerr << "Total cross section integral failed to reach tolerance: "
         << "Result: " << result << ", abserr: " << abserr << std::endl;
     
@@ -215,7 +218,8 @@ REAL inthelperf_r1(REAL r, void* p)
     int status = gsl_integration_qng(&fun, MINR, MAXR, 0, RINTACCURACY, 
         &result, &abserr, &eval);
     
-    if (status) std::cerr << "Error " << status << " at " << __FILE__ << ":"
+    if (status and result>0.000001) 
+        std::cerr << "Error " << status << " at " << __FILE__ << ":"
         << __LINE__ << ": Result " << result << ", abserror: " << abserr 
         << " (t=" << par->delta*par->delta << ")" << std::endl;
     
