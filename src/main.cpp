@@ -42,7 +42,7 @@ const int GDIST_DGLAP=1; const int GDIST_TOY=2;
 const int MODE_TOTXS=1; const int MODE_DIFFXS=2; const int MODE_Ap=3;
 const int MODE_Ap_X=4; const int MODE_TOTXS_Q=5; const int MODE_COHERENT_DT=6;
 const int MODE_VM_INTZ=7; const int MODE_TOTXS_RATIO_Q=8;
-const int MODE_DSIGMA_D2B_R=9;
+const int MODE_DSIGMA_D2B_R=9; const int MODE_TOTXS_W=10;
 
 void Cleanup(); 
 
@@ -61,6 +61,8 @@ int main(int argc, char* argv[])
     REAL t=0.5;
     REAL maxQsqr=30;
     REAL minQsqr=0;
+    REAL minW=0;
+    REAL maxW=200;
     int mode=MODE_DIFFXS;   // What to do
     REAL minx=1e-6;
     REAL maxx=1e-2;
@@ -89,7 +91,7 @@ int main(int argc, char* argv[])
             cout << "Usage: -x x_pomeron -Q2 Q^2 -W W (specify only x or W)" << endl;
             cout << "-scalex (scale x by factor 1+M_V^2/Q^2) (can't be used with -W)" << endl;
             cout << "-dipole {ipsat,ipnonsat,iim,ipsat_nonsatp}" << endl;
-            cout << "-gdist {dglap,toy} -xgfile file" << endl;
+            cout << "-gdist {dglap} -xgfile file" << endl;
             cout << "-A number_of_nucleai -Mn nucleus_mass" << endl;
             cout << "-N number_of_data_points" << endl;
             cout << "-coherent_dt (calculate coherent d\\sigma/dt)" << endl;
@@ -99,10 +101,12 @@ int main(int argc, char* argv[])
             cout << "-iimfile filename (parameters for the IIM model)" << endl;
             cout << "-totxs (calculates total cross section)" << endl;
             cout << "-totxs_q2 (total cross section as a function of Q^2)" << endl;
+            cout << "-totxs_w (total cross section as a function of W)" << endl;
             cout << "-totxs_q2_l/t (longitudinal total xs / transversial total xs)" << endl;
             cout << "-A/p (nucleus cross section / A* "
                     <<"proton cross section as a function of Q^2)" << endl;
             cout << "-t t, -maxQ2 maxq2 -minQ2 minQ2[GeV] (value of t and max/min of Q^2)" << endl;
+            cout << "-minW minW, -maxW maxW [GeV] (max/min of W)" << endl;
             cout << "-A/p_x (same as -A/p but as a function of x), -minx minx, -maxx maxx" << endl;
             cout << "-xg rval (print the value of xg(x,r) and quit) " << endl;
             cout << "-Mv mass (mass of the produced vector meson) " << endl;
@@ -115,6 +119,7 @@ int main(int argc, char* argv[])
             cout << "                dipxs=false, A/p=false, iimfile=" << iim_file << endl;
             cout << "                t="<<t << ", minx=" << minx << ", maxx=" << maxx << endl;
             cout << "                Mv=" << M_v << ", Mn=" << M_n << ", B_p=" << bp << endl;
+            cout << "                minW=" << minW << ", maxW=" << maxW << endl;
 
             return 0;
         }
@@ -158,12 +163,18 @@ int main(int argc, char* argv[])
                 mode=MODE_TOTXS_Q;
             else if (string(argv[i])=="-totxs_q2_l/t")
                 mode=MODE_TOTXS_RATIO_Q;
+            else if (string(argv[i])=="-totxs_w")
+                mode=MODE_TOTXS_W;
             else if (string(argv[i])=="-t")
                 t=StrToReal(argv[i+1]);
             else if (string(argv[i])=="-maxQ2")
                 maxQsqr=StrToReal(argv[i+1]);
             else if (string(argv[i])=="-minQ2")
                 minQsqr=StrToReal(argv[i+1]);
+             else if (string(argv[i])=="-maxW")
+                maxW=StrToReal(argv[i+1]);
+            else if (string(argv[i])=="-minW")
+                minW=StrToReal(argv[i+1]);
             else if (string(argv[i])=="-iimfile")
                 iim_file=string(argv[i+1]);
             else if (string(argv[i])=="-xgfile")
@@ -241,7 +252,7 @@ int main(int argc, char* argv[])
         cerr << "Both x and W set, don't know what to do. Exiting..." << endl;
         return -1;
     }
-    if (w_set and mode!=MODE_TOTXS_Q)  // TODO: Check
+    if (w_set and mode!=MODE_TOTXS_Q and mode!=MODE_TOTXS_W)  // TODO: Check
     {
         //bjorkx = Qsqr/(Qsqr + SQR(W));
         // x = x_bj*(1+M^2/Q^2) = Q^2/(Q^2+W^2+M_n^2)(1+M^2/Q^2)
@@ -277,8 +288,8 @@ int main(int argc, char* argv[])
     GDist *gdist;
     if (gdist_model==GDIST_DGLAP)
         gdist = new DGLAPDist(xgfile);
-    else if (gdist_model==GDIST_TOY)
-        gdist = new GDist_Toy();
+    else
+        {cerr << "Unknown gdist model" << endl; return -1; }
     nuke.SetGDist(gdist);    
     Dipxs *amplitude;
     if (model==MODEL_IPSAT)
@@ -334,14 +345,59 @@ int main(int argc, char* argv[])
             //bjorkx = tmpqsqr/(tmpqsqr+SQR(W))*(1+SQR(M_v)/tmpqsqr);
             //bjorkx = (tmpqsqr + SQR(M_v))/SQR(W);
             bjorkx = (tmpqsqr + SQR(M_v))/(SQR(W)+tmpqsqr);
-            
-            REAL xs = calculator.TotalCrossSection(tmpqsqr, bjorkx);
+            REAL xs;
+            if (polarization==VM_MODE_TOT) // Sum transversial and longitudinal
+                                // polarization components
+            {
+                JPsi->SetMode(VM_MODE_L);
+                xs = calculator.TotalCrossSection(tmpqsqr, bjorkx);
+                JPsi->SetMode(VM_MODE_T);
+                xs += calculator.TotalCrossSection(tmpqsqr, bjorkx);
+            }
+            else
+                xs = calculator.TotalCrossSection(tmpqsqr, bjorkx);
 
             xs *= NBGEVSQR;     // 1/Gev^2 -> nb  
             #pragma omp critical
             {
                 cout.precision(5);
                 cout << fixed << tmpqsqr;
+                cout.precision(8);
+                cout << " " << xs << endl;
+            }
+        
+        }    
+    }
+    
+    else if (mode==MODE_TOTXS_W)    // Total cross section as a function of W
+    {                               // Q^2 fixed
+        cout << "# W [GeV]  total cross section [nb], Q^2=" << Qsqr << " GeV" << endl;
+        if (minW<0.0001) minW=0.0001; // W=0 doesn't work
+        REAL multiplier = pow(maxW/minW, 1.0/points);
+        #pragma omp parallel for
+        for (int i=0; i<=points; i++)
+        {
+            REAL tmpw = minW*pow(multiplier, i);
+            //bjorkx = tmpqsqr/(tmpqsqr+SQR(W))*(1+SQR(M_v)/tmpqsqr);
+            //bjorkx = (tmpqsqr + SQR(M_v))/SQR(W);
+            bjorkx = (Qsqr + SQR(M_v))/(SQR(tmpw)+Qsqr);
+            REAL xs=0;
+            if (polarization==VM_MODE_TOT) // Sum transversial and longitudinal
+                                // polarization components
+            {
+                JPsi->SetMode(VM_MODE_L);
+                xs = calculator.TotalCrossSection(Qsqr, bjorkx);
+                JPsi->SetMode(VM_MODE_T);
+                xs += calculator.TotalCrossSection(Qsqr, bjorkx);
+            }
+            else
+                xs = calculator.TotalCrossSection(Qsqr, bjorkx);
+
+            xs *= NBGEVSQR;     // 1/Gev^2 -> nb  
+            #pragma omp critical
+            {
+                cout.precision(5);
+                cout << fixed << tmpw;
                 cout.precision(8);
                 cout << " " << xs << endl;
             }
@@ -384,7 +440,7 @@ int main(int argc, char* argv[])
         cout << "# Q^2   nucleus_xs / A*proton_xs" << endl;
         if (minQsqr==0) minQsqr=0.0001; // Qsqr=0 doesn't work
         REAL multiplier = pow(maxQsqr/minQsqr, 1.0/points);
-        
+        std::cerr<< "TODO: Fix polarization sums" << endl;
         #pragma omp parallel for
         for (int i=0; i<=points; i++)
         {
@@ -408,7 +464,7 @@ int main(int argc, char* argv[])
     {
         cout << "# t=" << t << ", Q^2=" << Qsqr << endl;
         cout << "# x-dependence of nucleus_xs / A*proton_xs" << endl;
-        
+        std::cerr<< "TODO: Fix polarization sums" << endl;
         if (minx==0) minx=1e-6; // x=0 doesn't work
         REAL multiplier = pow(maxx/minx, 1.0/points);
             
@@ -439,6 +495,7 @@ int main(int argc, char* argv[])
         }
         cout << "# d\\sigma/dt [1/GeV^4], coherent scattering " << endl;
         cout << "# x_pomeron = " << bjorkx << ", Q^2 = " << Qsqr << endl;
+        std::cerr<< "TODO: Fix polarization sums" << endl;
         // All iterations are independent, so this is straightforward to parallerize   
         #pragma omp parallel for
         for (int i=0; i<=points; i++)
@@ -470,11 +527,31 @@ int main(int argc, char* argv[])
         {
             REAL tmpt = mint+(maxt-mint)/points*i;
             REAL delta = sqrt(tmpt);
-            REAL result;
+            REAL result=0;
             if (A==1)
-                result = calculator.ProtonCrossSection_dt(tmpt, Qsqr, bjorkx);
+            {
+                if (polarization==VM_MODE_TOT) 
+                {
+                    JPsi->SetMode(VM_MODE_L);
+                    result = calculator.ProtonCrossSection_dt(tmpt, Qsqr, bjorkx);
+                    JPsi->SetMode(VM_MODE_T);
+                    result += calculator.ProtonCrossSection_dt(tmpt, Qsqr, bjorkx);
+                }
+                else
+                    result = calculator.ProtonCrossSection_dt(tmpt, Qsqr, bjorkx); 
+            }
             else
-                result = calculator.CrossSection_dt(tmpt, Qsqr, bjorkx); 
+            {
+                if (polarization==VM_MODE_TOT) 
+                {
+                    JPsi->SetMode(VM_MODE_L);
+                    result = calculator.CrossSection_dt(tmpt, Qsqr, bjorkx);
+                    JPsi->SetMode(VM_MODE_T);
+                    result += calculator.CrossSection_dt(tmpt, Qsqr, bjorkx);
+                }
+                else
+                    result = calculator.CrossSection_dt(tmpt, Qsqr, bjorkx); 
+            }
             #pragma omp critical
             {
                 cout.precision(5);

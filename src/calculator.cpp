@@ -155,6 +155,16 @@ REAL Calculator::TotalCrossSection(REAL Qsqr, REAL bjorkx)
     
 }
 
+// Integration over t 
+REAL inthelper_totxs(REAL t, void* p)
+{
+    inthelper_r* par = (inthelper_r*)p;
+    if (par->calculator->GetAmplitude()->GetNucleus().GetA()==1) // Proton
+        return par->calculator->ProtonCrossSection_dt(t, par->Qsqr, par->bjorkx); 
+    return par->calculator->CrossSection_dt(t, par->Qsqr, par->bjorkx);
+
+}
+
 /*
  * Total cross section for dipole-proton scattering
  * One can also use TotalCrossSection with A=1, but this method performs the 
@@ -190,15 +200,7 @@ REAL Calculator::TotalProtonCrossSection(REAL Qsqr, REAL bjorkx)
  * Integral helpers
  */
 
-// Integration over t 
-REAL inthelper_totxs(REAL t, void* p)
-{
-    inthelper_r* par = (inthelper_r*)p;
-    if (par->calculator->GetAmplitude()->GetNucleus().GetA()==1) // Proton
-        return par->calculator->ProtonCrossSection_dt(t, par->Qsqr, par->bjorkx);
-    return par->calculator->CrossSection_dt(t, par->Qsqr, par->bjorkx);
 
-}
 
 REAL inthelperf_r1(REAL r, void* p)
 {
