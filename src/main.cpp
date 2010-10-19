@@ -18,6 +18,7 @@
 
 #include "dipole.h"
 #include "gaus_lc.h"
+#include "gauss_boost.h"
 #include "vector.h"
 #include "nucleus.h"
 #include "dipxs_ipnonsat.h"
@@ -38,6 +39,8 @@ const REAL TOTXS_MAXT=2;    // Max |t| in GeV^2 when calculating total xs
 const int MODEL_IPSAT=1; const int MODEL_IPNONSAT=2; const int MODEL_IIM=3;
 const int MODEL_IPSAT_NONSATP=4;
 const int GDIST_DGLAP=1; const int GDIST_TOY=2;
+
+const int WAVEF_GAUS_LC=1; const int WAVEF_BOOSTED_GAUSSIAN=2;
 
 const int MODE_TOTXS=1; const int MODE_DIFFXS=2; const int MODE_Ap=3;
 const int MODE_Ap_X=4; const int MODE_TOTXS_Q=5; const int MODE_COHERENT_DT=6;
@@ -81,6 +84,7 @@ int main(int argc, char* argv[])
     REAL bp=DEFAULT_B_p;
     int polarization = VM_MODE_TOT;
     REAL b=0;   // Impact parameter
+    int wavef=WAVEF_GAUS_LC;
     
     string iim_file="iim.dat";  // Read parameters for IIM model from this file
             
@@ -93,6 +97,7 @@ int main(int argc, char* argv[])
             cout << "-scalex (scale x by factor 1+M_V^2/Q^2) (can't be used with -W)" << endl;
             cout << "-dipole {ipsat,ipnonsat,iim,ipsat_nonsatp}" << endl;
             cout << "-gdist {dglap} -xgfile file" << endl;
+            cout << "-wavef {gaus-lc, boosted-gaussian} (specify VM wave function)" << endl;
             cout << "-A number_of_nucleai -Mn nucleus_mass" << endl;
             cout << "-N number_of_data_points" << endl;
             cout << "-coherent_dt (calculate coherent d\\sigma/dt)" << endl;
@@ -126,6 +131,7 @@ int main(int argc, char* argv[])
                  << " xgfile=" << xgfile << endl;
             cout << "                Mv=" << M_v << ", Mn=" << M_n << ", B_p=" << bp << endl;
             cout << "                minW=" << minW << ", maxW=" << maxW << endl;
+            cout << "                wavef=gaus-lc" << endl;
 
             return 0;
         }
@@ -230,6 +236,19 @@ int main(int argc, char* argv[])
                     return -1;
                 }
             }
+            else if (string(argv[i])=="-wavef")
+            {
+                if (string(argv[i+1])=="gaus-lc")
+                    wavef=WAVEF_GAUS_LC;
+                else if (string(argv[i+1])=="boosted-gaussian")
+                    wavef=WAVEF_BOOSTED_GAUSSIAN;
+                else
+                {
+                    cerr << "Wavef " << argv[i+1] << " is not valid" << endl;
+                    return -1;
+                }
+            
+            }
             else if (string(argv[i])=="-gdist")
             {
                 if (string(argv[i+1])=="dglap")
@@ -291,9 +310,20 @@ int main(int argc, char* argv[])
     // Intialize random number generator
     seed_mersenne(std::time(NULL));
     
-    // J/Psi wave function:  e_f, N_T, N_L, R_T, R_L, m_f, M_V, delta
-    //VM_Photon JPsi(2.0/3.0, 1.23, 0.83, sqrt(6.5), sqrt(3.0), 1.4, 3.097, 1);
-    WaveFunction *JPsi = new GausLC("jpsi.dat");
+    // Wave function
+    WaveFunction *JPsi;
+    switch (wavef)
+    {
+        case WAVEF_GAUS_LC:
+           // J/Psi wave function:  e_f, N_T, N_L, R_T, R_L, m_f, M_V, delta
+           //VM_Photon JPsi(2.0/3.0, 1.23, 0.83, sqrt(6.5), sqrt(3.0), 1.4, 3.097, 1);
+           JPsi = new GausLC("gaus-lc.dat");
+           break;
+        case WAVEF_BOOSTED_GAUSSIAN:
+            JPsi = new BoostedGauss("gauss-boosted.dat");
+            break;
+    }   
+    
     JPsi->SetMode(polarization);
     
     // Intialize Dipxs and Nucleus
@@ -304,11 +334,6 @@ int main(int argc, char* argv[])
         gdist = new DGLAPDist(xgfile);
     else
         {cerr << "Unknown gdist model" << endl; return -1; }
-    if (mode==MODE_GLUEDIST)
-    {
-        cout << gdist->Gluedist(bjorkx,r*r);
-        return 0;
-    }
     
     nuke.SetGDist(gdist);    
     Dipxs *amplitude;
@@ -327,6 +352,13 @@ int main(int argc, char* argv[])
         ((Dipxs_IPSat*)amplitude)->SetFactorize(factor_ipsat);
     }
 
+
+    Calculator calculator(amplitude, JPsi);
+
+/////////////////////////////////////////////////////////////////////////////
+////////////// Different modes //////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
+
     if (mode==MODE_XG)  // Print the value of xg(x,µ) and quit
     {
         cout << "# r = " << r << " GeV^(-1), x = " << bjorkx << endl;
@@ -335,9 +367,11 @@ int main(int argc, char* argv[])
         cout <<"xg = " << tmp << " (Gluedist = " << gd <<")"  << endl;
         return 0;
     }
-    
-
-    Calculator calculator(amplitude, JPsi);
+    if (mode==MODE_GLUEDIST)
+    {
+        cout << gdist->Gluedist(bjorkx,r*r);
+        return 0;
+    }   
 
     /*******************
      * \gamma^* N -> J/\Psi N cross section

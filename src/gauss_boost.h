@@ -1,10 +1,10 @@
-#ifndef GausLC_H
-#define GausLC_H
+#ifndef BoostedGaus_H
+#define BoostedGaus_H
 
 /*
  * Overlap between the photon and the vector meson wave functions
- * Boosted gaussian version
- * Ref: Kowalski, Motyka and Watt, see arXiv: hep-ph/0606272v2
+ * Boosted Gaussian version, ref.
+ * Kowalski, Motyka and Watt, see arXiv: hep-ph/0606272v2
  *
  * Heikki Mäntysaari <heikki.mantysaari@jyu.fi>, 2010
  */
@@ -15,11 +15,15 @@
 #include <iostream>
 #include <string>
 
-class GausLC : public WaveFunction {
+/* Overlap functions are taken from an article written by Kowalski, Motyka 
+ * and Watt, see arXiv: hep-ph/0606272v2
+ */
+
+class BoostedGauss : public WaveFunction {
     public:
-        GausLC(REAL e_f_, REAL N_T_, REAL N_L_, REAL R_T_, REAL R_L_, 
+        BoostedGauss(REAL e_f_, REAL N_T_, REAL N_L_, REAL R_T_, 
                 REAL m_f_, REAL M_V_, int delta_);
-        GausLC(std::string file);
+        BoostedGauss(std::string file);
         
         // Overlap wave functions
         REAL PsiSqr_T(REAL Qsqr, REAL r, REAL z);
@@ -43,16 +47,15 @@ class GausLC : public WaveFunction {
         
     private:
         // Parameters
-        REAL e_f;   // Charge
+        REAL e_f;
         REAL N_T, N_L; // Constants for Psi_T and Psi_L
-        REAL R_T, R_L;
+        REAL R;
         REAL m_f,M_V;
         int delta;  // There are two different longitudial wave functions,
                     // delta=0 or delta=1
         
-        
 };
 
-std::ostream& operator<<(std::ostream& os, GausLC& ic);
+std::ostream& operator<<(std::ostream& os, BoostedGauss& ic);
 
-#endif // GausLC_H
+#endif // BoostedGauss_H
