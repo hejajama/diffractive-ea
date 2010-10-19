@@ -59,7 +59,7 @@ class Dipxs_IPSat : public Dipxs
         bool factorize;
 
         
-        static const size_t MAXITER_FT=1000;  // Max number of interations when 
+        static const size_t MAXITER_FT=10000;  // Max number of interations when 
             // calculating the fourier transformation of the amplitude
 
 };
@@ -75,7 +75,18 @@ const int IPSAT_MODE_NONSAT_P=2;
  * In IPSAT_MODE_DEFAULT the dipole-proton scattering amplitude is also
  * unitarized
  */
-
+ 
+// Integration helper struct
+// First the required integral helpers
+struct inthelper_ipsatavg
+{
+    REAL rsqr,r2sqr;
+    REAL xbj;
+    REAL delta;
+    
+    Dipxs_IPSat* dip;
+    Nucleus* nuke;
+};
 
 
 #endif  // Dipxs_IPSAT_H

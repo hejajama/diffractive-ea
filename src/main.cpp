@@ -43,7 +43,8 @@ const int MODE_TOTXS=1; const int MODE_DIFFXS=2; const int MODE_Ap=3;
 const int MODE_Ap_X=4; const int MODE_TOTXS_Q=5; const int MODE_COHERENT_DT=6;
 const int MODE_VM_INTZ=7; const int MODE_TOTXS_RATIO_Q=8;
 const int MODE_DSIGMA_D2B_R=9; const int MODE_TOTXS_W=10;
-const int MODE_DSIGMA_DT_QQ=11;
+const int MODE_DSIGMA_DT_QQ=11; const int MODE_DSIGMA_D2B_B=12;
+const int MODE_TOTAL_DIPXS=13; const int MODE_XG=14; const int MODE_GLUEDIST=15;
 
 void Cleanup(); 
 
@@ -71,7 +72,6 @@ int main(int argc, char* argv[])
     REAL W=-1;  // W^2 = (P+q)^2 = invariant mass^2 of the \gamma^*N system
     bool x_set=false;
     bool w_set=false;
-    bool xgval=false;   // Print the value of xg(x,µ) and quit.
     bool scalex=false;  // Scale x so that x=x_bj*(1+M_V^2/Q^2)
     bool output_fm=false;   // Use fm's when printing the value of r
     bool factor_ipsat=true; // Factroize IPSat amplitude to T(b)(1-exp(-r^2...))
@@ -109,12 +109,15 @@ int main(int argc, char* argv[])
             cout << "-t t, -maxQ2 maxq2 -minQ2 minQ2[GeV] (value of t and max/min of Q^2)" << endl;
             cout << "-minW minW, -maxW maxW [GeV] (max/min of W)" << endl;
             cout << "-A/p_x (same as -A/p but as a function of x), -minx minx, -maxx maxx" << endl;
-            cout << "-xg rval (print the value of xg(x,r) and quit) " << endl;
+            cout << "-xg (print the value of xg(x,r) and quit) " << endl;
+            cout << "-gdistval (print ONLY gluedist and quit)" << endl;
             cout << "-Mv mass (mass of the produced vector meson) " << endl;
             cout << "-vm_intz (print \\int d^z/(4\\pi) r Psi^*Psi) -fm (print r in fm)" << endl;
             cout << "-pol {l, t, sum} (polarization of the VM, sum = l + t is default)" << endl;
-            cout << "-dsigma/d2b_r impact_par (print d\\sgima_{q\bar q}/d^2 b) as a function of r)" << endl;
+            cout << "-dsigma/d2b_r impact_par (print d\\sgima_{q\bar q}/d^2 b as a function of r)" << endl;
+            cout << "-dsigma/d2b_b (print d\\sigma_{q\\bar q}/d^2 b as a function of b)" << endl;
             cout << "-dsigma/dt_qq (print d\\sigma_{q\bar q}/dt as a function of t), -r r (in GeV)" << endl;
+            cout << "-totdipxs (print total dipole-proton cross section as a function of r)" << endl;
             cout << endl;
             cout << "Default values: x="<<bjorkx <<", Q^2="<<Qsqr 
                 << " A="<<A<<", N="<<points<<", mint="<<mint<<", maxt="<<maxt<< endl;
@@ -190,10 +193,10 @@ int main(int argc, char* argv[])
                 M_n=StrToReal(argv[i+1]);
             else if (string(argv[i])=="-Bp")
                 bp=StrToReal(argv[i+1]);
-            else if (string(argv[i])=="-xg") {
-                xgval=true;
-                r=StrToReal(argv[i+1]);
-            }
+            else if (string(argv[i])=="-xg") 
+                mode=MODE_XG;
+            else if (string(argv[i])=="-gdistval")
+                mode=MODE_GLUEDIST;
             else if (string(argv[i])=="-scalex")
                 scalex=true;
             else if (string(argv[i])=="-vm_intz")
@@ -205,8 +208,12 @@ int main(int argc, char* argv[])
                 mode=MODE_DSIGMA_D2B_R;
                 b = StrToReal(argv[i+1]);
             }
+            else if (string(argv[i])=="-dsigma/d2b_b")
+                mode=MODE_DSIGMA_D2B_B;
             else if (string(argv[i])=="-dsigma/dt_qq")
                 mode=MODE_DSIGMA_DT_QQ;
+            else if (string(argv[i])=="-totdipxs")
+                mode=MODE_TOTAL_DIPXS;
             else if (string(argv[i])=="-dipole")
             {
                 if (string(argv[i+1])=="ipsat")
@@ -297,6 +304,12 @@ int main(int argc, char* argv[])
         gdist = new DGLAPDist(xgfile);
     else
         {cerr << "Unknown gdist model" << endl; return -1; }
+    if (mode==MODE_GLUEDIST)
+    {
+        cout << gdist->Gluedist(bjorkx,r*r);
+        return 0;
+    }
+    
     nuke.SetGDist(gdist);    
     Dipxs *amplitude;
     if (model==MODEL_IPSAT)
@@ -314,14 +327,15 @@ int main(int argc, char* argv[])
         ((Dipxs_IPSat*)amplitude)->SetFactorize(factor_ipsat);
     }
 
-    if (xgval)  // Print the value of xg(x,µ) and quit
+    if (mode==MODE_XG)  // Print the value of xg(x,µ) and quit
     {
-        REAL tmp = gdist->Gluedist(bjorkx, r*r);
-        tmp *= 2*NC/(M_PI*M_PI*Alpha_s(Mu2(SQR(r))) );
-        cout << tmp << endl;
+        cout << "# r = " << r << " GeV^(-1), x = " << bjorkx << endl;
+        REAL gd = gdist->Gluedist(bjorkx, r*r);
+        REAL tmp = gd* 2*NC/(M_PI*M_PI*Alpha_s(Mu2(SQR(r))) );
+        cout <<"xg = " << tmp << " (Gluedist = " << gd <<")"  << endl;
         return 0;
     }
-
+    
 
     Calculator calculator(amplitude, JPsi);
 
@@ -536,7 +550,7 @@ int main(int argc, char* argv[])
     
     else if (mode==MODE_DIFFXS)   // dsigma/dt as a function of t
     {
-        cout << "# d\\sigma/dt [1/GeV^4] " << endl;
+        cout << "# d\\sigma/dt [nb/GeV^2] " << endl;
         cout << "# x_pomeron = " << bjorkx << ", Q^2 = " << Qsqr << endl;
         // All iterations are independent, so this is straightforward to parallerize   
         #pragma omp parallel for
@@ -574,7 +588,7 @@ int main(int argc, char* argv[])
                 cout.precision(5);
                 cout << fixed << tmpt;
                 cout.precision(8);
-                cout << " " << result << endl;
+                cout << " " << result*NBGEVSQR << endl;
             }
         }
     }
@@ -583,7 +597,7 @@ int main(int argc, char* argv[])
     {
         cout << "# 2\\pi r * \\int dz/(4\\pi) r Psi^*Psi, Q^2 = " << Qsqr << endl;
         cout << "# " << *((GausLC*)JPsi) << endl;
-        if (output_fm) cout << "[r] = fm"; else cout << "[r] = GeV^(-1)";
+        if (output_fm) cout << "# [r] = fm"; else cout << "# [r] = GeV^(-1)";
         cout << endl;
         REAL maxr=5;
         for (int i=1; i<=points; i++)
@@ -604,7 +618,7 @@ int main(int argc, char* argv[])
     
     else if (mode==MODE_DSIGMA_D2B_R) 
     {
-        cout << "# 1/2 * d\\sigma/d^2b for dipole-proton scattering" << endl;
+        cout << "# d\\sigma/d^2b for dipole-proton scattering" << endl;
         cout << "# b = " << b << ", x = " << bjorkx << endl;
         REAL maxr = 10; REAL minr=0.01;
         REAL multiplier = pow(maxr/minr, 1.0/points);
@@ -617,9 +631,22 @@ int main(int argc, char* argv[])
         }    
     }
     
+    else if (mode==MODE_DSIGMA_D2B_B) 
+    {
+        cout << "# d\\sigma/d^2b for dipole-proton scattering" << endl;
+        cout << "# r = " << r << " GeV^(-1), x = " << bjorkx << endl;
+        REAL minb=0; REAL maxb=10;
+        for (int i=0; i<=points; i++)
+        {
+            REAL tmpb = minb+(maxb-minb)/points*i;
+            cout << tmpb << " " << 2.0*amplitude->Qq_proton_amplitude(SQR(r), 
+                                    bjorkx, tmpb) << endl;
+        }    
+    }
+    
     else if (mode==MODE_DSIGMA_DT_QQ)
     {
-        cout << "#t [Gev^2]  d\\sigma_{q\\bar q}/dt  [nb]" << endl;
+        cout << "#t [Gev^2]  d\\sigma_{q\\bar q}/dt  [Gev^(-2)]" << endl;
         cout << "#r=" << r << "GeV^(-1), x=" << bjorkx << endl;
     
         for (int i=0; i<points; i++)
@@ -629,7 +656,22 @@ int main(int argc, char* argv[])
             REAL xs= 2.0*amplitude->DipoleAmplitude_proton(SQR(r), bjorkx, 
                         sqrt(tmpt));
             xs = SQR(xs);///(16*M_PI);  // Without 16\pi so we can compare with
-                                // KT article, PRD68, 114005
+                                // KT article, PRD68, 114005 hep-ph/0304189
+            cout << xs << endl;
+        }
+    
+    }
+    else if (mode==MODE_TOTAL_DIPXS)
+    {
+        cout << "#r [Gev^(-1)]  \\sigma [mb] (total dipole-proton cross section)" << endl;
+        cout << "# x=" << bjorkx << endl;
+        REAL minr=0.1; REAL maxr=15;
+        for (int i=0; i<=points; i++)
+        {
+            REAL tmpr = minr+(maxr-minr)/points*i;
+            cout << tmpr << " ";
+            REAL xs= amplitude->TotalDipxsection_proton(SQR(tmpr), bjorkx);
+            xs = xs*NBGEVSQR / 1000.0 / 1000.0;  // Gev^(-2) => mb
             cout << xs << endl;
         }
     

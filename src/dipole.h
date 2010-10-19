@@ -30,7 +30,7 @@ const int Nf=3;
 const REAL ALPHA_e = 1.0/137.035999679; 
 const REAL e = sqrt(4*M_PI*ALPHA_e);
 const REAL mu2_0 = 1.1699;  // \mu_0^2 = 1.1699 (Lappi) or 0.8 GeV^2 (KT) 
-const REAL LAMBDAQCD2=0.04;   // (0.2 GeV)^2
+const REAL LAMBDAQCD2=0.21416*0.21416;   // GeV^2
 const REAL FOURPI = (4.0*M_PI);
 const REAL DEFAULT_B_p=4.0;	// Default proton shape for ipsat and ipnonsat
 const REAL NBGEVSQR = 1.0/SQR(5.068)*1.0e7; // 1/Gev^4 -> nb/Gev^2
