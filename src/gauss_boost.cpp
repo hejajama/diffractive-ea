@@ -153,7 +153,7 @@ REAL BoostedGauss::PsiSqr_T_intz(REAL Qsqr, REAL r)
     //    MAXITER_ZINT, GSL_INTEG_GAUSS51, ws, &result, &abserr);
     //gsl_integration_workspace_free(ws);
     
-    if (status) std::cerr << "Error " << status << " at " << __FILE__ << ":"
+    if (status and ABS(result)>0.000001) std::cerr << "Error " << status << " at " << __FILE__ << ":"
             << __LINE__ << ": Result " << result << ", abserror: " << abserr <<
             std::endl;
 
@@ -180,7 +180,7 @@ REAL BoostedGauss::PsiSqr_L_intz(REAL Qsqr, REAL r)
     //    MAXITER_ZINT, GSL_INTEG_GAUSS51, ws, &result, &abserr);
     //gsl_integration_workspace_free(ws);
     
-    if (status) std::cerr << "Error " << status << " at " << __FILE__ << ":"
+    if (status and ABS(result)>0.0000001) std::cerr << "Error " << status << " at " << __FILE__ << ":"
             << __LINE__ << ": Result " << result << ", abserror: " << abserr <<
             std::endl;
 

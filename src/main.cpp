@@ -37,7 +37,7 @@ const REAL RINTACCURACY=0.002;
 const REAL TOTXS_MAXT=2;    // Max |t| in GeV^2 when calculating total xs
 */
 const int MODEL_IPSAT=1; const int MODEL_IPNONSAT=2; const int MODEL_IIM=3;
-const int MODEL_IPSAT_NONSATP=4;
+const int MODEL_IPSAT_NONSATP=4; const int MODEL_IPSAT_NOFACTOR=5;
 const int GDIST_DGLAP=1; const int GDIST_TOY=2;
 
 const int WAVEF_GAUS_LC=1; const int WAVEF_BOOSTED_GAUSSIAN=2;
@@ -77,7 +77,6 @@ int main(int argc, char* argv[])
     bool w_set=false;
     bool scalex=false;  // Scale x so that x=x_bj*(1+M_V^2/Q^2)
     bool output_fm=false;   // Use fm's when printing the value of r
-    bool factor_ipsat=true; // Factroize IPSat amplitude to T(b)(1-exp(-r^2...))
     REAL r=-1;
     REAL M_v=3.097; // Mass of the produced vector meson, 3.097 GeV = J/\Psi
     REAL M_n=0;     // Mass of nucleus/nucleon
@@ -95,14 +94,13 @@ int main(int argc, char* argv[])
         {
             cout << "Usage: -x x_pomeron -Q2 Q^2 -W W (specify only x or W)" << endl;
             cout << "-scalex (scale x by factor 1+M_V^2/Q^2) (can't be used with -W)" << endl;
-            cout << "-dipole {ipsat,ipnonsat,iim,ipsat_nonsatp}" << endl;
+            cout << "-dipole {ipsat,ipnonsat,iim,ipsat_nonsatp,ipsat-nofactor}" << endl;
             cout << "-gdist {dglap} -xgfile file" << endl;
             cout << "-wavef {gaus-lc, boosted-gaussian} (specify VM wave function)" << endl;
             cout << "-A number_of_nucleai -Mn nucleus_mass" << endl;
             cout << "-N number_of_data_points" << endl;
             cout << "-coherent_dt (calculate coherent d\\sigma/dt)" << endl;
             cout << "-Bp proton_shape (for ipsat and ipnonsat)" << endl;
-            cout << "-nofactor (do not factorize amplitude in IPSat model)" << endl;
             cout << "-mint t_value, -maxt t_value" << endl;
             cout << "-iimfile filename (parameters for the IIM model)" << endl;
             cout << "-totxs (calculates total cross section)" << endl;
@@ -164,7 +162,7 @@ int main(int argc, char* argv[])
             else if (string(argv[i])=="-coherent_dt")
                 mode=MODE_COHERENT_DT;
             else if (string(argv[i])=="-nofactor")
-                factor_ipsat=false;
+                mode=MODEL_IPSAT_NOFACTOR;   // Deprecated, use -mode ipsat-nofactor
             else if (string(argv[i])=="-totxs")
                 mode=MODE_TOTXS;
             else if (string(argv[i])=="-A/p")
@@ -224,6 +222,8 @@ int main(int argc, char* argv[])
             {
                 if (string(argv[i+1])=="ipsat")
                     model=MODEL_IPSAT;
+                else if (string(argv[i+1])=="ipsat-nofactor")
+                    model=MODEL_IPSAT_NOFACTOR;
                 else if (string(argv[i+1])=="ipnonsat")
                     model=MODEL_IPNONSAT;
                 else if (string(argv[i+1])=="iim")
@@ -337,23 +337,31 @@ int main(int argc, char* argv[])
     
     nuke.SetGDist(gdist);    
     Dipxs *amplitude;
-    if (model==MODEL_IPSAT)
-    {
+    switch (model)
+    { 
+    case MODEL_IPSAT:
         amplitude = new Dipxs_IPSat(nuke, IPSAT_MODE_DEFAULT, bp);
-        ((Dipxs_IPSat*)amplitude)->SetFactorize(factor_ipsat);
-    }
-    else if (model==MODEL_IPNONSAT)
+        ((Dipxs_IPSat*)amplitude)->SetFactorize(true);
+        break;
+    case MODEL_IPSAT_NOFACTOR:
+        amplitude = new Dipxs_IPSat(nuke, IPSAT_MODE_DEFAULT, bp);
+        ((Dipxs_IPSat*)amplitude)->SetFactorize(false);
+        break;
+    case MODEL_IPNONSAT:
         amplitude = new Dipxs_IPNonSat(nuke, bp);
-    else if (model==MODEL_IIM)
+        break;
+    case MODEL_IIM:
         amplitude = new Dipxs_IIM(nuke, iim_file);
-    else if (model==MODEL_IPSAT_NONSATP)
-    {
+        break;
+    case MODEL_IPSAT_NONSATP:
         amplitude = new Dipxs_IPSat(nuke, IPSAT_MODE_NONSAT_P,bp);
-        ((Dipxs_IPSat*)amplitude)->SetFactorize(factor_ipsat);
+        ((Dipxs_IPSat*)amplitude)->SetFactorize(false);
+        break;
     }
 
 
     Calculator calculator(amplitude, JPsi);
+    calculator.SetPolarization(polarization);
 
 /////////////////////////////////////////////////////////////////////////////
 ////////////// Different modes //////////////////////////////////////////////
@@ -385,16 +393,7 @@ int main(int argc, char* argv[])
     {
         cout << "# x = " << bjorkx << ", Q^2=" << Qsqr << " Gev^2" << endl;
         REAL xs=0;
-        if (polarization==VM_MODE_TOT) // Sum transversial and longitudinal
-                                // polarization components
-            {
-                JPsi->SetMode(VM_MODE_L);
-                xs = calculator.TotalCrossSection(Qsqr, bjorkx);
-                JPsi->SetMode(VM_MODE_T);
-                xs += calculator.TotalCrossSection(Qsqr, bjorkx);
-            }
-            else
-                xs = calculator.TotalCrossSection(Qsqr, bjorkx);
+        xs = calculator.TotalCrossSection(Qsqr, bjorkx);
         cout << "Total cross section: " << xs*NBGEVSQR << " nb" << endl;
     }
      
@@ -410,17 +409,7 @@ int main(int argc, char* argv[])
             //bjorkx = tmpqsqr/(tmpqsqr+SQR(W))*(1+SQR(M_v)/tmpqsqr);
             //bjorkx = (tmpqsqr + SQR(M_v))/SQR(W);
             bjorkx = (tmpqsqr + SQR(M_v))/(SQR(W)+tmpqsqr);
-            REAL xs;
-            if (polarization==VM_MODE_TOT) // Sum transversial and longitudinal
-                                // polarization components
-            {
-                JPsi->SetMode(VM_MODE_L);
-                xs = calculator.TotalCrossSection(tmpqsqr, bjorkx);
-                JPsi->SetMode(VM_MODE_T);
-                xs += calculator.TotalCrossSection(tmpqsqr, bjorkx);
-            }
-            else
-                xs = calculator.TotalCrossSection(tmpqsqr, bjorkx);
+            REAL xs = calculator.TotalCrossSection(tmpqsqr, bjorkx);
 
             xs *= NBGEVSQR;     // 1/Gev^2 -> nb  
             #pragma omp critical
@@ -447,16 +436,7 @@ int main(int argc, char* argv[])
             //bjorkx = (tmpqsqr + SQR(M_v))/SQR(W);
             bjorkx = (Qsqr + SQR(M_v))/(SQR(tmpw)+Qsqr);
             REAL xs=0;
-            if (polarization==VM_MODE_TOT) // Sum transversial and longitudinal
-                                // polarization components
-            {
-                JPsi->SetMode(VM_MODE_L);
-                xs = calculator.TotalCrossSection(Qsqr, bjorkx);
-                JPsi->SetMode(VM_MODE_T);
-                xs += calculator.TotalCrossSection(Qsqr, bjorkx);
-            }
-            else
-                xs = calculator.TotalCrossSection(Qsqr, bjorkx);
+            xs = calculator.TotalCrossSection(Qsqr, bjorkx);
 
             xs *= NBGEVSQR;     // 1/Gev^2 -> nb  
             #pragma omp critical
@@ -483,9 +463,9 @@ int main(int argc, char* argv[])
             REAL tmpqsqr = minQsqr*pow(multiplier, i);
             bjorkx = (tmpqsqr + SQR(M_v))/(SQR(W)+tmpqsqr);
             
-            JPsi->SetMode(VM_MODE_L);
+            calculator.SetPolarization(VM_MODE_L);
             REAL xsl = calculator.TotalCrossSection(tmpqsqr, bjorkx);
-            JPsi->SetMode(VM_MODE_T);
+            calculator.SetPolarization(VM_MODE_T);
             REAL xst = calculator.TotalCrossSection(tmpqsqr, bjorkx);
            
             #pragma omp critical
@@ -505,7 +485,6 @@ int main(int argc, char* argv[])
         cout << "# Q^2   nucleus_xs / A*proton_xs" << endl;
         if (minQsqr==0) minQsqr=0.0001; // Qsqr=0 doesn't work
         REAL multiplier = pow(maxQsqr/minQsqr, 1.0/points);
-        std::cerr<< "TODO: Fix polarization sums" << endl;
         #pragma omp parallel for
         for (int i=0; i<=points; i++)
         {
@@ -529,7 +508,6 @@ int main(int argc, char* argv[])
     {
         cout << "# t=" << t << ", Q^2=" << Qsqr << endl;
         cout << "# x-dependence of nucleus_xs / A*proton_xs" << endl;
-        std::cerr<< "TODO: Fix polarization sums" << endl;
         if (minx==0) minx=1e-6; // x=0 doesn't work
         REAL multiplier = pow(maxx/minx, 1.0/points);
             
@@ -560,15 +538,14 @@ int main(int argc, char* argv[])
         }
         cout << "# d\\sigma/dt [1/GeV^4], coherent scattering " << endl;
         cout << "# x_pomeron = " << bjorkx << ", Q^2 = " << Qsqr << endl;
-        std::cerr<< "TODO: Fix polarization sums" << endl;
         // All iterations are independent, so this is straightforward to parallerize   
         #pragma omp parallel for
         for (int i=0; i<=points; i++)
         {
             REAL tmpt = (maxt-mint)/points*i;
             REAL delta = sqrt(tmpt);
-            REAL result;
-            result = calculator.CoherentCrossSection_dt(tmpt, Qsqr, bjorkx);
+            REAL result = calculator.CoherentCrossSection_dt(tmpt, Qsqr, bjorkx);
+            
             #pragma omp critical
             {
                 cout.precision(5);
@@ -595,27 +572,11 @@ int main(int argc, char* argv[])
             REAL result=0;
             if (A==1)
             {
-                if (polarization==VM_MODE_TOT) 
-                {
-                    JPsi->SetMode(VM_MODE_L);
-                    result = calculator.ProtonCrossSection_dt(tmpt, Qsqr, bjorkx);
-                    JPsi->SetMode(VM_MODE_T);
-                    result += calculator.ProtonCrossSection_dt(tmpt, Qsqr, bjorkx);
-                }
-                else
-                    result = calculator.ProtonCrossSection_dt(tmpt, Qsqr, bjorkx); 
+                result = calculator.ProtonCrossSection_dt(tmpt, Qsqr, bjorkx); 
             }
             else
             {
-                if (polarization==VM_MODE_TOT) 
-                {
-                    JPsi->SetMode(VM_MODE_L);
-                    result = calculator.CrossSection_dt(tmpt, Qsqr, bjorkx);
-                    JPsi->SetMode(VM_MODE_T);
-                    result += calculator.CrossSection_dt(tmpt, Qsqr, bjorkx);
-                }
-                else
-                    result = calculator.CrossSection_dt(tmpt, Qsqr, bjorkx); 
+                result = calculator.CrossSection_dt(tmpt, Qsqr, bjorkx); 
             }
             #pragma omp critical
             {

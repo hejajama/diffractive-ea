@@ -34,14 +34,36 @@ REAL Calculator::CrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
     fun.params=&inthelp;
         
     REAL result,abserr; size_t eval;
-    
-    int status = gsl_integration_qng(&fun, MINR, MAXR, RINTACCURACY, RINTACCURACY, 
-        &result, &abserr, &eval);
-    if (status and result>0.000001) 
-    std::cerr << "Error " << status << " at " << __FILE__ << ":"
-        << __LINE__ << ": Result " << result << ", abserror: " << abserr 
-        << " (t=" << t <<")" << std::endl;
-    
+    result=0;
+    if (polarization == VM_MODE_TOT)
+    {
+        wavef->SetMode(VM_MODE_T);
+        int status = gsl_integration_qng(&fun, MINR, MAXR, 0, RINTACCURACY, 
+            &result, &abserr, &eval);
+        if (status and result>0.000001) 
+        std::cerr << "Error " << status << " at " << __FILE__ << ":"
+            << __LINE__ << ": Result " << result << ", abserror: " << abserr 
+            << " (t=" << t <<")" << std::endl;
+        
+        REAL tmpres;    
+        wavef->SetMode(VM_MODE_L);
+        status = gsl_integration_qng(&fun, MINR, MAXR, 0, RINTACCURACY, 
+            &tmpres, &abserr, &eval);
+        result += tmpres;
+        if (status and tmpres>0.000001) 
+        std::cerr << "Error " << status << " at " << __FILE__ << ":"
+            << __LINE__ << ": Result " << tmpres << ", abserror: " << abserr 
+            << " (t=" << t <<")" << std::endl;
+    }
+    else    // Correct polarization is already set
+    {
+        int status = gsl_integration_qng(&fun, MINR, MAXR, 0, RINTACCURACY, 
+            &result, &abserr, &eval);
+        if (status and result>0.000001) 
+        std::cerr << "Error " << status << " at " << __FILE__ << ":"
+            << __LINE__ << ": Result " << result << ", abserror: " << abserr 
+            << " (t=" << t <<")" << std::endl;
+    }
     // Factor 4 as we integrate amplitude, not d\sigma/d^2b = 2A
     result *= 4.0/(16.0*M_PI);
     return result;
@@ -71,17 +93,43 @@ REAL Calculator::CoherentCrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
     fun.params=&inthelp;
         
     REAL result,abserr; size_t eval;
-    
-    int status = gsl_integration_qng(&fun, MINR, MAXR, 0, RINTACCURACY, 
-        &result, &abserr, &eval);
-    if (status and result>0.00001) 
-    std::cerr << "Error " << status << " at " << __FILE__ << ":"
-        << __LINE__ << ": Result " << result << ", abserror: " << abserr 
-        << " (t=" << t <<")" << std::endl;
+    result=0;
+    if (polarization == VM_MODE_TOT)
+    {
+        wavef->SetMode(VM_MODE_T);
+        int status = gsl_integration_qng(&fun, MINR, MAXR, 0, RINTACCURACY, 
+            &result, &abserr, &eval);
+        if (status and result>0.000001) 
+        std::cerr << "Error " << status << " at " << __FILE__ << ":"
+            << __LINE__ << ": Result " << result << ", abserror: " << abserr 
+            << " (t=" << t <<")" << std::endl;
+        
+        REAL tmpres;    
+        wavef->SetMode(VM_MODE_L);
+        status = gsl_integration_qng(&fun, MINR, MAXR, 0, RINTACCURACY, 
+            &tmpres, &abserr, &eval);
+            
+        // Sum d\sigma/dt_L + d\sgima/dt_T, not amplitudes!
+        result = result*result + tmpres*tmpres;
+        
+        if (status and tmpres>0.000001) 
+        std::cerr << "Error " << status << " at " << __FILE__ << ":"
+            << __LINE__ << ": Result " << tmpres << ", abserror: " << abserr 
+            << " (t=" << t <<")" << std::endl;
+    }
+    else    // Correct polarization is already set
+    {
+        int status = gsl_integration_qng(&fun, MINR, MAXR, 0, RINTACCURACY, 
+            &result, &abserr, &eval);
+        if (status and result>0.000001) 
+        std::cerr << "Error " << status << " at " << __FILE__ << ":"
+            << __LINE__ << ": Result " << result << ", abserror: " << abserr 
+            << " (t=" << t <<")" << std::endl;
+        result=result*result;
+    }
         
     // Multiply by 4 as CoherentDipxsection_avg returns an amplitude which
     // must be multiplied by 2 and we square the result at the end
-    result *= result;
     result *= 4.0/(16.0*M_PI);  
     return result;
 
@@ -102,15 +150,44 @@ REAL Calculator::ProtonCrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
     fun.params=&inthelp; 
         
     REAL result,abserr; size_t eval;
-    int status = gsl_integration_qng(&fun, MINR, MAXR, 0, RINTACCURACY, 
-        &result, &abserr, &eval);
-    if (status and result>0.000001) 
-    std::cerr << "Error " << status << " at " << __FILE__ << ":"
-        << __LINE__ << ": Result " << result << ", abserror: " << abserr 
-        << " (t=" << t <<", Q^2=" << Qsqr<<", x=" << bjorkx <<")" << std::endl;
+    result=0;
+    if (polarization == VM_MODE_TOT)
+    {
+        wavef->SetMode(VM_MODE_T);
+        int status = gsl_integration_qng(&fun, MINR, MAXR, 0, RINTACCURACY, 
+            &result, &abserr, &eval);
+        if (status and result>0.000001) 
+        std::cerr << "Error " << status << " at " << __FILE__ << ":"
+            << __LINE__ << ": Result " << result << ", abserror: " << abserr 
+            << " (t=" << t <<")" << std::endl;
+        
+        REAL tmpres;    
+        wavef->SetMode(VM_MODE_L);
+        status = gsl_integration_qng(&fun, MINR, MAXR, 0, RINTACCURACY, 
+            &tmpres, &abserr, &eval);
+        
+        // Sum d\sigma/dt_L + d\sgima/dt_T, not amplitudes!
+        result = result*result + tmpres*tmpres;
+        
+        if (status and tmpres>0.000001) 
+        std::cerr << "Error " << status << " at " << __FILE__ << ":"
+            << __LINE__ << ": Result " << tmpres << ", abserror: " << abserr 
+            << " (t=" << t <<")" << std::endl;
+    }
+    else    // Correct polarization is already set
+    {
+        int status = gsl_integration_qng(&fun, MINR, MAXR, 0, RINTACCURACY, 
+            &result, &abserr, &eval);
+        if (status and result>0.000001) 
+        std::cerr << "Error " << status << " at " << __FILE__ << ":"
+            << __LINE__ << ": Result " << result << ", abserror: " << abserr 
+            << " (t=" << t <<")" << std::endl;
+        
+        result*=result;
+    }
     
     // Multiply by 4 as we used amplitude, not d\sigma/d^2b = 2A
-    return 4*result*result/(16.0*M_PI);
+    return 4.0*result/(16.0*M_PI);
 
 }
 
@@ -175,7 +252,9 @@ REAL inthelper_totxs(REAL t, void* p)
  */
 REAL Calculator::TotalProtonCrossSection(REAL Qsqr, REAL bjorkx)
 {
-    std::cerr << "Proton Cross Section calculation may not work!" << std::endl;
+    std::cerr << "Proton Cross Section calculation is not implemented!"
+        << " Use Calculator::TotalCrossSection, it works also with protons"
+        << std::endl;
     /*gsl_function fun;
     inthelper_r inthelp;
     inthelp.amplitude=amplitude;
@@ -240,5 +319,11 @@ REAL inthelperf_r2(REAL r2, void* p)
 Dipxs* Calculator::GetAmplitude()
 {
     return amplitude;
+}
+
+void Calculator::SetPolarization(int pol)
+{
+    polarization=pol;
+    wavef->SetMode(pol);
 }
 

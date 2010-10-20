@@ -28,13 +28,14 @@ class Calculator
         REAL ProtonCrossSection_dt(REAL t, REAL Qsqr, REAL Bjorkx);
         REAL TotalCrossSection(REAL Qsqr, REAL bjorkx); 
         REAL TotalProtonCrossSection(REAL Qsqr, REAL bjorkx);
-        
+        void SetPolarization(int pol);
         Dipxs* GetAmplitude();
         
     private:
         Dipxs* amplitude;
         WaveFunction* wavef;
-
+        int polarization; // If polarization is set to VM_MODE_TOT, we must sum
+                    // transversial and longitudinal polarization.
 };
 
 
