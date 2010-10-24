@@ -6,7 +6,8 @@
 import os
 
 # Dipole models
-models=["ipsat", "ipsat_nonsatp", "ipnonsat", "iim"]
+models=[]
+#models=["ipsat", "ipsat_nonsatp", "ipnonsat", "iim"]
 coherentmodels=["ipsat", "ipsat_nonsatp", "ipnonsat", "iim"]
 # Gluon distributions
 gdists=["dglap"]

@@ -149,7 +149,7 @@ REAL BoostedGauss::PsiSqr_T_intz(REAL Qsqr, REAL r)
     int status = gsl_integration_qng(&int_helper, 0,1,  0, ZINTACCURACY, 
         &result, &abserr, &eval);
     //gsl_integration_workspace* ws = gsl_integration_workspace_alloc(MAXITER_ZINT);
-    //status = gsl_integration_qag(&int_helper, 0, 1, 0, ZINTACCURACY,
+    //int status = gsl_integration_qag(&int_helper, 0, 1, 0, ZINTACCURACY,
     //    MAXITER_ZINT, GSL_INTEG_GAUSS51, ws, &result, &abserr);
     //gsl_integration_workspace_free(ws);
     

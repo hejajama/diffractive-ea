@@ -61,12 +61,6 @@ REAL inthelper_totxs(REAL t, void* p);
 REAL inthelperf_proton(REAL r, void* p);
 REAL inthelperf_coherent(REAL r, void* p);
 
-// Integration settings
-const REAL MAXR=10;
-const REAL MINR=0.001;   // r=0 doesn't work, K_{0,1}(0)=inf
-const REAL RINTACCURACY=0.001;
-const REAL TINTACCURACY=0.001;
-const REAL TOTXS_MAXT=4;  // Max |t| in GeV^2 when calculating total xs
  
  
 #endif

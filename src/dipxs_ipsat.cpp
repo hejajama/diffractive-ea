@@ -22,8 +22,9 @@ REAL inthelperf_satp(REAL b, void* p);  // Integrate over impact parameter
 REAL inthelperf_totxs_satp(REAL b, void* p);
 
 const REAL MAXB=100;
+const int MAXITER_BINT=1000;
 
-const REAL AVGITACCURACY = 0.001;
+const REAL AVGINTACCURACY = 0.001;
 const REAL FTINTACCURACY = 0.0001; 
 
 using std::cout; using std::endl; using std::cerr;
@@ -118,8 +119,13 @@ REAL Dipxs_IPSat::DipoleAmplitude_sqr_avg(REAL rsqr, REAL r2sqr, REAL xbj,
     size_t eval;
     REAL result,abserr;
 
-    int status = gsl_integration_qng(&int_helper, 0, MAXB, 
-            0, AVGITACCURACY, &result, &abserr, &eval);
+    //int status = gsl_integration_qng(&int_helper, 0, MAXB, 
+    //        0, AVGINTACCURACY, &result, &abserr, &eval);
+    gsl_integration_workspace *workspace 
+     = gsl_integration_workspace_alloc(MAXITER_BINT);
+    int status=gsl_integration_qag(&int_helper, 0, MAXB, 0, AVGINTACCURACY, 
+        MAXITER_BINT, GSL_INTEG_GAUSS61, workspace, &result, &abserr);
+    gsl_integration_workspace_free(workspace);
     
     if (status) std::cerr << "Error " << status << " at " << __FILE__ << ":"
         << __LINE__ << ": Result " << result << ", abserror: " << abserr 
@@ -166,11 +172,11 @@ REAL Dipxs_IPSat::CoherentDipoleAmplitude_avg(REAL rsqr, REAL xbj, REAL delta)
     REAL result,abserr;
 
     //int status = gsl_integration_qng(&int_helper, 0, MAXB, 
-    //        0, OSCAVGITACCURACY, &result, &abserr, &eval);
+    //        0, OSCAVGINTACCURACY, &result, &abserr, &eval);
     gsl_integration_workspace *ft_workspace 
      = gsl_integration_workspace_alloc(MAXITER_FT);
     int status=gsl_integration_qag(&int_helper, 0, MAXB, 0, FTINTACCURACY, 
-        MAXITER_FT, GSL_INTEG_GAUSS41, ft_workspace, &result, &abserr);
+        MAXITER_FT, GSL_INTEG_GAUSS61, ft_workspace, &result, &abserr);
     gsl_integration_workspace_free(ft_workspace);
 
     if (status) std::cerr << "Error " << status << " at " << __FILE__ << ":"

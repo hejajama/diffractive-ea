@@ -11,7 +11,12 @@
 #include <gsl/gsl_math.h>
 #include <iostream>
 
-
+// Integration settings
+const REAL MAXR=20;
+const REAL MINR=0.0;   // r=0 doesn't work, K_{0,1}(0)=inf
+const REAL RINTACCURACY=0.001;
+const REAL TINTACCURACY=0.001;
+const REAL TOTXS_MAXT=4;  // Max |t| in GeV^2 when calculating total xs
 
 Calculator::Calculator(Dipxs* amplitude_, WaveFunction* wavef_)
 {
@@ -160,7 +165,6 @@ REAL Calculator::ProtonCrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
         std::cerr << "Error " << status << " at " << __FILE__ << ":"
             << __LINE__ << ": Result " << result << ", abserror: " << abserr 
             << " (t=" << t <<")" << std::endl;
-        
         REAL tmpres;    
         wavef->SetMode(VM_MODE_L);
         status = gsl_integration_qng(&fun, MINR, MAXR, 0, RINTACCURACY, 

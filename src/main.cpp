@@ -290,22 +290,24 @@ int main(int argc, char* argv[])
         //bjorkx = Qsqr/(Qsqr + SQR(W));
         // x = x_bj*(1+M^2/Q^2) = Q^2/(Q^2+W^2+M_n^2)(1+M^2/Q^2)
         //   = (Q^2 + M_v^2) / (Q^2 + W^2 + M_n^2)
-        std::cout << "# x scaled from " << bjorkx << " to " ;
+        //std::cout << "# x scaled from " << bjorkx << " to " ;
         bjorkx = (Qsqr + SQR(M_v))/( Qsqr + SQR(W) + SQR(M_n) );
-        cout << bjorkx << endl;
+        //cout << bjorkx << endl;
     }
 
     if (!w_set and scalex) // Scale x->x*(1+M^2/Q^2)
     {
-        if (Qsqr<0.00001){ cerr << "Q^2=0, can't scale x" << endl; return -1;}
-        bjorkx = bjorkx * (1 + SQR(M_v)/Qsqr);
+        cerr << "Check scalex if you need it!" << endl;
+        //if (Qsqr<0.00001){ cerr << "Q^2=0, can't scale x" << endl; return -1;}
+        //bjorkx = bjorkx * (1 + SQR(M_v)/Qsqr);
     }
     
     // Print values
     cout << "# A=" << A;
     if (A==1) cout << " (dipole-proton)";
     cout << endl;
-    cout << "# GDist=" << gdist_model << ",  dipole model=" << model << endl;
+    cout << "# GDist=" << gdist_model << ",  dipole model=" << model 
+        << " wavef=" << wavef << endl;
     
     // Intialize random number generator
     seed_mersenne(std::time(NULL));
@@ -426,14 +428,13 @@ int main(int argc, char* argv[])
     else if (mode==MODE_TOTXS_W)    // Total cross section as a function of W
     {                               // Q^2 fixed
         cout << "# W [GeV]  total cross section [nb], Q^2=" << Qsqr << " GeV" << endl;
-        if (minW<0.0001) minW=0.0001; // W=0 doesn't work
-        REAL multiplier = pow(maxW/minW, 1.0/points);
+        if (minW<0.0001) minW=10; // small W -> huge x -> model doesn't work
+        //REAL multiplier = pow(maxW/minW, 1.0/points);
         #pragma omp parallel for
         for (int i=0; i<=points; i++)
         {
-            REAL tmpw = minW*pow(multiplier, i);
-            //bjorkx = tmpqsqr/(tmpqsqr+SQR(W))*(1+SQR(M_v)/tmpqsqr);
-            //bjorkx = (tmpqsqr + SQR(M_v))/SQR(W);
+            //REAL tmpw = minW*pow(multiplier, i);
+            REAL tmpw = minW + (maxW-minW)/points*i;
             bjorkx = (Qsqr + SQR(M_v))/(SQR(tmpw)+Qsqr);
             REAL xs=0;
             xs = calculator.TotalCrossSection(Qsqr, bjorkx);
@@ -536,7 +537,7 @@ int main(int argc, char* argv[])
             std::cerr << "A=1, can't be coherent scattering." << std::endl;
             return -1;
         }
-        cout << "# d\\sigma/dt [1/GeV^4], coherent scattering " << endl;
+        cout << "# t [Gev^2]  d\\sigma/dt [nb/GeV^2], coherent scattering " << endl;
         cout << "# x_pomeron = " << bjorkx << ", Q^2 = " << Qsqr << endl;
         // All iterations are independent, so this is straightforward to parallerize   
         #pragma omp parallel for
@@ -551,7 +552,7 @@ int main(int argc, char* argv[])
                 cout.precision(5);
                 cout << fixed << tmpt;
                 cout.precision(8);
-                cout << " " << result << endl;
+                cout << " " << result*NBGEVSQR << endl;
             }
         }
     
@@ -561,7 +562,7 @@ int main(int argc, char* argv[])
     
     else if (mode==MODE_DIFFXS)   // dsigma/dt as a function of t
     {
-        cout << "# d\\sigma/dt [nb/GeV^2] " << endl;
+        cout << "# t [GeV^2]  d\\sigma/dt [nb/GeV^2] " << endl;
         cout << "# x_pomeron = " << bjorkx << ", Q^2 = " << Qsqr << endl;
         // All iterations are independent, so this is straightforward to parallerize   
         #pragma omp parallel for
@@ -594,10 +595,10 @@ int main(int argc, char* argv[])
         cout << "# " << *((GausLC*)JPsi) << endl;
         if (output_fm) cout << "# [r] = fm"; else cout << "# [r] = GeV^(-1)";
         cout << endl;
-        REAL maxr=5;
-        for (int i=1; i<=points; i++)
+        REAL maxr=5; REAL minr=0;
+        for (int i=0; i<=points; i++)
         {
-            REAL tmpr = (maxr-MINR)/points*i;
+            REAL tmpr = minr + (maxr-minr)/points*i;
             REAL val=tmpr*JPsi->PsiSqr_intz(Qsqr, tmpr);
             
             // if we want r axis to be in units of fm

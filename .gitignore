@@ -12,3 +12,9 @@
 data/q*
 *.sh
 *.dat
+*.txt_
+*.jpg
+*.py
+*.swp
+*.backup
+*_tmp
