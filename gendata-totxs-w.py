@@ -36,7 +36,7 @@ for mode in models:
 	else:
 		process=0
 	print (fullcmd)
-        #os.system(fullcmd)
+        os.system(fullcmd)
         
 
 for mode in models:

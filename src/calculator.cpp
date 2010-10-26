@@ -13,7 +13,7 @@
 
 // Integration settings
 const REAL MAXR=20;
-const REAL MINR=0.0;   // r=0 doesn't work, K_{0,1}(0)=inf
+const REAL MINR=0.0001;   // r=0 doesn't work, K_{0,1}(0)=inf
 const REAL RINTACCURACY=0.001;
 const REAL TINTACCURACY=0.001;
 const REAL TOTXS_MAXT=4;  // Max |t| in GeV^2 when calculating total xs

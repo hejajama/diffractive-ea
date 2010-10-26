@@ -48,6 +48,7 @@ const int MODE_VM_INTZ=7; const int MODE_TOTXS_RATIO_Q=8;
 const int MODE_DSIGMA_D2B_R=9; const int MODE_TOTXS_W=10;
 const int MODE_DSIGMA_DT_QQ=11; const int MODE_DSIGMA_D2B_B=12;
 const int MODE_TOTAL_DIPXS=13; const int MODE_XG=14; const int MODE_GLUEDIST=15;
+const int MODE_XG_X=16;
 
 void Cleanup(); 
 
@@ -113,6 +114,7 @@ int main(int argc, char* argv[])
             cout << "-minW minW, -maxW maxW [GeV] (max/min of W)" << endl;
             cout << "-A/p_x (same as -A/p but as a function of x), -minx minx, -maxx maxx" << endl;
             cout << "-xg (print the value of xg(x,r) and quit) " << endl;
+            cout << "-xg_x (print xg as a function of x) " << endl;
             cout << "-gdistval (print ONLY gluedist and quit)" << endl;
             cout << "-Mv mass (mass of the produced vector meson) " << endl;
             cout << "-vm_intz (print \\int d^z/(4\\pi) r Psi^*Psi) -fm (print r in fm)" << endl;
@@ -199,6 +201,8 @@ int main(int argc, char* argv[])
                 bp=StrToReal(argv[i+1]);
             else if (string(argv[i])=="-xg") 
                 mode=MODE_XG;
+            else if (string(argv[i])=="-xg_x")
+                mode=MODE_XG_X;
             else if (string(argv[i])=="-gdistval")
                 mode=MODE_GLUEDIST;
             else if (string(argv[i])=="-scalex")
@@ -377,7 +381,24 @@ int main(int argc, char* argv[])
         cout <<"xg = " << tmp << " (Gluedist = " << gd <<")"  << endl;
         return 0;
     }
-    if (mode==MODE_GLUEDIST)
+    
+    else if (mode==MODE_XG_X) // xg as a function of x
+    {
+        if (minx<1e-7) minx=1e-7;
+        REAL m = pow(maxx/minx, 1.0/points);
+        cout << "# x   xg(x,r)    r=" << r << " GeV^(-1)" << endl;
+        cout << "# mu_0^2=" << mu2_0 << " GeV^2, \\lambda_{QCD}^2=" 
+            << sqrt(LAMBDAQCD2) << " GeV" << endl;
+        for (int i=0; i<=points; i++)
+        {
+            REAL tmpx = minx*pow(m,i);
+            REAL gd = gdist->Gluedist(tmpx, SQR(r));
+            REAL res = gd*2.0*NC/(M_PI*M_PI*Alpha_s(Mu2(SQR(r))) );
+            cout << tmpx << " " << res << endl;
+        }   
+    }
+    
+    else if (mode==MODE_GLUEDIST)
     {
         cout << gdist->Gluedist(bjorkx,r*r);
         return 0;
@@ -391,7 +412,7 @@ int main(int argc, char* argv[])
      * functions integrated over z \in [0,1]
      */
 
-    if (mode==MODE_TOTXS)  // Calculate total cross section
+    else if (mode==MODE_TOTXS)  // Calculate total cross section
     {
         cout << "# x = " << bjorkx << ", Q^2=" << Qsqr << " Gev^2" << endl;
         REAL xs=0;
@@ -595,7 +616,7 @@ int main(int argc, char* argv[])
         cout << "# " << *((GausLC*)JPsi) << endl;
         if (output_fm) cout << "# [r] = fm"; else cout << "# [r] = GeV^(-1)";
         cout << endl;
-        REAL maxr=5; REAL minr=0;
+        REAL maxr=5; REAL minr=0.0001;
         for (int i=0; i<=points; i++)
         {
             REAL tmpr = minr + (maxr-minr)/points*i;

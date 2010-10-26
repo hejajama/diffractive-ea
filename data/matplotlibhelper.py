@@ -54,7 +54,7 @@ def readfile_errorarray(file, xlist, ylist,m=1.0,errorarray=[]):
 	
 	for i in range(n):
 		s=lines[i].split()
-		if (len(s)==5):
+		if (len(s)==5 and s[0]!="#"):
 			xlist.append(float(s[0])*m)
 			ylist.append(float(s[1])*m)
 			staterr = float(s[2])

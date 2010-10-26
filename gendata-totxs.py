@@ -22,6 +22,8 @@ maxq2=90
 num_of_threads=4
 bjorkx=0.0001
 gd="dglap"
+processes=3
+running=0
 
 cmd = "OMP_NUM_THREADS="+str(num_of_threads) + " ./dipole -A " + str(A) \
     + " -N " + str(N) + " -totxs_q2 -minQ2 " + str(minq2) \
@@ -31,8 +33,16 @@ for mode in models:
     filename = "data/totxs/" + mode + ".txt"
     fullcmd = cmd + "-dipole " + mode \
                      + " -gdist " + gd + " > " + filename + "_tmp"
+    if (running<processes):
+         fullcmd = fullcmd + " &"
+         running=running+1
+    else:
+         running=0
     print (fullcmd)
     os.system(fullcmd)
+
+for mode in models:
+    filename = "data/totxs/" + mode + ".txt"
     os.system("sort -n " + filename +"_tmp" + " > data/totxs/" + mode + ".txt")
 
 print("Done")

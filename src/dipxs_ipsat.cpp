@@ -96,11 +96,11 @@ REAL inthelperf_ipsatavg(REAL b, void* p)
                 ))  ,i);    
     }
     
-    sum*=4*M_PI*B_p;   // Factor 4, not 16, as we return the amplitude, not
+    sum*=4.0*M_PI*B_p;   // Factor 4, not 16, as we return the amplitude, not
                         // d\sigma/d^2b
     
     // 2D integral -> 1D
-    sum*=2*M_PI*b;
+    sum*=2.0*M_PI*b;
     return sum;
 }
 
@@ -153,8 +153,8 @@ REAL inthelperf_ipsat_coherentavg(REAL b, void* p)
 {
     inthelper_ipsatavg* par=(inthelper_ipsatavg*)p;
     int A = par->nuke->GetA();
-    return 2*M_PI*b*gsl_sf_bessel_J0(b*par->delta)*
-        (    1-exp(-A/2.0*par->nuke->T_WS(b)  
+    return 2.0*M_PI*b*gsl_sf_bessel_J0(b*par->delta)*
+        (    1.0-exp(-A/2.0*par->nuke->T_WS(b)  
         * par->dip->TotalDipxsection_proton(par->rsqr, par->xbj) )  );
 }
 
