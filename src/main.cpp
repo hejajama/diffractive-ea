@@ -38,7 +38,7 @@ const REAL TOTXS_MAXT=2;    // Max |t| in GeV^2 when calculating total xs
 */
 const int MODEL_IPSAT=1; const int MODEL_IPNONSAT=2; const int MODEL_IIM=3;
 const int MODEL_IPSAT_NONSATP=4; const int MODEL_IPSAT_NOFACTOR=5;
-const int GDIST_DGLAP=1; const int GDIST_TOY=2;
+const int GDIST_DGLAP=1; 
 
 const int WAVEF_GAUS_LC=1; const int WAVEF_BOOSTED_GAUSSIAN=2;
 
@@ -257,8 +257,6 @@ int main(int argc, char* argv[])
             {
                 if (string(argv[i+1])=="dglap")
                     gdist_model=GDIST_DGLAP;
-                else if (string(argv[i+1])=="toy")
-                    gdist_model=GDIST_TOY;
                 else
                     cerr << "Gluon distribution " << argv[i+1] 
                         << "is not valid " << endl;
@@ -365,10 +363,15 @@ int main(int argc, char* argv[])
         break;
     }
 
+    if (Qsqr < 0.00001 and polarization != VM_MODE_T)
+    {
+        polarization = VM_MODE_T;
+        std::cerr << "#Q^2=0 -> only transverse component" << endl;
+    }
 
     Calculator calculator(amplitude, JPsi);
     calculator.SetPolarization(polarization);
-
+    
 /////////////////////////////////////////////////////////////////////////////
 ////////////// Different modes //////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////
@@ -379,7 +382,6 @@ int main(int argc, char* argv[])
         REAL gd = gdist->Gluedist(bjorkx, r*r);
         REAL tmp = gd* 2*NC/(M_PI*M_PI*Alpha_s(Mu2(SQR(r))) );
         cout <<"xg = " << tmp << " (Gluedist = " << gd <<")"  << endl;
-        return 0;
     }
     
     else if (mode==MODE_XG_X) // xg as a function of x
@@ -401,7 +403,6 @@ int main(int argc, char* argv[])
     else if (mode==MODE_GLUEDIST)
     {
         cout << gdist->Gluedist(bjorkx,r*r);
-        return 0;
     }   
 
     /*******************

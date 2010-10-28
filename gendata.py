@@ -7,12 +7,12 @@ import os
 
 # Dipole models
 models=[]
-#models=["ipsat", "ipsat_nonsatp", "ipnonsat", "iim"]
+models=["ipsat", "ipsat_nonsatp", "ipnonsat", "iim"]
 coherentmodels=["ipsat", "ipsat_nonsatp", "ipnonsat", "iim"]
 # Gluon distributions
 gdists=["dglap"]
 #Q^2 values
-Q2vals=[0,10]
+Q2vals=[0]
 
 A=197 # Gold
 N=200
@@ -36,10 +36,10 @@ for mode in models:
         filename = "data/q" + str(q) + "/" + mode + ".txt"
         fullcmd = cmd + " -Q2 " + str(q) + " -dipole " + mode \
                      + " -gdist " + gd + " -mint " + str(mint) \
-                     + " > " + filename + "_tmp"
+                     + " > " + filename + " &"
         print (fullcmd)
         os.system(fullcmd)
-        os.system("sort -n " + filename +"_tmp" + " > data/q" + str(q) + "/" + mode + ".txt")
+
 for mode in coherentmodels:
     for q in Q2vals:
         filename = "data/q" + str(q) + "/" + mode + "_coherent.txt"

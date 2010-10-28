@@ -9,6 +9,7 @@
 #include "wave_function.h"
 #include "dipxs.h"
 #include "dipole.h"
+#include <gsl/gsl_integration.h>
 
 /*******************
  * \gamma^* N -> J/\Psi N cross section
@@ -17,6 +18,8 @@
  * And total cross section by integrating over t
  * Here (jpsi) is the inner product between \gamma^* and J/\Psi (or VM) wave 
  * functions integrated over z \in [0,1]
+ *
+ * Final result is multiplied by two correction factors, see arXiv:0712.260v2
  */
 
 class Calculator
@@ -25,13 +28,25 @@ class Calculator
         Calculator(Dipxs* amplitude_, WaveFunction* wavef_);
         REAL CrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx);  // d\sigma / dt
         REAL CoherentCrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx);
-        REAL ProtonCrossSection_dt(REAL t, REAL Qsqr, REAL Bjorkx);
+        REAL ProtonCrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx);
         REAL TotalCrossSection(REAL Qsqr, REAL bjorkx); 
         REAL TotalProtonCrossSection(REAL Qsqr, REAL bjorkx);
         void SetPolarization(int pol);
         Dipxs* GetAmplitude();
+        REAL RIntAmplitude(REAL t, REAL Qsqr, REAL bjorkx, 
+            REAL(*helperf)(REAL x, void* p));
         
     private:
+        
+        REAL Rg(REAL lambda);   // Skewedness effect
+        REAL Beta(REAL lambda); // Ratio of the real part to im. part of
+                                // the scattering amplitude
+        REAL rgsqr_l;           // rgsqr and betasqr caches
+        REAL rgsqr_t;           // t and l: transverse / longitudinal
+        REAL betasqr_l;
+        REAL betasqr_t;
+        bool cached_corrections;    // true if we have cached corrections
+        REAL cache_Q2;          // Value of Q^2 for which we cached corrections
         Dipxs* amplitude;
         WaveFunction* wavef;
         int polarization; // If polarization is set to VM_MODE_TOT, we must sum
