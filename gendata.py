@@ -11,8 +11,9 @@ models=["ipsat", "ipsat_nonsatp", "ipnonsat", "iim"]
 coherentmodels=["ipsat", "ipsat_nonsatp", "ipnonsat", "iim"]
 # Gluon distributions
 gdists=["dglap"]
+wavef="boosted-gaussian"
 #Q^2 values
-Q2vals=[0]
+Q2vals=[10]
 
 A=197 # Gold
 N=200
@@ -25,7 +26,7 @@ gd="dglap"
 
 cmd = "OMP_NUM_THREADS="+str(num_of_threads) + " ./dipole -A " + str(A) \
     + " -N " + str(N)  + " -maxt " + str(maxt) \
-    + " -x " + str(bjorkx) # + " -scalex"
+    + " -x " + str(bjorkx) + " -wavef " + wavef
 origmint=mint
 for mode in models:
     if (mode=="ipnonsat"):

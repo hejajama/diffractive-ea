@@ -63,16 +63,16 @@ REAL Calculator::CrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
             << " (t=" << t <<")" << std::endl;
         
         // Calculate real part and skewedness corrections or use cahced ones
-        if (!cached_corrections or Qsqr != cache_Q2)
-        {
+        //if (!cached_corrections or Qsqr != cache_Q2)
+        //{
             REAL xs = RIntAmplitude(t, Qsqr, bjorkx, &inthelperf_proton);
             REAL xseps = RIntAmplitude(t, Qsqr, bjorkx+eps, &inthelperf_proton);
             REAL lambda = log(xs/xseps)*(bjorkx/eps);
             betasqr_t = SQR(Beta(lambda));
             rgsqr_t = SQR(Rg(lambda));
             
-            cache_Q2=Qsqr; cached_corrections=true;
-        }
+            //cache_Q2=Qsqr; cached_corrections=true;
+        //}
         result = result*(1.0+betasqr_t)*rgsqr_t;
         
         REAL tmpres;    
@@ -86,16 +86,16 @@ REAL Calculator::CrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
             << " (t=" << t <<")" << std::endl;
         
         // Calculate real part and skewedness corrections or use cahced ones
-        if (!cached_corrections or Qsqr != cache_Q2)
-        {
-            REAL xs = RIntAmplitude(t, Qsqr, bjorkx, &inthelperf_proton);
-            REAL xseps = RIntAmplitude(t, Qsqr, bjorkx+eps, &inthelperf_proton);
-            REAL lambda = log(xs/xseps)*(bjorkx/eps);
+        //if (!cached_corrections or Qsqr != cache_Q2)
+        //{
+            xs = RIntAmplitude(t, Qsqr, bjorkx, &inthelperf_proton);
+            xseps = RIntAmplitude(t, Qsqr, bjorkx+eps, &inthelperf_proton);
+            lambda = log(xs/xseps)*(bjorkx/eps);
             betasqr_l = SQR(Beta(lambda));
             rgsqr_l = SQR(Rg(lambda));
             
-            cache_Q2=Qsqr; cached_corrections=true;
-        }
+            //cache_Q2=Qsqr; cached_corrections=true;
+        //}
         tmpres = tmpres*(1.0+betasqr_l)*rgsqr_l;
         result = result + tmpres;
         

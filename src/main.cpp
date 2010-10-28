@@ -504,7 +504,8 @@ int main(int argc, char* argv[])
     
     else if (mode==MODE_Ap)    // Calculate d\sigma^A/dt / A*d\sigma_p/dt as a function Q^2 at t
     {         
-        cout << "# t=" << t << ", x = " << bjorkx <<  endl;
+        cout << "# t=" << t << ", x = " << bjorkx << " pol = " << polarization
+            << endl;
         cout << "# Q^2   nucleus_xs / A*proton_xs" << endl;
         if (minQsqr==0) minQsqr=0.0001; // Qsqr=0 doesn't work
         REAL multiplier = pow(maxQsqr/minQsqr, 1.0/points);
