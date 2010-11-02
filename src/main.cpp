@@ -359,7 +359,7 @@ int main(int argc, char* argv[])
         break;
     case MODEL_IPSAT_NONSATP:
         amplitude = new Dipxs_IPSat(nuke, IPSAT_MODE_NONSAT_P,bp);
-        ((Dipxs_IPSat*)amplitude)->SetFactorize(false);
+        ((Dipxs_IPSat*)amplitude)->SetFactorize(true);
         break;
     }
 
@@ -507,6 +507,7 @@ int main(int argc, char* argv[])
         cout << "# t=" << t << ", x = " << bjorkx << " pol = " << polarization
             << endl;
         cout << "# Q^2   nucleus_xs / A*proton_xs" << endl;
+        calculator.SetCorrections(false);
         if (minQsqr==0) minQsqr=0.0001; // Qsqr=0 doesn't work
         REAL multiplier = pow(maxQsqr/minQsqr, 1.0/points);
         #pragma omp parallel for
@@ -532,6 +533,7 @@ int main(int argc, char* argv[])
     {
         cout << "# t=" << t << ", Q^2=" << Qsqr << endl;
         cout << "# x-dependence of nucleus_xs / A*proton_xs" << endl;
+        calculator.SetCorrections(false);
         if (minx==0) minx=1e-6; // x=0 doesn't work
         REAL multiplier = pow(maxx/minx, 1.0/points);
             

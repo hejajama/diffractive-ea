@@ -13,7 +13,7 @@ coherentmodels=["ipsat", "ipsat_nonsatp", "ipnonsat", "iim"]
 gdists=["dglap"]
 wavef="boosted-gaussian"
 #Q^2 values
-Q2vals=[10]
+Q2vals=[0]
 
 A=197 # Gold
 N=200

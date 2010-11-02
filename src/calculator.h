@@ -35,6 +35,7 @@ class Calculator
         Dipxs* GetAmplitude();
         REAL RIntAmplitude(REAL t, REAL Qsqr, REAL bjorkx, 
             REAL(*helperf)(REAL x, void* p));
+        void SetCorrections(bool c);
         
     private:
         
@@ -51,6 +52,7 @@ class Calculator
         WaveFunction* wavef;
         int polarization; // If polarization is set to VM_MODE_TOT, we must sum
                     // transversial and longitudinal polarization.
+        bool corrections;       // Whether or not to use corrections
 };
 
 

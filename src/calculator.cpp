@@ -25,6 +25,7 @@ Calculator::Calculator(Dipxs* amplitude_, WaveFunction* wavef_)
     amplitude=amplitude_;
     wavef=wavef_;
     cached_corrections=false; cache_Q2=-1;
+    corrections=true;
 }
 
 /*
@@ -363,6 +364,8 @@ REAL inthelper_totxs(REAL t, void* p)
  */
 REAL Calculator::Rg(REAL lambda)
 {
+    if (!corrections)
+        return 1.0;
     REAL result=pow(2.0,2.0*lambda+3.0)/sqrt(M_PI);
     result *= gsl_sf_gamma(lambda+5.0/2.0)/gsl_sf_gamma(lambda+4.0);
     return result;
@@ -370,6 +373,8 @@ REAL Calculator::Rg(REAL lambda)
 
 REAL Calculator::Beta(REAL lambda)
 {
+    if (!corrections)
+        return 0;
     return tan(M_PI*lambda/2.0);
 }
 
@@ -384,4 +389,10 @@ void Calculator::SetPolarization(int pol)
     polarization=pol;
     wavef->SetMode(pol);
 }
+
+void Calculator::SetCorrections(bool c)
+{
+    corrections=c;
+}
+
 

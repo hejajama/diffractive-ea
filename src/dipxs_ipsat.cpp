@@ -41,14 +41,14 @@ Dipxs_IPSat::Dipxs_IPSat(Nucleus &nucleus_) :
 Dipxs_IPSat::Dipxs_IPSat(Nucleus &nucleus_, int mode_, REAL bp) : Dipxs(nucleus_)
 {
     mode = mode_;
-    B_p=bp;
     factorize=true;
+    B_p=bp;
     Intialize();
 }
 
 void Dipxs_IPSat::Intialize()
 {
-    factorize=true;
+    
 }
 
 Dipxs_IPSat::~Dipxs_IPSat()
@@ -72,6 +72,9 @@ Dipxs_IPSat::~Dipxs_IPSat()
  *
  * This sum converges rapidly, we can even assume that n=1
  * Upper limit is defined as N_MAX
+ *
+ * NB! Uses factorized dipole amplitude even if mode is set to 
+ * IPSAT_MODE_NOFACTOR
  */
  
 REAL inthelperf_ipsatavg(REAL b, void* p)
@@ -147,6 +150,8 @@ REAL Dipxs_IPSat::DipoleAmplitude_sqr_avg(REAL rsqr, REAL r2sqr, REAL xbj,
  *
  * The nasty part here is that we have to perform the fourier transformation
  * numerically. 
+ *
+ * NB! Does not take into account whether the mode is default or NONSAT_P
  */
 
 REAL inthelperf_ipsat_coherentavg(REAL b, void* p)
@@ -284,7 +289,7 @@ REAL Dipxs_IPSat::DipoleAmplitude_proton(REAL rsqr, REAL xbj, REAL delta)
 }
 
 
-
+// Inthelper for case without factorization
 REAL inthelperf_satp(REAL b, void* p)
 {
     inthelper_ipsatavg* par = (inthelper_ipsatavg*)p;
@@ -313,13 +318,12 @@ REAL Dipxs_IPSat::Qq_proton_amplitude(REAL rsqr, REAL xbj, REAL b)
  */
 REAL Dipxs_IPSat::FactorC(REAL rsqr, REAL xbjork)
 {
-    if (mode==IPSAT_MODE_DEFAULT)
-        return 1.0-exp(-nucleus.GetGDist()->Gluedist(xbjork,rsqr)
-            *rsqr/(2.0*M_PI*B_p));    
-    else if (mode==IPSAT_MODE_NONSAT_P) 
+    if (mode==IPSAT_MODE_NONSAT_P)
         return nucleus.GetGDist()->Gluedist(xbjork,rsqr)*rsqr / (2.0*M_PI*B_p);
     else
-        std::cerr << "Error: mode not set for Dipxs_IPSat. " << std::endl;
+        return 1.0-exp(-nucleus.GetGDist()->Gluedist(xbjork,rsqr)
+            *rsqr/(2.0*M_PI*B_p));
+        
 }
 
 /*
