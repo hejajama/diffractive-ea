@@ -29,7 +29,7 @@ for bjorkx in xvals:
     for mode in models:
         filename = "data/ap/" + mode + "_x" + str(bjorkx) + ".txt_"
         fullcmd = cmd + " -dipole " + mode \
-                     + " -gdist " + gd + " > " + filename
+                     + " -gdist " + gd + " > " + filename 
         print (fullcmd)
         os.system(fullcmd)
         os.system("sort -n " + filename + " > data/ap/" + mode + "_x" + str(bjorkx) + ".txt")

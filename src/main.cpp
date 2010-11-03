@@ -84,7 +84,7 @@ int main(int argc, char* argv[])
     REAL bp=DEFAULT_B_p;
     int polarization = VM_MODE_TOT;
     REAL b=0;   // Impact parameter
-    int wavef=WAVEF_GAUS_LC;
+    int wavef=WAVEF_BOOSTED_GAUSSIAN;
     
     string iim_file="iim.dat";  // Read parameters for IIM model from this file
             
@@ -326,6 +326,9 @@ int main(int argc, char* argv[])
         case WAVEF_BOOSTED_GAUSSIAN:
             JPsi = new BoostedGauss("gauss-boosted.dat");
             break;
+        default:
+            cerr << "Unknown wave function set! Quitting...." << std::endl;
+            return -1;
     }   
     
     JPsi->SetMode(polarization);

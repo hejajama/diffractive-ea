@@ -37,7 +37,7 @@ for mode in models:
         filename = "data/q" + str(q) + "/" + mode + ".txt"
         fullcmd = cmd + " -Q2 " + str(q) + " -dipole " + mode \
                      + " -gdist " + gd + " -mint " + str(mint) \
-                     + " > " + filename + " &"
+                     + " > " + filename 
         print (fullcmd)
         os.system(fullcmd)
 
