@@ -66,6 +66,7 @@ REAL Calculator::CrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
         // Calculate real part and skewedness corrections or use cahced ones
         //if (!cached_corrections or Qsqr != cache_Q2)
         //{
+            polarization=VM_MODE_T;
             REAL xs = RIntAmplitude(t, Qsqr, bjorkx, &inthelperf_proton);
             REAL xseps = RIntAmplitude(t, Qsqr, bjorkx+eps, &inthelperf_proton);
             REAL lambda = log(xs/xseps)*(bjorkx/eps);
@@ -89,6 +90,7 @@ REAL Calculator::CrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
         // Calculate real part and skewedness corrections or use cahced ones
         //if (!cached_corrections or Qsqr != cache_Q2)
         //{
+            polarization=VM_MODE_L;
             xs = RIntAmplitude(t, Qsqr, bjorkx, &inthelperf_proton);
             xseps = RIntAmplitude(t, Qsqr, bjorkx+eps, &inthelperf_proton);
             lambda = log(xs/xseps)*(bjorkx/eps);
@@ -99,6 +101,8 @@ REAL Calculator::CrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
         //}
         tmpres = tmpres*(1.0+betasqr_l)*rgsqr_l;
         result = result + tmpres;
+
+        polarization=VM_MODE_TOT;
         
     }
     else    // Correct polarization is already set
@@ -113,15 +117,15 @@ REAL Calculator::CrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
         // Calculate real part and skewedness corrections or use cahced ones
         // We use betasqr_l and rgsqr_l even though we don't know wheter we are
         // calculating diff xs for transverse or longitudinal scattering
-        if (!cached_corrections or Qsqr != cache_Q2)
-        {
+        //if (!cached_corrections or Qsqr != cache_Q2)
+        //{
             REAL xs = RIntAmplitude(t, Qsqr, bjorkx, &inthelperf_proton);
             REAL xseps = RIntAmplitude(t, Qsqr, bjorkx+eps, &inthelperf_proton);
             REAL lambda = log(xs/xseps)*(bjorkx/eps);
             betasqr_l = SQR(Beta(lambda));
             rgsqr_l = SQR(Rg(lambda));
             cache_Q2=Qsqr; cached_corrections=true;
-        }
+        //}
         result *= (1.0 + betasqr_l)*rgsqr_l;
     }
     
@@ -183,6 +187,7 @@ REAL Calculator::CoherentCrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
     if (polarization == VM_MODE_TOT)
     {
         wavef->SetMode(VM_MODE_T);
+        polarization=VM_MODE_T;
         REAL tmpres = RIntAmplitude(t, Qsqr, bjorkx, &inthelperf_coherent);
         REAL xs = RIntAmplitude(t, Qsqr, bjorkx, &inthelperf_proton);
         REAL xseps = RIntAmplitude(t, Qsqr, bjorkx+eps, &inthelperf_proton);
@@ -190,12 +195,14 @@ REAL Calculator::CoherentCrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
         result = tmpres*tmpres*(1.0+SQR(Beta(lambda)))*SQR(Rg(lambda));
             
         wavef->SetMode(VM_MODE_L);
+        polarization=VM_MODE_L;
         tmpres = RIntAmplitude(t, Qsqr, bjorkx, &inthelperf_coherent);
         xs = RIntAmplitude(t, Qsqr, bjorkx, &inthelperf_proton);
         xseps = RIntAmplitude(t, Qsqr, bjorkx+eps, &inthelperf_proton);
         lambda = log(xs/xseps)*(bjorkx/eps);
-        result += xs*xs*(1.0+SQR(Beta(lambda)))*SQR(Rg(lambda)); 
-        // Sum d\sigma/dt_L + d\sgima/dt_T, not amplitudes!
+        result += tmpres*tmpres*(1.0+SQR(Beta(lambda)))*SQR(Rg(lambda)); 
+        polarization=VM_MODE_TOT;
+         // Sum d\sigma/dt_L + d\sgima/dt_T, not amplitudes!
     }
     else    // Correct polarization is already set
     {

@@ -9,7 +9,7 @@ from matplotlibhelper import *
 rc('text.latex',  preamble='\usepackage{amsmath},\usepackage{amssymb},\usepackage{mathtools}')
 
 minx=0
-maxx=0.3
+maxx=0.26
 miny=10
 maxy=5e7
 
@@ -34,7 +34,7 @@ for q in qsqr:
 	style=0
 	fig=figure()
 	p1=fig.add_subplot(111)
-	xlabel(r"$|t|$ $[\mathrm{GeV}^2\hspace{-0.3}]$",fontsize=textsize+4)
+	xlabel(r"$t$ $[\mathrm{GeV}^2\hspace{-0.3}]$",fontsize=textsize+4)
 	ylabel(r"$\mathrm{d} \sigma^A\hspace{-0.4}/\mathrm{d}t$ $[\mathrm{nb}/\mathrm{GeV}^2\hspace{-0.3}]$",fontsize=textsize+4)
     
 	for mode in models:

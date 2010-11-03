@@ -13,7 +13,7 @@ gdists=["dglap"]
 
 W=90
 wavef="boosted-gaussian"
-#wavef="gaus-lc"
+wavef="gaus-lc"
 A=1
 N=200
 mint_coherent=0
@@ -22,7 +22,7 @@ maxq2=90
 num_of_threads=4
 bjorkx=0.0001
 gd="dglap"
-processes=3
+processes=0
 running=0
 
 cmd = "OMP_NUM_THREADS="+str(num_of_threads) + " ./dipole -A " + str(A) \

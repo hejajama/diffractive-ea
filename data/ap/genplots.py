@@ -16,12 +16,14 @@ def AddJpsiMass(xlist):
 rc('text.latex',  preamble='\usepackage{amsmath},\usepackage{amssymb},\usepackage{mathtools}') 
 
 # Dipole models
-models=[["ipsat", "IPsat"],
-	[ "ipsat_nonsatp", "IPsat, nonsatp"],
-	[ "iim", "IIM"] ]
+# mode label style color
+models=[["ipsat", "IPsat",1,1],
+	[ "ipsat_nonsatp", "IPsat, nonsatp",2,2],
+	[ "iim", "IIM",0,0] ]
 # Gluon distributions
 gdists=[""]
-xvals=[[0.0001,r"10^{-4}"], [0.01, "10^{-2}"] ]
+# xval label width
+xvals=[[0.0001,r"10^{-4}",2], [0.01, r"10^{-2}",1] ]
 minx=9.54
 maxx=100
 miny=0.2
@@ -47,7 +49,7 @@ for xbj in xvals:
         readfile(filename,x,y) 
 	AddJpsiMass(x)
         lbl=mode[1] + r", $x_\mathrm{\mathbb{P}}=" + xbj[1] + r"$"
-        p1.semilogx(x,y,label=lbl,linestyle=dashes[style],linewidth=2,color=colors[color])
+        p1.semilogx(x,y,label=lbl,linestyle=dashes[mode[2]],color=colors[mode[3]], linewidth=xbj[2])
         style=style+1
         if (style>4):
             style=0

@@ -309,7 +309,7 @@ int main(int argc, char* argv[])
     if (A==1) cout << " (dipole-proton)";
     cout << endl;
     cout << "# GDist=" << gdist_model << ",  dipole model=" << model 
-        << " wavef=" << wavef << endl;
+        << " wavef=" << wavef << " pol=" << polarization << endl;
     
     // Intialize random number generator
     seed_mersenne(std::time(NULL));

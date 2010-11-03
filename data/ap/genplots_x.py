@@ -2,7 +2,8 @@
 # -*- coding: UTF-8 -*-
 #
 # Plot dsigma/dt
-
+import sys
+sys.path.append("../")
 from matplotlibhelper import *
 rc('text.latex',  preamble='\usepackage{amsmath},\usepackage{amssymb},\usepackage{mathtools}')
 
@@ -15,7 +16,7 @@ Qvals=[0,10]
 #xbj=0.0001
 
 textsize=16
-style=0
+style=1
 
 fig=figure()
 p1=fig.add_subplot(111)
@@ -33,7 +34,7 @@ for q in Qvals:
         lbl=mode[1] + r", $Q^2\hspace{-0.4}="+str(q)+r"$ GeV$^2$" 
         p1.semilogx(x,y,label=lbl,linestyle=dashes[style],linewidth=2,color=colors[style])
         style=style+1
-        if (style>4):
+        if (style>3):
             style=0
   
    

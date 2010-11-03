@@ -14,7 +14,7 @@ def AddJpsiMass(xlist):
 
 # Dipole models
 models=["ipsat", "ipsat-nofactor", "iim" ]
-labels=[r"IPsat", "Non-factorized IPsat", "IIM"]
+labels=[r"Factorized IPsat", "IPsat", "IIM"]
 
 textsize=16
 style=0
