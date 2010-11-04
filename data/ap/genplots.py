@@ -23,7 +23,7 @@ models=[["ipsat", "IPsat",1,1],
 # Gluon distributions
 gdists=[""]
 # xval label width
-xvals=[[0.0001,r"10^{-4}",2], [0.01, r"10^{-2}",1] ]
+xvals=[[0.0001,r"10^{-4}",2.2], [0.01, r"10^{-2}",1] ]
 minx=9.54
 maxx=100
 miny=0.2
@@ -56,7 +56,7 @@ for xbj in xvals:
   
 leg=legend(prop=dict(size=textsize),labelspacing=0.001, columnspacing=-0.03,ncol=2)
 leg.draw_frame(False)
-fig.suptitle(r"$t=0.5$ GeV$^2$", fontsize=textsize)
+fig.suptitle(r"$A=197$, $t=0.5$ GeV$^2$", fontsize=textsize)
 f = "plot_Q.pdf"
 print f
 axis([minx,maxx,miny,maxy])   

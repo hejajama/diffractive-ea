@@ -26,18 +26,18 @@ REAL inthelperf_protxs(REAL t, void*p);
 
 Dipxs::Dipxs()
 {
-    InitGsl();
+    //InitGsl();
 }
 
 Dipxs::Dipxs(Nucleus &nucleus_)
 {
     nucleus=nucleus_;
-    InitGsl();
+    //InitGsl();
 }
 
 Dipxs::~Dipxs()
 {
-    FreeGsl();
+    //FreeGsl();
 }
 
 /*

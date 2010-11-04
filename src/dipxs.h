@@ -66,15 +66,15 @@ class Dipxs
         Nucleus& GetNucleus();
         
         // Fourier transformation of non-averaged cross sect. Dipxsection_b
-        COMPLEX FTDipxsection(REAL rsqr, REAL xbjorken,REAL deltax,REAL deltay,
-            std::vector<Vec>& nucleons);
-        COMPLEX FTDipxsection(REAL rsqr, REAL xbjorken, Vec delta, 
-            std::vector<Vec>& nucleons);
+        //COMPLEX FTDipxsection(REAL rsqr, REAL xbjorken,REAL deltax,REAL deltay,
+        //    std::vector<Vec>& nucleons);
+        //COMPLEX FTDipxsection(REAL rsqr, REAL xbjorken, Vec delta, 
+        //    std::vector<Vec>& nucleons);
             
         // Fourier transformation squared averaged over nucleon configurations as
         // a function of |delta| (averages over angular dependence)
-        REAL FTDipxsection_sqr_avg(REAL r1sqr, REAL r2sqr, REAL xbjorken, 
-            REAL delta);
+        //REAL FTDipxsection_sqr_avg(REAL r1sqr, REAL r2sqr, REAL xbjorken, 
+        //    REAL delta);
         
     protected:
         Nucleus nucleus;   

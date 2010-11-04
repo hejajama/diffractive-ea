@@ -28,7 +28,7 @@ for q in qvals:
     for mode in models:
         filename = "data/ap/" + mode + "_x_q" + str(q) + ".txt_"
         fullcmd = cmd + " -dipole " + mode \
-                     + " -gdist " + gd + " > " + filename + " &"
+                     + " -gdist " + gd + " > " + filename + " "
         print (fullcmd)
         os.system(fullcmd)
         os.system("sort -n " + filename + " > data/ap/" + mode + "_x_q" + str(q) + ".txt")

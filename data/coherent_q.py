@@ -15,8 +15,8 @@ maxy=5e7
 
 # Dipole models, syntax: [mode:description:style:color,width]
 models=[
-	["ipnonsat","Quasielastic IPNonSat",1,1,2],
-	["ipnonsat_coherent", "Coherent IPNonSat",1,1,1],
+	["ipnonsat","Quasielastic IPnonsat",1,1,2],
+	["ipnonsat_coherent", "Coherent IPnonsat",1,1,1],
 	["ipsat","IPsat",0,0,2],
         ["ipsat_coherent", "Coherent IPsat",0,0,1],
 	["iim", "IIM",3,2,2],
@@ -55,7 +55,7 @@ for q in qsqr:
 	axis([minx,maxx,miny,maxy])
 	leg=legend(prop=dict(size=textsize),labelspacing=0.001)
 	leg.draw_frame(False)
-	fig.suptitle(r"$Q^2\hspace{-0.4}=" + str(q) + "$ GeV$^2\hspace{-0.3}$, $x_\mathrm{\mathbb{P}}=0.001$", fontsize=textsize)
+	fig.suptitle(r"$A=197$, $Q^2\hspace{-0.45}=" + str(q) + "$ GeV$^2\hspace{-0.35}$, $x_\mathrm{\mathbb{P}}=0.001$", fontsize=textsize)
 	f = "coherent_q" + str(q) + ".pdf"
 	print f    
 	pp = PdfPages(f)

@@ -13,7 +13,6 @@ gdists=["dglap"]
 
 W=90
 wavef="boosted-gaussian"
-wavef="gaus-lc"
 A=1
 N=200
 mint_coherent=0
