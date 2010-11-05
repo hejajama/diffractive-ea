@@ -9,6 +9,7 @@
 #include <ctime>
 #include <cstdlib>
 #include <vector>
+#include <string>
 #include <sstream>
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_sf_bessel.h>
@@ -30,12 +31,9 @@
 
 using namespace std;
 
-// Integration settings
-/*const REAL MAXR=4;
-const REAL MINR=0.05;   // r=0 doesn't work, K_{0,1}(0)=inf
-const REAL RINTACCURACY=0.002;
-const REAL TOTXS_MAXT=2;    // Max |t| in GeV^2 when calculating total xs
-*/
+const std::string VERSION = "1.0rc1";
+const std::string DATE = "2010-11-05";
+
 const int MODEL_IPSAT=1; const int MODEL_IPNONSAT=2; const int MODEL_IIM=3;
 const int MODEL_IPSAT_NONSATP=4; const int MODEL_IPSAT_NOFACTOR=5;
 const int GDIST_DGLAP=1; 
@@ -78,6 +76,7 @@ int main(int argc, char* argv[])
     bool w_set=false;
     bool scalex=false;  // Scale x so that x=x_bj*(1+M_V^2/Q^2)
     bool output_fm=false;   // Use fm's when printing the value of r
+    bool corrections=true;
     REAL r=-1;
     REAL M_v=3.097; // Mass of the produced vector meson, 3.097 GeV = J/\Psi
     REAL M_n=0;     // Mass of nucleus/nucleon
@@ -123,6 +122,8 @@ int main(int argc, char* argv[])
             cout << "-dsigma/d2b_b (print d\\sigma_{q\\bar q}/d^2 b as a function of b)" << endl;
             cout << "-dsigma/dt_qq (print d\\sigma_{q\bar q}/dt as a function of t), -r r (in GeV)" << endl;
             cout << "-totdipxs (print total dipole-proton cross section as a function of r)" << endl;
+            cout << "-nocorrections (don't calculate real part and skewedness corrections)" << endl;
+            cout << "-v, -version (print version and quit)" << endl;
             cout << endl;
             cout << "Default values: x="<<bjorkx <<", Q^2="<<Qsqr 
                 << " A="<<A<<", N="<<points<<", mint="<<mint<<", maxt="<<maxt<< endl;
@@ -137,6 +138,11 @@ int main(int argc, char* argv[])
         }
         for (int i=1; i<argc; i++)
         {
+            if (string(argv[i])=="-version" or string(argv[i])=="-v")
+            {
+                std::cout << "Dipole v. " << VERSION << " (" << DATE << ")" << endl;
+                return 0;
+            }
             if (string(argv[i])=="-x") 
             {
                 bjorkx=StrToReal(argv[i+1]); 
@@ -211,6 +217,8 @@ int main(int argc, char* argv[])
                 mode=MODE_VM_INTZ;
             else if (string(argv[i])=="-fm")
                 output_fm=true;
+            else if (string(argv[i])=="-nocorrections")
+                corrections=false;
             else if (string(argv[i])=="-dsigma/d2b_r")
             {
                 mode=MODE_DSIGMA_D2B_R;
@@ -374,6 +382,7 @@ int main(int argc, char* argv[])
 
     Calculator calculator(amplitude, JPsi);
     calculator.SetPolarization(polarization);
+    calculator.SetCorrections(corrections);
     
 /////////////////////////////////////////////////////////////////////////////
 ////////////// Different modes //////////////////////////////////////////////

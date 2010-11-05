@@ -63,12 +63,11 @@ REAL Calculator::CrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
             << __LINE__ << ": Result " << result << ", abserror: " << abserr 
             << " (t=" << t <<")" << std::endl;
         
-        // Calculate real part and skewedness corrections or use cahced ones
+        // Calculate real part and skewedness corrections
         REAL xs, xseps, lambda;
         betasqr_t=0; rgsqr_t=1;
         if (corrections)
         {
-            polarization=VM_MODE_T;
             xs = RIntAmplitude(t, Qsqr, bjorkx, &inthelperf_proton);
             xseps = RIntAmplitude(t, Qsqr, bjorkx+eps, &inthelperf_proton);
             lambda = log(xs/xseps)*(bjorkx/eps);
@@ -87,11 +86,10 @@ REAL Calculator::CrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
             << __LINE__ << ": Result " << tmpres << ", abserror: " << abserr 
             << " (t=" << t <<")" << std::endl;
         
-        // Calculate real part and skewedness corrections or use cahced ones
+        // Calculate real part and skewedness corrections
         betasqr_l=0; rgsqr_l=1.0;
         if (corrections)
         {
-            polarization=VM_MODE_L;
             xs = RIntAmplitude(t, Qsqr, bjorkx, &inthelperf_proton);
             xseps = RIntAmplitude(t, Qsqr, bjorkx+eps, &inthelperf_proton);
             lambda = log(xs/xseps)*(bjorkx/eps);
@@ -102,8 +100,8 @@ REAL Calculator::CrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
         }
         tmpres = tmpres*(1.0+betasqr_l)*rgsqr_l;
         result = result + tmpres;
-
-        polarization=VM_MODE_TOT;
+        
+        wavef->SetMode(VM_MODE_TOT);
         
     }
     else    // Correct polarization is already set
@@ -134,7 +132,7 @@ REAL Calculator::CrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
 
     
     
-    // Factor 4 as we integrate amplitude, not d\sigma/d^2b = 2A
+    // Factor 4 as we integrate 1/2*d\sigma/d2b
     result *= 4.0/(16.0*M_PI);
     return result;
 }
@@ -189,7 +187,6 @@ REAL Calculator::CoherentCrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
     if (polarization == VM_MODE_TOT)
     {
         wavef->SetMode(VM_MODE_T);
-        polarization=VM_MODE_T;
         REAL tmpres = RIntAmplitude(t, Qsqr, bjorkx, &inthelperf_coherent);
         REAL xs = RIntAmplitude(t, Qsqr, bjorkx, &inthelperf_proton);
         REAL xseps = RIntAmplitude(t, Qsqr, bjorkx+eps, &inthelperf_proton);
@@ -197,13 +194,13 @@ REAL Calculator::CoherentCrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
         result = tmpres*tmpres*(1.0+SQR(Beta(lambda)))*SQR(Rg(lambda));
             
         wavef->SetMode(VM_MODE_L);
-        polarization=VM_MODE_L;
         tmpres = RIntAmplitude(t, Qsqr, bjorkx, &inthelperf_coherent);
         xs = RIntAmplitude(t, Qsqr, bjorkx, &inthelperf_proton);
         xseps = RIntAmplitude(t, Qsqr, bjorkx+eps, &inthelperf_proton);
         lambda = log(xs/xseps)*(bjorkx/eps);
         result += tmpres*tmpres*(1.0+SQR(Beta(lambda)))*SQR(Rg(lambda)); 
-        polarization=VM_MODE_TOT;
+       
+       wavef->SetMode(VM_MODE_TOT);
          // Sum d\sigma/dt_L + d\sgima/dt_T, not amplitudes!
     }
     else    // Correct polarization is already set
@@ -251,14 +248,16 @@ REAL Calculator::ProtonCrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
         REAL xseps = RIntAmplitude(t, Qsqr, bjorkx+eps, &inthelperf_proton);
         REAL lambda = log(xs/xseps)*(bjorkx/eps);
         
-        result=xs*xs*(1+SQR(Beta(lambda)) ) * SQR(Rg(lambda));
+        result=xs*xs*(1.0+SQR(Beta(lambda)) ) * SQR(Rg(lambda));
         
         wavef->SetMode(VM_MODE_L);
         xs = RIntAmplitude(t, Qsqr, bjorkx, &inthelperf_proton);
         xseps = RIntAmplitude(t, Qsqr, bjorkx+eps, &inthelperf_proton);
         lambda = log(xs/xseps)*(bjorkx/eps);
 
-        result+= xs*xs*(1+SQR(Beta(lambda)) ) * SQR(Rg(lambda));
+        result+= xs*xs*(1.0+SQR(Beta(lambda)) ) * SQR(Rg(lambda));
+        
+        wavef->SetMode(VM_MODE_TOT);
         
     }
     else     // Correct polarization is already set
@@ -272,10 +271,7 @@ REAL Calculator::ProtonCrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
                 << std::endl;
         
         }
-        result=xs*xs*(1+SQR(Beta(lambda)) ) * SQR(Rg(lambda));
-	    //std::cout << Qsqr << " " << xs/xseps << std::endl;
-	    //bjorkx << " " << eps << " " << lambda << std::endl;
-        //std::cout << Qsqr << " " << (1+SQR(Beta(lambda)) ) * SQR(Rg(lambda)) << std::endl;
+        result=xs*xs*(1.0+SQR(Beta(lambda)) ) * SQR(Rg(lambda));
    }
     
      
@@ -287,7 +283,7 @@ REAL Calculator::ProtonCrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
 REAL inthelperf_proton(REAL r, void* p)
 {
     inthelper_r* par = (inthelper_r*)p;
-    return 2*M_PI*r*par->vm->PsiSqr_intz(par->Qsqr, r)
+    return 2.0*M_PI*r*par->vm->PsiSqr_intz(par->Qsqr, r)
         * par->amplitude->DipoleAmplitude_proton(SQR(r), par->bjorkx,
          par->delta);
        
