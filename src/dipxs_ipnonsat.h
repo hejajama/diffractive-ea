@@ -30,6 +30,9 @@ class Dipxs_IPNonSat : public Dipxs
        
        // Total dipole-proton cross section (integrated over d^2 b) in 1/Gev^2
        REAL TotalDipxsection_proton(REAL rsqr, REAL xbj);
+       
+       // 1/2*d\sigma/d^2b = q\barq-proton scattering amplitude
+       REAL Qq_proton_amplitude(REAL rsqr, REAL xbj, REAL b);
     
     private:
         REAL Sigmap(REAL rsqr, REAL xbjork);

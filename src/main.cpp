@@ -653,6 +653,7 @@ int main(int argc, char* argv[])
     {
         cout << "# d\\sigma/d^2b for dipole-proton scattering" << endl;
         cout << "# b = " << b << ", x = " << bjorkx << endl;
+        cout << "# r [GeV^-1]   dsigma/d2b" << endl;
         REAL maxr = 10; REAL minr=0.01;
         REAL multiplier = pow(maxr/minr, 1.0/points);
         
@@ -668,6 +669,7 @@ int main(int argc, char* argv[])
     {
         cout << "# d\\sigma/d^2b for dipole-proton scattering" << endl;
         cout << "# r = " << r << " GeV^(-1), x = " << bjorkx << endl;
+        cout << "# b [GeV^-1]   dsigma/d2b" << endl;
         REAL minb=0; REAL maxb=10;
         for (int i=0; i<=points; i++)
         {

@@ -166,4 +166,11 @@ REAL Dipxs_IPNonSat::Sigmap(REAL rsqr, REAL xbjork)
     return 2*rsqr*nucleus.GetGDist()->Gluedist(xbjork,rsqr);
 }
 
-
+/*
+ * Dipole-proton scattering amplitude as a function of b and r
+ * returns 1/2*d\sigma/d^2b
+ */
+REAL Dipxs_IPNonSat::Qq_proton_amplitude(REAL rsqr, REAL xbj, REAL b)
+{
+    return Sigmap(rsqr, xbj)*exp(-SQR(b)/(2.0*B_p))/(2.0*M_PI*B_p);
+}

@@ -281,6 +281,15 @@ REAL Dipxs_IIM::Dipxsection(REAL rsqr, REAL xbjork, Vec b,
 }
 
 /*
+ * Dipole-proton scattering amplitude as a function of b and r
+ * returns 1/2*d\sigma/d^2b
+ */
+REAL Dipxs_IIM::Qq_proton_amplitude(REAL rsqr, REAL xbj, REAL b)
+{
+    REAL rq = Q_s(xbj)*sqrt(rsqr);
+    return exp(-SQR(b)/(2.0*B_D))*DipoleAmplitude(rq,xbj);
+}
+/*
  * Saturation scale
  */
 REAL Dipxs_IIM::Q_s(REAL x)

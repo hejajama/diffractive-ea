@@ -249,7 +249,7 @@ REAL Calculator::ProtonCrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
         REAL lambda = log(xs/xseps)*(bjorkx/eps);
         
         result=xs*xs*(1.0+SQR(Beta(lambda)) ) * SQR(Rg(lambda));
-        
+
         wavef->SetMode(VM_MODE_L);
         xs = RIntAmplitude(t, Qsqr, bjorkx, &inthelperf_proton);
         xseps = RIntAmplitude(t, Qsqr, bjorkx+eps, &inthelperf_proton);
