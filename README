@@ -5,36 +5,40 @@ Author: Heikki Mäntysaari <heikki.mantysaari@jyu.fi>
 
 Usage:
  Most of the options are give using the command line parameters. Some model-
- spesific parameters are read from files. List of all possible CLI parameters
- can be seen by typing ./dipole --help
+ spesific parameters are read from files. List of all possible CLI 
+ parameters can be seen by typing ./dipole --help.
 
  main.cpp should be quite easy to read, go trough it and you see what this
  program is capable of calculating.
  
  A few examples:
- Calculate d\sigma/dt using IIM parametrization and default config files from
+ Calculate d\sigma/dt using IIM model and default config files from
  t=0 to t=0.3 using 200 data points, A=197:
  ./dipole -dipole iim -mint 0 -maxt 0.3 -A 197
  
  Calculate nuclear suppression d\simga^A/dt / (Ad\sigma^p/dt) in IPsat model
- as a function of Q^2 from Q^2=0 to Q^2=100, 100 data points (default nulceus
- size is 197) at t=0.4
+ as a function of Q^2 from Q^2=0 to Q^2=100, 100 data points 
+ (default nulceus size is 197) at t=0.4
  ./dipole -A/p -minQ2 0 -maxQ2 100 -N 100 -dipole ipsat -t 0.4
 
 About the code:
-- Idea is that it should be easy to plug in different models for dipole-proton
-  scattering amplitude (e.g. IPsat, IPnonsat and IIM), gluon distribution etc.
+- Idea is that it should be easy to plug in different models for 
+  dipole-proton scattering amplitude (e.g. IPsat), gluon distribution etc.
   To obtain this some virtual classes are used, for dipole-nucleus cross 
   section all classes have to be derived from Dipxs class etc. 
   Read the code in main.cpp, it should be quite clear how does it work.
 - Numerical calculations are done using the GSL library.
 - Program tries to support parallerization using OpenMP. Compile with 
- -fopenmp and start by typing
+  -fopenmp and start by typing
    OMP_NUM_THREADS=4 ./dipole
     * Parallerization is not supported yet! It may work, but at least some 
       integrals may give totally nonsense results.
-- One could optimize the code a lot, but now most of the runs doesn't take more
-  than a few minutes, so I have tried to keep things simple.
+- One could optimize the code a lot, but now most of the runs doesn't take 
+  more than a few minutes, so I have tried to keep things simple. Actually
+  my attempt to keep the code thread-safe has made it slow, because 
+  the code allocates memory and frees it way too often, it would be easy 
+  and much more efficient to allocate memory only once at the beginning 
+  for each thread. This is left for future work.
       
 This program prints results in stdout, so you propably want to use pipes:
  ./dipole -N 1000 > my_result.dat
@@ -42,15 +46,14 @@ This program prints results in stdout, so you propably want to use pipes:
 Error messages are printed to stderr.
 
 Thanks:
- Some parts of this code is originally written by Tuomas Lappi and I have made
- only minor changes to these parts. At the beginning of the file it is mentioned
- who has written the code in that specific file. 
+ Some parts of this code is originally written by Tuomas Lappi and I have 
+ made  only minor changes to these parts. At the beginning of the file 
+ it is mentioned who has written the code in that specific file. 
  
 License:
  This program is free software licensed under the terms of the GNU General
  Public License, either version 3 or (at your opinion) any later version 
  released by Free Software Foundation.
- 
-As GSL is licensed under the GPL license, this code and files I have taken
-from other people's GSL-using code are also under the same license.
 
+ Files under src/mersenne folder are licensed under LGPL version 2 or (at 
+ your opinion) any later version reelased by Free Software Foundation.
