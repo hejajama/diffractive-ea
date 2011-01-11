@@ -46,7 +46,7 @@ const int MODE_VM_INTZ=7; const int MODE_TOTXS_RATIO_Q=8;
 const int MODE_DSIGMA_D2B_R=9; const int MODE_TOTXS_W=10;
 const int MODE_DSIGMA_DT_QQ=11; const int MODE_DSIGMA_D2B_B=12;
 const int MODE_TOTAL_DIPXS=13; const int MODE_XG=14; const int MODE_GLUEDIST=15;
-const int MODE_XG_X=16;
+const int MODE_XG_X=16; const int MODE_DSIGMA_DT_A=17;
 
 void Cleanup(); 
 
@@ -58,6 +58,7 @@ int main(int argc, char* argv[])
     REAL bjorkx=1e-4;
     REAL Qsqr=1;
     int A=197;
+    int minA=10; int maxA=300;  // minA and maxA from A-dep. calculations
     int model=MODEL_IPSAT;
     int gdist_model=GDIST_DGLAP;
     int points=100;
@@ -123,6 +124,8 @@ int main(int argc, char* argv[])
             cout << "-dsigma/dt_qq (print d\\sigma_{q\bar q}/dt as a function of t), -r r (in GeV)" << endl;
             cout << "-totdipxs (print total dipole-proton cross section as a function of r)" << endl;
             cout << "-nocorrections (don't calculate real part and skewedness corrections)" << endl;
+            cout << "-dsigma/dt-A  (quasielastic cross section as a function of A "
+                << "[" << minA << " - " << maxA << "])" << endl;
             cout << "-v, -version (print version and quit)" << endl;
             cout << endl;
             cout << "Default values: x="<<bjorkx <<", Q^2="<<Qsqr 
@@ -215,6 +218,8 @@ int main(int argc, char* argv[])
                 scalex=true;
             else if (string(argv[i])=="-vm_intz")
                 mode=MODE_VM_INTZ;
+            else if (string(argv[i])=="-dsigma/dt-A")
+                mode=MODE_DSIGMA_DT_A;
             else if (string(argv[i])=="-fm")
                 output_fm=true;
             else if (string(argv[i])=="-nocorrections")
@@ -594,9 +599,8 @@ int main(int argc, char* argv[])
         }
     
     
-    }
-
-    
+    }    
+  
     else if (mode==MODE_DIFFXS)   // dsigma/dt as a function of t
     {
         cout << "# t [GeV^2]  d\\sigma/dt [nb/GeV^2] " << endl;
@@ -624,6 +628,29 @@ int main(int argc, char* argv[])
                 cout << " " << result*NBGEVSQR << endl;
             }
         }
+    }
+    
+    else if (mode == MODE_DSIGMA_DT_A) // d\sigma/dt as a function of A [minA-maxA]
+    {
+        cout << "# A    d\\sigma/dt [nb/GeV^2] " << endl;
+        cout << "# x_pomeron = " << bjorkx << ", Q^2 = " << Qsqr << endl;
+        
+        for (unsigned int tmpA=minA; tmpA<=maxA; tmpA++)
+        {
+            Nucleus tmpnuke(tmpA);
+            tmpnuke.SetGDist(gdist);
+            amplitude->SetNucleus(tmpnuke);
+            
+            REAL result = calculator.CrossSection_dt(t, Qsqr, bjorkx); 
+            cout.precision(3);
+            cout << fixed << tmpA;
+            cout.precision(8);
+            cout << " " << result*NBGEVSQR << endl;
+            
+        }
+        
+        
+    
     }
     
     else if (mode==MODE_VM_INTZ)

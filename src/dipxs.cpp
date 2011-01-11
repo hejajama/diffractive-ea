@@ -74,6 +74,14 @@ REAL Dipxs::Dipxsection_sqr_avg(REAL rsqr, REAL r2sqr, REAL xbj)
 }
 
 /*
+ * Set new nucleus
+ */
+void Dipxs::SetNucleus(Nucleus& nuke)
+{
+    nucleus=nuke;
+}
+
+/*
  * Coherent dipole-nucleus scattering amplitude averaged over nucleon
  * configurations
  */

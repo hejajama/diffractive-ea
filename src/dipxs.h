@@ -64,6 +64,7 @@ class Dipxs
         REAL Alphas_r(REAL rsqr);
         
         Nucleus& GetNucleus();
+        void SetNucleus(Nucleus& nuke);
         
         // Fourier transformation of non-averaged cross sect. Dipxsection_b
         //COMPLEX FTDipxsection(REAL rsqr, REAL xbjorken,REAL deltax,REAL deltay,
