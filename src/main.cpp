@@ -31,8 +31,8 @@
 
 using namespace std;
 
-const std::string VERSION = "1.01";
-const std::string DATE = "2011-01-04";
+const std::string VERSION = "1.02-dev";
+const std::string DATE = "2011-xx-xx";
 
 const int MODEL_IPSAT=1; const int MODEL_IPNONSAT=2; const int MODEL_IIM=3;
 const int MODEL_IPSAT_NONSATP=4; const int MODEL_IPSAT_NOFACTOR=5;
