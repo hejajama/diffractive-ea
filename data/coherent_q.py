@@ -7,6 +7,9 @@
 
 from matplotlibhelper import *
 rc('text.latex',  preamble='\usepackage{amsmath},\usepackage{amssymb},\usepackage{mathtools}')
+textsize=16
+rc("xtick", labelsize=textsize)
+rc("ytick", labelsize=textsize)
 
 minx=0
 maxx=0.26
@@ -27,7 +30,6 @@ models=[
 #qsqr=[0,10,50]
 qsqr=[0, 10]
 
-textsize=16
 style=0
 
 for q in qsqr:
@@ -55,7 +57,7 @@ for q in qsqr:
 	axis([minx,maxx,miny,maxy])
 	leg=legend(prop=dict(size=textsize),labelspacing=0.001)
 	leg.draw_frame(False)
-	fig.suptitle(r"$A=197$, $Q^2\hspace{-0.45}=" + str(q) + "$ GeV$^2\hspace{-0.35}$, $x_\mathrm{\mathbb{P}}=0.001$", fontsize=textsize)
+	fig.suptitle(r"$A=197$, $Q^2\hspace{-0.45}=" + str(q) + "$ GeV$^2\hspace{-0.35}$, $x_\mathrm{\mathbb{P}}=0.001$", fontsize=textsize+1)
 	f = "coherent_q" + str(q) + ".pdf"
 	print f    
 	pp = PdfPages(f)

@@ -600,6 +600,9 @@ int main(int argc, char* argv[])
         cout << "# \\int quasielstic from mint to maxt/ \\int coherent" 
             << endl;
         cout << "# mint=" << mint << ", maxt=" << maxt << ", x=" << bjorkx << endl;
+       
+        calculator.SetCorrections(false);   // these would cancel anyway 
+       
         if (minQsqr<0.000001) minQsqr=0.01;
         REAL multiplier = pow(maxQsqr/minQsqr, 1.0/points);
         calculator.SetTAccuracy(0.01);
@@ -621,6 +624,8 @@ int main(int argc, char* argv[])
         cout << "# \\int quasielstic from mint to maxt / \\int coherent" 
             << endl;
         cout << "# t=" << t << ", Q^2=" << Qsqr << endl;
+        calculator.SetCorrections(false);   // these would cancel anyway 
+        
         if (minx<1e-8) minx=1e-8;
         REAL multiplier = pow(maxx/minx, 1.0/points);
         calculator.SetTAccuracy(0.01);

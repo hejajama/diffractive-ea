@@ -17,6 +17,9 @@ models=["ipsat", "ipsat-nofactor", "iim" ]
 labels=[r"Factorized IPsat", "IPsat", "IIM"]
 
 textsize=16
+rc("xtick", labelsize=textsize)
+rc("ytick", labelsize=textsize)
+
 style=0
 minx=9.5
 maxx=100
@@ -69,7 +72,7 @@ axis([minx,maxx,miny,maxy])
 
 leg=legend(prop=dict(size=textsize),labelspacing=0.001,loc=1)
 leg.draw_frame(False)
-fig.suptitle(r"$\gamma^*\hspace{-0.1}p \rightarrow J/\Psi\hspace{0.1}p$, $W=90$ GeV", fontsize=textsize)
+fig.suptitle(r"$\gamma^*\hspace{-0.1}p \rightarrow J/\Psi\hspace{0.1}p$, $W=90$ GeV", fontsize=textsize+1)
 print "xs.pdf"
 pp = PdfPages("xs.pdf")
 savefig(pp,format='pdf')

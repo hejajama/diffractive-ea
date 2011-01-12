@@ -185,24 +185,32 @@ REAL inthelperf_r2(REAL r2, void* p)
  
 REAL Calculator::CoherentCrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
 {      
-    REAL result,abserr; size_t eval;
+    REAL result,abserr, xs, xseps, lambda; size_t eval;
     REAL eps = bjorkx/epsfact;
     result=0;
     if (polarization == VM_MODE_TOT)
     {
         wavef->SetMode(VM_MODE_T);
         REAL tmpres = RIntAmplitude(t, Qsqr, bjorkx, &inthelperf_coherent);
-        REAL xs = RIntAmplitude(t, Qsqr, bjorkx, &inthelperf_proton);
-        REAL xseps = RIntAmplitude(t, Qsqr, bjorkx+eps, &inthelperf_proton);
-        REAL lambda = log(xs/xseps)*(bjorkx/eps);
-        result = tmpres*tmpres*(1.0+SQR(Beta(lambda)))*SQR(Rg(lambda));
-            
+        if (corrections)
+        {
+            xs = RIntAmplitude(t, Qsqr, bjorkx, &inthelperf_proton);
+            xseps = RIntAmplitude(t, Qsqr, bjorkx+eps, &inthelperf_proton);
+            lambda = log(xs/xseps)*(bjorkx/eps);
+            result = tmpres*tmpres*(1.0+SQR(Beta(lambda)))*SQR(Rg(lambda));
+        }
+        else result=tmpres*tmpres;
+        
         wavef->SetMode(VM_MODE_L);
         tmpres = RIntAmplitude(t, Qsqr, bjorkx, &inthelperf_coherent);
-        xs = RIntAmplitude(t, Qsqr, bjorkx, &inthelperf_proton);
-        xseps = RIntAmplitude(t, Qsqr, bjorkx+eps, &inthelperf_proton);
-        lambda = log(xs/xseps)*(bjorkx/eps);
-        result += tmpres*tmpres*(1.0+SQR(Beta(lambda)))*SQR(Rg(lambda)); 
+        if (corrections)
+        {
+            xs = RIntAmplitude(t, Qsqr, bjorkx, &inthelperf_proton);
+            xseps = RIntAmplitude(t, Qsqr, bjorkx+eps, &inthelperf_proton);
+            lambda = log(xs/xseps)*(bjorkx/eps);
+            result += tmpres*tmpres*(1.0+SQR(Beta(lambda)))*SQR(Rg(lambda)); 
+        } 
+        else result +=tmpres*tmpres;
        
        wavef->SetMode(VM_MODE_TOT);
          // Sum d\sigma/dt_L + d\sgima/dt_T, not amplitudes!
@@ -210,10 +218,14 @@ REAL Calculator::CoherentCrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
     else    // Correct polarization is already set
     {
         result = RIntAmplitude(t, Qsqr, bjorkx, &inthelperf_coherent);
-        REAL xs = RIntAmplitude(t, Qsqr, bjorkx, &inthelperf_proton);
-        REAL xseps = RIntAmplitude(t, Qsqr, bjorkx+eps, &inthelperf_proton);
-        REAL lambda = log(xs/xseps)*(bjorkx/eps);
-        result=result*result*(1.0+SQR(Beta(lambda)))*SQR(Rg(lambda));
+        if (corrections)
+        {
+            REAL xs = RIntAmplitude(t, Qsqr, bjorkx, &inthelperf_proton);
+            REAL xseps = RIntAmplitude(t, Qsqr, bjorkx+eps, &inthelperf_proton);
+            REAL lambda = log(xs/xseps)*(bjorkx/eps);
+            result=result*result*(1.0+SQR(Beta(lambda)))*SQR(Rg(lambda));
+        }
+        else result=result*result;
     }
         
     result *= 1.0/(16.0*M_PI);  

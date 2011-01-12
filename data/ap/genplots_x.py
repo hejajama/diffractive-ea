@@ -16,6 +16,8 @@ Qvals=[0,10]
 #xbj=0.0001
 
 textsize=16
+rc("xtick", labelsize=textsize)
+rc("ytick", labelsize=textsize)
 style=1
 
 fig=figure()
@@ -40,7 +42,7 @@ for q in Qvals:
    
 leg=legend(prop=dict(size=textsize),labelspacing=0.001,loc=2)
 leg.draw_frame(False)
-fig.suptitle(r"$A=197$, $t=0.5$ GeV$^2$", fontsize=textsize)
+fig.suptitle(r"$A=197$, $t=0.5$ GeV$^2$", fontsize=textsize+1)
 f = "plot_x.pdf"
 print (f)
     

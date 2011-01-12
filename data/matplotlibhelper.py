@@ -11,6 +11,8 @@ from matplotlib.pyplot import *
 from matplotlib.backends.backend_pdf import PdfPages
 from pylab import *
 
+rc('text.latex',  preamble='\usepackage{amsmath},\usepackage{amssymb},\usepackage{mathtools}')
+
 # 
 dashes = ['--', #    : dashed line
           '-', #     : solid line
