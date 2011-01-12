@@ -28,14 +28,19 @@ class Calculator
         Calculator(Dipxs* amplitude_, WaveFunction* wavef_);
         REAL CrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx);  // d\sigma / dt
         REAL CoherentCrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx);
+        REAL TotalCoherentCrossSection(REAL Qsqr, REAL bjorkx, 
+            REAL mint, REAL maxt);
+        REAL TotalCoherentCrossSection(REAL Qsqr, REAL bjorkx);
         REAL ProtonCrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx);
-        REAL TotalCrossSection(REAL Qsqr, REAL bjorkx); 
+        REAL TotalCrossSection(REAL Qsqr, REAL bjorkx);
+        REAL TotalCrossSection(REAL Qsqr, REAL bjorkx, REAL mint, REAL maxt); 
         REAL TotalProtonCrossSection(REAL Qsqr, REAL bjorkx);
         void SetPolarization(int pol);
         Dipxs* GetAmplitude();
         REAL RIntAmplitude(REAL t, REAL Qsqr, REAL bjorkx, 
             REAL(*helperf)(REAL x, void* p));
         void SetCorrections(bool c);
+        void SetTAccuracy(REAL acc);
         
     private:
         
@@ -53,6 +58,7 @@ class Calculator
         int polarization; // If polarization is set to VM_MODE_TOT, we must sum
                     // transversial and longitudinal polarization.
         bool corrections;       // Whether or not to use corrections
+        REAL relaccuracy_t;     // Relative accuracy for integrations over t
 };
 
 
@@ -75,6 +81,7 @@ struct inthelper_r
 REAL inthelperf_r1(REAL r, void* p);
 REAL inthelperf_r2(REAL r, void* p);
 REAL inthelper_totxs(REAL t, void* p);
+REAL inthelper_totcohxs(REAL t, void* p);
 REAL inthelperf_proton(REAL r, void* p);
 REAL inthelperf_coherent(REAL r, void* p);
 

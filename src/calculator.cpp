@@ -17,8 +17,11 @@ const REAL MAXR=20;
 const REAL MINR=0.0001;   // r=0 doesn't work, K_{0,1}(0)=inf
 const REAL RINTACCURACY=0.003;
 const REAL TINTACCURACY=0.001;
+const REAL DEFAULTACCURACY=0.001;
 const REAL TOTXS_MAXT=2;  // Max |t| in GeV^2 when calculating total xs
 const REAL epsfact = 4.0;   // eps = x_pom/epsfact
+const REAL TOTXS_COHERENT_MINT  = 0.0;  // Min t for total cohernet xs integral
+const REAL TOTXS_COHERENT_MAXT = 0.1;
 
 Calculator::Calculator(Dipxs* amplitude_, WaveFunction* wavef_)
 {
@@ -26,6 +29,7 @@ Calculator::Calculator(Dipxs* amplitude_, WaveFunction* wavef_)
     wavef=wavef_;
     cached_corrections=false; cache_Q2=-1;
     corrections=true;
+    relaccuracy_t=DEFAULTACCURACY;
 }
 
 /*
@@ -226,6 +230,47 @@ REAL inthelperf_coherent(REAL r, void* p)
 }
 
 /*
+ * Total coherent cross section, integrate CoherentCrossSection_dt 
+ * from minr to maxr
+ */
+ 
+REAL Calculator::TotalCoherentCrossSection(REAL Qsqr, REAL bjorkx)
+{
+    return TotalCoherentCrossSection(Qsqr, bjorkx, TOTXS_COHERENT_MINT,
+        TOTXS_COHERENT_MAXT);
+}
+
+REAL Calculator::TotalCoherentCrossSection(REAL Qsqr, REAL bjorkx, 
+    REAL mint, REAL maxt)
+{
+    
+    gsl_function fun;   
+    inthelper_r inthelp;
+    inthelp.amplitude=amplitude;
+    inthelp.vm=wavef; inthelp.bjorkx=bjorkx;
+    inthelp.delta=-1; inthelp.Qsqr=Qsqr;
+    inthelp.calculator=this;
+    fun.function=&inthelper_totcohxs;
+    fun.params=&inthelp; 
+        
+    REAL result,abserr; size_t eval;
+    int status = gsl_integration_qng(&fun, mint, maxt, 0, relaccuracy_t ,
+        &result, &abserr, &eval);
+    if (status and result>0.00001)
+        std::cerr << "Total cross section integral failed to reach tolerance: "
+        << "Result: " << result << ", abserr: " << abserr << std::endl;
+}
+
+// Integration over t 
+REAL inthelper_totcohxs(REAL t, void* p)
+{
+    inthelper_r* par = (inthelper_r*)p; 
+    return par->calculator->CoherentCrossSection_dt(t, par->Qsqr, par->bjorkx);
+}    
+
+
+
+/*
  * Differential cross section for dipole-proton scattering
  * Result is easy to calculate, just integrate amplitude->DipoleAmplitudeProton
  * over r. However, as we have neglected the real part of the scattering
@@ -331,6 +376,17 @@ REAL Calculator::RIntAmplitude(REAL t, REAL Qsqr, REAL bjorkx,
  */
 REAL Calculator::TotalCrossSection(REAL Qsqr, REAL bjorkx)
 {
+    REAL result = TotalCrossSection(Qsqr, bjorkx, 0, TOTXS_MAXT);
+    return result;
+}
+
+/*
+ * Total cross section \int dt d\sigma/dt
+ * Calculated in a given t range
+ */
+REAL Calculator::TotalCrossSection(REAL Qsqr, REAL bjorkx, REAL mint, REAL maxt)
+{
+    
     gsl_function fun;   
     inthelper_r inthelp;
     inthelp.amplitude=amplitude;
@@ -341,14 +397,11 @@ REAL Calculator::TotalCrossSection(REAL Qsqr, REAL bjorkx)
     fun.params=&inthelp; 
         
     REAL result,abserr; size_t eval;
-    int status = gsl_integration_qng(&fun, 0, TOTXS_MAXT, 0, TINTACCURACY, 
+    int status = gsl_integration_qng(&fun, mint, maxt, 0, relaccuracy_t, 
         &result, &abserr, &eval);
     if (status and result>0.00001)
         std::cerr << "Total cross section integral failed to reach tolerance: "
         << "Result: " << result << ", abserr: " << abserr << std::endl;
-    
-    return result;
-    
 }
 
 // Integration over t 
@@ -400,4 +453,7 @@ void Calculator::SetCorrections(bool c)
     corrections=c;
 }
 
-
+void Calculator::SetTAccuracy(REAL acc)
+{
+    relaccuracy_t=acc;
+}

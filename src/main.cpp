@@ -40,14 +40,26 @@ const int GDIST_DGLAP=1;
 
 const int WAVEF_GAUS_LC=1; const int WAVEF_BOOSTED_GAUSSIAN=2;
 
+enum MODE
+{
+        MODE_TOTXS, MODE_DIFFXS, MODE_Ap,
+        MODE_Ap_X, MODE_TOTXS_Q, MODE_COHERENT_DT,
+        MODE_VM_INTZ, MODE_TOTXS_RATIO_Q, MODE_DSIGMA_D2B_R,
+        MODE_TOTXS_W, MODE_DSIGMA_DT_QQ, MODE_DSIGMA_D2B_B, MODE_TOTAL_DIPXS,
+        MODE_XG, MODE_GLUEDIST, MODE_XG_X, MODE_DSIGMA_DT_A,
+        MODE_QUASIELASTIC_COHERENT_Q, MODE_QUASIELASTIC_COHERENT_X
+};
+
+
+/*
 const int MODE_TOTXS=1; const int MODE_DIFFXS=2; const int MODE_Ap=3;
 const int MODE_Ap_X=4; const int MODE_TOTXS_Q=5; const int MODE_COHERENT_DT=6;
 const int MODE_VM_INTZ=7; const int MODE_TOTXS_RATIO_Q=8;
 const int MODE_DSIGMA_D2B_R=9; const int MODE_TOTXS_W=10;
 const int MODE_DSIGMA_DT_QQ=11; const int MODE_DSIGMA_D2B_B=12;
 const int MODE_TOTAL_DIPXS=13; const int MODE_XG=14; const int MODE_GLUEDIST=15;
-const int MODE_XG_X=16; const int MODE_DSIGMA_DT_A=17;
-
+const int MODE_XG_X=16; const int MODE_DSIGMA_DT_A=17; 
+*/
 void Cleanup(); 
 
 int main(int argc, char* argv[])
@@ -68,7 +80,7 @@ int main(int argc, char* argv[])
     REAL minQsqr=0;
     REAL minW=0;
     REAL maxW=200;
-    int mode=MODE_DIFFXS;   // What to do
+    MODE mode=MODE_DIFFXS;   // What to do
     REAL minx=1e-6;
     REAL maxx=1e-2;
     string xgfile="xg.dat";
@@ -126,11 +138,14 @@ int main(int argc, char* argv[])
             cout << "-nocorrections (don't calculate real part and skewedness corrections)" << endl;
             cout << "-dsigma/dt-A  (quasielastic cross section as a function of A "
                 << "[" << minA << " - " << maxA << "])" << endl;
+            cout << "-quasielastic/coherent_x, -quasielastic/coherent_q2 " << endl
+                << "   (\\int quasieal. from mint to maxt / total coherent) as a function of x or Q)" << endl;
             cout << "-v, -version (print version and quit)" << endl;
             cout << endl;
             cout << "Default values: x="<<bjorkx <<", Q^2="<<Qsqr 
                 << " A="<<A<<", N="<<points<<", mint="<<mint<<", maxt="<<maxt<< endl;
-            cout << "                dipxs=false, A/p=false, iimfile=" << iim_file << endl;
+            cout << "                A/p=false, iimfile=" << iim_file << endl;
+            cout << "                minQ^2=" << minQsqr << ", maxQ^2=" << maxQsqr << endl;
             cout << "                t="<<t << ", minx=" << minx << ", maxx=" << maxx 
                  << " xgfile=" << xgfile << endl;
             cout << "                Mv=" << M_v << ", Mn=" << M_n << ", B_p=" << bp << endl;
@@ -173,7 +188,7 @@ int main(int argc, char* argv[])
             else if (string(argv[i])=="-coherent_dt")
                 mode=MODE_COHERENT_DT;
             else if (string(argv[i])=="-nofactor")
-                mode=MODEL_IPSAT_NOFACTOR;   // Deprecated, use -mode ipsat-nofactor
+                cerr << "Option -nofactor is deprecated , ignoring" << endl;
             else if (string(argv[i])=="-totxs")
                 mode=MODE_TOTXS;
             else if (string(argv[i])=="-A/p")
@@ -235,6 +250,10 @@ int main(int argc, char* argv[])
                 mode=MODE_DSIGMA_DT_QQ;
             else if (string(argv[i])=="-totdipxs")
                 mode=MODE_TOTAL_DIPXS;
+            else if (string(argv[i])=="-quasielastic/coherent_q2")
+                mode=MODE_QUASIELASTIC_COHERENT_Q;
+            else if (string(argv[i])=="-quasielastic/coherent_x")
+                mode=MODE_QUASIELASTIC_COHERENT_X;
             else if (string(argv[i])=="-dipole")
             {
                 if (string(argv[i+1])=="ipsat")
@@ -388,6 +407,8 @@ int main(int argc, char* argv[])
     Calculator calculator(amplitude, JPsi);
     calculator.SetPolarization(polarization);
     calculator.SetCorrections(corrections);
+    if (corrections==false)
+        cout << "# Ignoring corrections " << endl;
     
 /////////////////////////////////////////////////////////////////////////////
 ////////////// Different modes //////////////////////////////////////////////
@@ -571,6 +592,48 @@ int main(int argc, char* argv[])
         
         }
     
+    }
+    
+    // \\int quasielstic from minQsqr to maxQsqr / \\int coherent
+    else if (mode==MODE_QUASIELASTIC_COHERENT_Q)
+    {
+        cout << "# \\int quasielstic from mint to maxt/ \\int coherent" 
+            << endl;
+        cout << "# mint=" << mint << ", maxt=" << maxt << ", x=" << bjorkx << endl;
+        if (minQsqr<0.000001) minQsqr=0.01;
+        REAL multiplier = pow(maxQsqr/minQsqr, 1.0/points);
+        calculator.SetTAccuracy(0.01);
+        
+        for (int i=0; i<=points; i++)
+        {
+            REAL tmpQsqr = minQsqr*pow(multiplier, i);
+            REAL coherent = calculator.TotalCoherentCrossSection(tmpQsqr, 
+                                                                bjorkx);
+            REAL quasiel = calculator.TotalCrossSection(tmpQsqr, bjorkx, 
+                                                            mint, maxt);
+            cout << tmpQsqr << " " << quasiel/coherent << endl;
+        }
+    }
+    
+    // \\int quasielstic from minQsqr to maxQsqr / \\int coherent
+    else if (mode==MODE_QUASIELASTIC_COHERENT_X)
+    {
+        cout << "# \\int quasielstic from mint to maxt / \\int coherent" 
+            << endl;
+        cout << "# t=" << t << ", Q^2=" << Qsqr << endl;
+        if (minx<1e-8) minx=1e-8;
+        REAL multiplier = pow(maxx/minx, 1.0/points);
+        calculator.SetTAccuracy(0.01);
+        
+        for (int i=0; i<=points; i++)
+        {
+            REAL tmpx = minx*pow(multiplier, i);
+            REAL coherent = calculator.TotalCoherentCrossSection(Qsqr, 
+                                                                tmpx);
+            REAL quasiel = calculator.TotalCrossSection(Qsqr, tmpx, 
+                                                            mint, maxt);
+            cout << tmpx << " " << quasiel/coherent << endl;
+        }
     }
     
     else if (mode==MODE_COHERENT_DT)   // d\sigma^A/dt for coherent scattering

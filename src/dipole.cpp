@@ -81,7 +81,7 @@ void ErrHandler(const char * reason,
                         int gsl_errno)
 {
     errors++;
-    if (gsl_errno !=14)  // 14 = failed to reach tolerance, handle when gsl_int 
+    if (gsl_errno !=14  )  // 14 = failed to reach tolerance, handle when gsl_int 
                     // is called
         std::cerr << file << ":"<< line <<": Error " << errors << ": " <<reason 
             << " (code " << gsl_errno << ")." << std::endl;
