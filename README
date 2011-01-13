@@ -38,7 +38,10 @@ About the code:
   my attempt to keep the code thread-safe has made it slow, because 
   the code allocates memory and frees it way too often, it would be easy 
   and much more efficient to allocate memory only once at the beginning 
-  for each thread. This is left for future work.
+  for each thread. This is left for future work
+     * Some integrals are also probably calculated with way too high
+       accuracy, optimizing those would make the code much faster as the code
+       computes multi-dimensional integral directly (not using monte carlo)
       
 This program prints results in stdout, so you propably want to use pipes:
  ./dipole -N 1000 > my_result.dat

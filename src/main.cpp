@@ -66,6 +66,12 @@ int main(int argc, char* argv[])
 {    
     gsl_set_error_handler(&ErrHandler);   // We really don't want to use this!
     
+    // Print the cmdline args
+    cout << "# ";
+    for (int i=0; i<argc; i++)
+        cout << argv[i] << " " ;
+    cout << endl;
+    
     // Parameters
     REAL bjorkx=1e-4;
     REAL Qsqr=1;
@@ -607,6 +613,9 @@ int main(int argc, char* argv[])
         REAL multiplier = pow(maxQsqr/minQsqr, 1.0/points);
         calculator.SetTAccuracy(0.01);
         
+        if (mint < 0.1)
+            cerr << "mint=" << mint << ", are you sure?" << endl;
+        
         for (int i=0; i<=points; i++)
         {
             REAL tmpQsqr = minQsqr*pow(multiplier, i);
@@ -629,6 +638,9 @@ int main(int argc, char* argv[])
         if (minx<1e-8) minx=1e-8;
         REAL multiplier = pow(maxx/minx, 1.0/points);
         calculator.SetTAccuracy(0.01);
+        
+        if (mint < 0.1)
+            cerr << "mint=" << mint << ", are you sure?" << endl;
         
         for (int i=0; i<=points; i++)
         {
