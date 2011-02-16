@@ -58,7 +58,7 @@ for xbj in xvals:
   
 leg=legend(prop=dict(size=textsize),labelspacing=0.001, columnspacing=-0.03,ncol=2)
 leg.draw_frame(False)
-fig.suptitle(r"$A=197$, $t=0.5$ GeV$^2$", fontsize=textsize+1)
+fig.suptitle(r"$A=197$, $|t|=0.5$ GeV$^2$", fontsize=textsize+1)
 f = "plot_Q.pdf"
 print f
 axis([minx,maxx,miny,maxy])   

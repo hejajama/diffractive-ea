@@ -31,7 +31,7 @@ fig=figure()
 fig.subplots_adjust(bottom=0.13)
 p1=fig.add_subplot(111, xscale="log", yscale="log")
 xlabel(r"$M_{J/\Psi}^2 + Q^2 \hspace{0.1} [\mathrm{GeV}^2\hspace{-0.3}]$",fontsize=textsize+4)
-ylabel(r"$\sigma_{q\bar q}^p \hspace{0.1} [\mathrm{nb}]$",fontsize=textsize+4)
+ylabel(r"$\sigma \hspace{0.1} [\mathrm{nb}]$",fontsize=textsize+4)
 i=0
 col=0
 for mode in models:
