@@ -43,11 +43,12 @@ const int WAVEF_GAUS_LC=1; const int WAVEF_BOOSTED_GAUSSIAN=2;
 enum MODE
 {
         MODE_TOTXS, MODE_DIFFXS, MODE_Ap,
-        MODE_Ap_X, MODE_TOTXS_Q, MODE_COHERENT_DT,
+        MODE_Ap_X, MODE_Ap_A, MODE_Ap_A_COH, MODE_TOTXS_Q, MODE_COHERENT_DT,
         MODE_VM_INTZ, MODE_TOTXS_RATIO_Q, MODE_DSIGMA_D2B_R,
         MODE_TOTXS_W, MODE_DSIGMA_DT_QQ, MODE_DSIGMA_D2B_B, MODE_TOTAL_DIPXS,
         MODE_XG, MODE_GLUEDIST, MODE_XG_X, MODE_DSIGMA_DT_A,
-        MODE_QUASIELASTIC_COHERENT_Q, MODE_QUASIELASTIC_COHERENT_X
+        MODE_QUASIELASTIC_COHERENT_Q, MODE_QUASIELASTIC_COHERENT_X,
+        MODE_QUASIELASTIC_COHERENT_A
 };
 
 
@@ -77,6 +78,7 @@ int main(int argc, char* argv[])
     REAL Qsqr=1;
     int A=197;
     int minA=10; int maxA=300;  // minA and maxA from A-dep. calculations
+    int Astep=1;  
     int model=MODEL_IPSAT;
     int gdist_model=GDIST_DGLAP;
     int points=100;
@@ -117,6 +119,7 @@ int main(int argc, char* argv[])
             cout << "-gdist {dglap} -xgfile file" << endl;
             cout << "-wavef {gaus-lc, boosted-gaussian} (specify VM wave function)" << endl;
             cout << "-A number_of_nucleai -Mn nucleus_mass" << endl;
+            cout << "-minA A, -maxA A, -Astep n (min and max mass of the nucleai, step in computations)" << endl;
             cout << "-N number_of_data_points" << endl;
             cout << "-coherent_dt (calculate coherent d\\sigma/dt)" << endl;
             cout << "-Bp proton_shape (for ipsat and ipnonsat)" << endl;
@@ -126,11 +129,10 @@ int main(int argc, char* argv[])
             cout << "-totxs_q2 (total cross section as a function of Q^2)" << endl;
             cout << "-totxs_w (total cross section as a function of W)" << endl;
             cout << "-totxs_q2_l/t (longitudinal total xs / transversial total xs)" << endl;
-            cout << "-A/p (nucleus cross section / A* "
-                    <<"proton cross section as a function of Q^2)" << endl;
+            cout << "-A/p, -A/p_x, -A/p_A, -A/p_A_coh (nucleus cross section / A* " << endl;
+            cout << "     proton cross section as a function of Q^2, x or A, coh=coherent scatt.)" << endl;
             cout << "-t t, -maxQ2 maxq2 -minQ2 minQ2[GeV] (value of t and max/min of Q^2)" << endl;
             cout << "-minW minW, -maxW maxW [GeV] (max/min of W)" << endl;
-            cout << "-A/p_x (same as -A/p but as a function of x), -minx minx, -maxx maxx" << endl;
             cout << "-xg (print the value of xg(x,r) and quit) " << endl;
             cout << "-xg_x (print xg as a function of x) " << endl;
             cout << "-gdistval (print ONLY gluedist and quit)" << endl;
@@ -144,8 +146,8 @@ int main(int argc, char* argv[])
             cout << "-nocorrections (don't calculate real part and skewedness corrections)" << endl;
             cout << "-dsigma/dt-A  (quasielastic cross section as a function of A "
                 << "[" << minA << " - " << maxA << "])" << endl;
-            cout << "-quasielastic/coherent_x, -quasielastic/coherent_q2 " << endl
-                << "   (\\int quasieal. from mint to maxt / total coherent) as a function of x or Q)" << endl;
+            cout << "-quasielastic/coherent_x, -quasielastic/coherent_q2, -quasielastic/coherent_A" << endl
+                << "   (\\int quasieal. from mint to maxt / total coherent) as a function of x, A or Q)" << endl;
             cout << "-v, -version (print version and quit)" << endl;
             cout << endl;
             cout << "Default values: x="<<bjorkx <<", Q^2="<<Qsqr 
@@ -191,6 +193,12 @@ int main(int argc, char* argv[])
                 maxx=StrToReal(argv[i+1]);
             else if (string(argv[i])=="-minx")
                 minx=StrToReal(argv[i+1]);
+            else if (string(argv[i])=="-minA")
+                minA=StrToInt(argv[i+1]);
+            else if (string(argv[i])=="-maxA")
+                maxA=StrToInt(argv[i+1]);
+            else if (string(argv[i])=="-Astep")
+                Astep=StrToInt(argv[i+1]);
             else if (string(argv[i])=="-coherent_dt")
                 mode=MODE_COHERENT_DT;
             else if (string(argv[i])=="-nofactor")
@@ -201,6 +209,10 @@ int main(int argc, char* argv[])
                 mode=MODE_Ap;
             else if (string(argv[i])=="-A/p_x")
                 mode=MODE_Ap_X;
+            else if (string(argv[i])=="-A/p_A")
+                mode=MODE_Ap_A;
+            else if (string(argv[i])=="-A/p_A_coh")
+                mode=MODE_Ap_A_COH;
             else if (string(argv[i])=="-totxs_q2")
                 mode=MODE_TOTXS_Q;
             else if (string(argv[i])=="-totxs_q2_l/t")
@@ -260,6 +272,8 @@ int main(int argc, char* argv[])
                 mode=MODE_QUASIELASTIC_COHERENT_Q;
             else if (string(argv[i])=="-quasielastic/coherent_x")
                 mode=MODE_QUASIELASTIC_COHERENT_X;
+            else if (string(argv[i])=="-quasielastic/coherent_A")
+                mode=MODE_QUASIELASTIC_COHERENT_A;
             else if (string(argv[i])=="-dipole")
             {
                 if (string(argv[i+1])=="ipsat")
@@ -597,8 +611,49 @@ int main(int argc, char* argv[])
             }
         
         }
-    
     }
+    
+    else if (mode==MODE_Ap_A)   // d\sigma^A/dt / A*d\sigma_p/dt as a function of A
+    {
+        cout << "# t=" << t << ", Q^2=" << Qsqr << ", x=" << bjorkx << endl;
+        cout << "# A-dependence of nucleus_xs / A*proton_xs" << endl;
+        calculator.SetCorrections(false);
+            
+        for (int tmpA=minA; tmpA<=maxA; tmpA+=Astep)
+        {
+            Nucleus tmpnuke(tmpA);
+            tmpnuke.SetGDist(gdist);
+            amplitude->SetNucleus(tmpnuke);
+            REAL protonxs = calculator.ProtonCrossSection_dt(t, Qsqr, bjorkx);
+            REAL nukexs = calculator.CrossSection_dt(t, Qsqr, bjorkx);
+            cout << tmpA;
+            cout.precision(8);
+            cout << " " << nukexs / (tmpA*protonxs) << endl;
+        }
+    }
+    
+    else if (mode==MODE_Ap_A_COH)   // d\sigma^A/dt / A*d\sigma_p/dt as a function of A
+    {
+        // Same as above, but now for coherent scattering
+        cout << "# t=" << t << ", Q^2=" << Qsqr << ", x=" << bjorkx << endl;
+        cout << "# A-dependence of nucleus_xs / A*proton_xs" << endl;
+        calculator.SetCorrections(false);
+            
+        for (int tmpA=minA; tmpA<=maxA; tmpA+=Astep)
+        {
+            Nucleus tmpnuke(tmpA);
+            tmpnuke.SetGDist(gdist);
+            amplitude->SetNucleus(tmpnuke);
+            REAL protonxs = calculator.ProtonCrossSection_dt(t, Qsqr, bjorkx);
+            REAL nukexs = calculator.CoherentCrossSection_dt(t, Qsqr, bjorkx);
+            cout << tmpA;
+            cout.precision(8);
+            cout << " " << nukexs / (tmpA*protonxs) << endl;
+        }
+    }
+    
+    
+    
     
     // \\int quasielstic from minQsqr to maxQsqr / \\int coherent
     else if (mode==MODE_QUASIELASTIC_COHERENT_Q)
@@ -630,7 +685,7 @@ int main(int argc, char* argv[])
     {
         cout << "# \\int quasielstic from mint to maxt / \\int coherent" 
             << endl;
-        cout << "# t=" << t << ", Q^2=" << Qsqr << endl;
+        cout << "# Q^2=" << Qsqr << endl;
         
         if (minx<1e-8) minx=1e-8;
         REAL multiplier = pow(maxx/minx, 1.0/points);
@@ -647,6 +702,31 @@ int main(int argc, char* argv[])
             REAL quasiel = calculator.TotalCrossSection(Qsqr, tmpx, 
                                                             mint, maxt);
             cout << tmpx << " " << quasiel/coherent << endl;
+        }
+    }
+    
+    else if (mode==MODE_QUASIELASTIC_COHERENT_A)
+    {
+        cout << "# \\int quasielstic from mint to maxt / \\int coherent" 
+            << endl;
+        cout << "# Q^2=" << Qsqr << ", bjorkx="<< bjorkx << endl;
+        
+
+        calculator.SetTAccuracy(0.01);
+        
+        if (mint < 0.1)
+            cerr << "mint=" << mint << ", are you sure?" << endl;
+        
+        for (int tmpA=minA; tmpA<=maxA; tmpA+=Astep)
+        {
+            Nucleus tmpnuke(tmpA);
+            tmpnuke.SetGDist(gdist);
+            amplitude->SetNucleus(tmpnuke);
+            REAL coherent = calculator.TotalCoherentCrossSection(Qsqr, 
+                                                                bjorkx);
+            REAL quasiel = calculator.TotalCrossSection(Qsqr, bjorkx, 
+                                                            mint, maxt);
+            cout << tmpA << " " << quasiel/coherent << endl;
         }
     }
     
@@ -712,7 +792,7 @@ int main(int argc, char* argv[])
         cout << "# A    d\\sigma/dt [nb/GeV^2] " << endl;
         cout << "# x_pomeron = " << bjorkx << ", Q^2 = " << Qsqr << endl;
         
-        for (unsigned int tmpA=minA; tmpA<=maxA; tmpA++)
+        for (unsigned int tmpA=minA; tmpA<=maxA; tmpA+=Astep)
         {
             Nucleus tmpnuke(tmpA);
             tmpnuke.SetGDist(gdist);

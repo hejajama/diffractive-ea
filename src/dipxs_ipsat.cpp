@@ -89,7 +89,7 @@ REAL inthelperf_ipsatavg(REAL b, void* p)
     for (int i=1; i<=N_MAX; i++)
     {
         sum+=gsl_sf_choose(A,i)/((REAL)i)*exp(-B_p*SQR(par->delta)/i)
-             * exp(-2*A*M_PI*B_p*twstmp*(par->dip->FactorC(par->rsqr,x)
+             * exp(-2.0*A*M_PI*B_p*twstmp*(par->dip->FactorC(par->rsqr,x)
                + par->dip->FactorC(par->r2sqr,x) ) )
              * pow( 
                 M_PI*B_p*par->dip->FactorC(par->rsqr,x)
@@ -99,8 +99,7 @@ REAL inthelperf_ipsatavg(REAL b, void* p)
                 ))  ,i);    
     }
     
-    sum*=4.0*M_PI*B_p;   // Factor 4, not 16, as we return the amplitude, not
-                        // d\sigma/d^2b
+    sum*=4.0*M_PI*B_p;   // Factor 4, not 16, as we return 1/2 d\sigma/d^2b
     
     // 2D integral -> 1D
     sum*=2.0*M_PI*b;

@@ -188,6 +188,10 @@ REAL Calculator::CoherentCrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
     REAL result,abserr, xs, xseps, lambda; size_t eval;
     REAL eps = bjorkx/epsfact;
     result=0;
+    
+    // Notice: CoherentDipoleAmplitude returns 1/2*d\sigma/dt, but it is 
+    // multiplied by 2 in RIntAmplitude()
+    
     if (polarization == VM_MODE_TOT)
     {
         wavef->SetMode(VM_MODE_T);
