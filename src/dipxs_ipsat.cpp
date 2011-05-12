@@ -301,6 +301,10 @@ REAL inthelperf_satp(REAL b, void* p)
  */
 REAL Dipxs_IPSat::Qq_proton_amplitude(REAL rsqr, REAL xbj, REAL b)
 {
+    if (factorize)
+        return exp(-SQR(b)/(2.0*B_p))*(1.0
+	  -exp(-rsqr*nucleus.GetGDist()->Gluedist(xbj, rsqr)/(2.0*M_PI*B_p)) );
+	
     return 1.0-exp(-rsqr*nucleus.GetGDist()->Gluedist(xbj, rsqr)
      *exp(-SQR(b)/(2.0*B_p))/(2.0*M_PI*B_p));
 }
