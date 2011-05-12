@@ -632,11 +632,11 @@ int main(int argc, char* argv[])
         }
     }
     
-    else if (mode==MODE_Ap_A_COH)   // d\sigma^A/dt / A*d\sigma_p/dt as a function of A
+    else if (mode==MODE_Ap_A_COH)   // d\sigma^A/dt / A^2*d\sigma_p/dt as a function of A
     {
         // Same as above, but now for coherent scattering
         cout << "# t=" << t << ", Q^2=" << Qsqr << ", x=" << bjorkx << endl;
-        cout << "# A-dependence of nucleus_xs / A*proton_xs" << endl;
+        cout << "# A-dependence of coherent nucleus_xs / A^2*proton_xs" << endl;
         calculator.SetCorrections(false);
             
         for (int tmpA=minA; tmpA<=maxA; tmpA+=Astep)
@@ -648,7 +648,7 @@ int main(int argc, char* argv[])
             REAL nukexs = calculator.CoherentCrossSection_dt(t, Qsqr, bjorkx);
             cout << tmpA;
             cout.precision(8);
-            cout << " " << nukexs / (tmpA*protonxs) << endl;
+            cout << " " << nukexs / (tmpA*tmpA*protonxs) << endl;
         }
     }
     
