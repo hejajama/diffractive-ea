@@ -50,10 +50,12 @@ Error messages are printed to stderr.
 
 Thanks:
  Some parts of this code is originally written by Tuomas Lappi and I have 
- made  only minor changes to these parts. At the beginning of the file 
+ made  only minor changes to these parts. These files can't be used under the
+ license spesified in this file. At the beginning of the file 
  it is mentioned who has written the code in that specific file. 
  
 License:
+ Files written by Heikki Mäntysaari:
  This program is free software licensed under the terms of the GNU General
  Public License, either version 3 or (at your opinion) any later version 
  released by Free Software Foundation.
