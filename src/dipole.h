@@ -35,7 +35,7 @@ const REAL FOURPI = (4.0*M_PI);
 const REAL DEFAULT_B_p=4.0;	// Default proton shape for ipsat and ipnonsat
 const REAL NBGEVSQR = 1.0/SQR(5.068)*1.0e7; // 1/Gev^4 -> nb/Gev^2
 #define FMGEV 5.068       // fm * GeV
-
+#define LINEINFO __FILE__ << ":" << __LINE__
 
 
 // *** Functions ***

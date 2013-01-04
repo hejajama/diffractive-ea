@@ -15,6 +15,13 @@ int main(int argc, char *argv[])
 {
     float xbj, r;
     
+    DGLAPDist xg;
+	cout << "#x    xg(x=0.01,q)" << endl;
+	for (double x=1; x<1000; x*=1.05)
+	{
+		cout << x << " " << xg.Gluedist(0.01, 4.0/x) << endl;
+	} return 0;
+
     if (argc != 3)
     {
         cerr << "Usage: " << argv[0] << " xbj r" << endl;
@@ -23,7 +30,6 @@ int main(int argc, char *argv[])
     sscanf(argv[1], "%f", &xbj);
     sscanf(argv[2], "%f", &r);
     
-    DGLAPDist xg;
     
     cout << "xg(x=" << xbj << ", r="<<r<<") = " << xg.Gluedist(xbj,r*r) << endl;
     

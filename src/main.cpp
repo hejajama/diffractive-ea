@@ -1,7 +1,7 @@
 /*
  * Calculates eA cross section in dipole model
  * 
- * Heikki Mäntysaari <heikki.mantysaari@jyu.fi>, 2010
+ * Heikki Mäntysaari <heikki.mantysaari@jyu.fi>, 2010-2013
  */
  
 #include <iostream>
@@ -32,7 +32,7 @@
 using namespace std;
 
 const std::string VERSION = "1.02-dev";
-const std::string DATE = "2011-xx-xx";
+const std::string DATE = "2013-xx-xx";
 
 const int MODEL_IPSAT=1; const int MODEL_IPNONSAT=2; const int MODEL_IIM=3;
 const int MODEL_IPSAT_NONSATP=4; const int MODEL_IPSAT_NOFACTOR=5;
@@ -46,21 +46,13 @@ enum MODE
         MODE_Ap_X, MODE_Ap_A, MODE_Ap_A_COH, MODE_TOTXS_Q, MODE_COHERENT_DT,
         MODE_VM_INTZ, MODE_TOTXS_RATIO_Q, MODE_DSIGMA_D2B_R,
         MODE_TOTXS_W, MODE_DSIGMA_DT_QQ, MODE_DSIGMA_D2B_B, MODE_TOTAL_DIPXS,
-        MODE_XG, MODE_GLUEDIST, MODE_XG_X, MODE_DSIGMA_DT_A,
+        MODE_XG, MODE_GLUEDIST, MODE_XG_X, MODE_XG_R, MODE_DSIGMA_DT_A,
         MODE_QUASIELASTIC_COHERENT_Q, MODE_QUASIELASTIC_COHERENT_X,
-        MODE_QUASIELASTIC_COHERENT_A
+        MODE_QUASIELASTIC_COHERENT_A,
+        MODE_COHERENT_AA,
 };
 
 
-/*
-const int MODE_TOTXS=1; const int MODE_DIFFXS=2; const int MODE_Ap=3;
-const int MODE_Ap_X=4; const int MODE_TOTXS_Q=5; const int MODE_COHERENT_DT=6;
-const int MODE_VM_INTZ=7; const int MODE_TOTXS_RATIO_Q=8;
-const int MODE_DSIGMA_D2B_R=9; const int MODE_TOTXS_W=10;
-const int MODE_DSIGMA_DT_QQ=11; const int MODE_DSIGMA_D2B_B=12;
-const int MODE_TOTAL_DIPXS=13; const int MODE_XG=14; const int MODE_GLUEDIST=15;
-const int MODE_XG_X=16; const int MODE_DSIGMA_DT_A=17; 
-*/
 void Cleanup(); 
 
 int main(int argc, char* argv[])
@@ -93,13 +85,14 @@ int main(int argc, char* argv[])
     REAL maxx=1e-2;
     string xgfile="xg.dat";
     REAL W=-1;  // W^2 = (P+q)^2 = invariant mass^2 of the \gamma^*N system
+    REAL M_v=3.097; // Mass of the produced vector meson, 3.097 GeV = J/\Psi
     bool x_set=false;
     bool w_set=false;
     bool scalex=false;  // Scale x so that x=x_bj*(1+M_V^2/Q^2)
     bool output_fm=false;   // Use fm's when printing the value of r
     bool corrections=true;
     REAL r=-1;
-    REAL M_v=3.097; // Mass of the produced vector meson, 3.097 GeV = J/\Psi
+    
     REAL M_n=0;     // Mass of nucleus/nucleon
     REAL bp=DEFAULT_B_p;
     int polarization = VM_MODE_TOT;
@@ -111,7 +104,7 @@ int main(int argc, char* argv[])
     // Parse parameters
     if (argc>1)
     {
-        if (string(argv[1])=="--help")
+        if (string(argv[1])=="--help" or string(argv[1]) == "-help")
         {
             cout << "Usage: -x x_pomeron -Q2 Q^2 -W W (specify only x or W)" << endl;
             cout << "-scalex (scale x by factor 1+M_V^2/Q^2) (can't be used with -W)" << endl;
@@ -135,6 +128,7 @@ int main(int argc, char* argv[])
             cout << "-minW minW, -maxW maxW [GeV] (max/min of W)" << endl;
             cout << "-xg (print the value of xg(x,r) and quit) " << endl;
             cout << "-xg_x (print xg as a function of x) " << endl;
+			cout << "-xg_r (print xg as a function of r) " << endl;
             cout << "-gdistval (print ONLY gluedist and quit)" << endl;
             cout << "-Mv mass (mass of the produced vector meson) " << endl;
             cout << "-vm_intz (print \\int d^z/(4\\pi) r Psi^*Psi) -fm (print r in fm)" << endl;
@@ -148,6 +142,7 @@ int main(int argc, char* argv[])
                 << "[" << minA << " - " << maxA << "])" << endl;
             cout << "-quasielastic/coherent_x, -quasielastic/coherent_q2, -quasielastic/coherent_A" << endl
                 << "   (\\int quasieal. from mint to maxt / total coherent) as a function of x, A or Q)" << endl;
+            cout << "-coherent_AA: compute d\\sigma/dy in coherent AA -> j/\\psi + AA" << endl;
             cout << "-v, -version (print version and quit)" << endl;
             cout << endl;
             cout << "Default values: x="<<bjorkx <<", Q^2="<<Qsqr 
@@ -219,6 +214,8 @@ int main(int argc, char* argv[])
                 mode=MODE_TOTXS_RATIO_Q;
             else if (string(argv[i])=="-totxs_w")
                 mode=MODE_TOTXS_W;
+            else if (string(argv[i])=="-coherent_AA")
+				mode=MODE_COHERENT_AA;
             else if (string(argv[i])=="-t")
                 t=StrToReal(argv[i+1]);
             else if (string(argv[i])=="-r")
@@ -245,6 +242,8 @@ int main(int argc, char* argv[])
                 mode=MODE_XG;
             else if (string(argv[i])=="-xg_x")
                 mode=MODE_XG_X;
+			else if (string(argv[i])=="-xg_r")
+				mode=MODE_XG_R;
             else if (string(argv[i])=="-gdistval")
                 mode=MODE_GLUEDIST;
             else if (string(argv[i])=="-scalex")
@@ -457,6 +456,19 @@ int main(int argc, char* argv[])
             cout << tmpx << " " << res << endl;
         }   
     }
+	else if (mode==MODE_XG_R)
+	{
+		REAL maxr=50; double minr=1e-8;
+		REAL m = pow(maxr/minr, 1.0/points);
+		cout <<"# r   xg(x,r)   x=" << bjorkx << endl;
+		for (int i=0; i<points; i++)
+		{
+			REAL tmpr = minr*pow(m, i);
+			REAL gd = gdist->Gluedist(bjorkx, SQR(tmpr));
+			REAL res = gd*2.0*NC/(M_PI*M_PI*Alpha_s(Mu2(SQR(r))) );
+			cout << tmpr << " " << res << endl;
+		} 		
+	}
     
     else if (mode==MODE_GLUEDIST)
     {
@@ -810,6 +822,29 @@ int main(int argc, char* argv[])
     
     }
     
+    else if (mode == MODE_COHERENT_AA)
+    {
+		cout << "# d\\sigma/dy for AA -> AA + J/\\Psi" << endl;
+		double sqrts=2760;
+		cout <<"# sqrts=" << sqrts << " GeV" << endl;
+		double maxy=3.5;
+		for(double y=-maxy; y<=maxy; y+=0.2)
+		{
+			double res = calculator.DiffractiveAAtoJpsi(y, sqrts, INCOHERENT);
+			//double res = calculator.DiffractiveAAtoJpsi_dt(y, sqrts, 0.5, INCOHERENT);
+			if (res>0)
+			cout << y << " " << res  << endl;			
+		}
+		
+		//cout << "# t    d\\sigma/(dtdy)" << endl;
+		//for (double t=0; t<0.3; t+=0.002)
+		/*for (double t=0.0; t<0.5; t+=0.1)
+		{
+			cout << t << " " << calculator.DiffractiveAAtoJpsi_dt(0, sqrts, t, COHERENT) << endl;
+		}*/
+
+	}
+    
     else if (mode==MODE_VM_INTZ)
     {
         cout << "# 2\\pi r * \\int dz/(4\\pi) r Psi^*Psi, Q^2 = " << Qsqr << endl;
@@ -838,10 +873,10 @@ int main(int argc, char* argv[])
         cout << "# d\\sigma/d^2b for dipole-proton scattering" << endl;
         cout << "# b = " << b << ", x = " << bjorkx << endl;
         cout << "# r [GeV^-1]   dsigma/d2b" << endl;
-        REAL maxr = 10; REAL minr=0.01;
+        REAL maxr = 10; REAL minr=0.00001;
         REAL multiplier = pow(maxr/minr, 1.0/points);
         
-        for (int i=1; i<=points; i++)
+        for (int i=0; i<=points; i++)
         {
             REAL tmpr = minr*pow(multiplier, i);
             cout << tmpr << " " << 2.0*amplitude->Qq_proton_amplitude(tmpr*tmpr, 
