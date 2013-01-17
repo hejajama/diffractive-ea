@@ -326,7 +326,7 @@ REAL Nucleus::FT_T_WS(REAL delta)
  */
 REAL Nucleus::MaxR()
 {
-    return WS_RA+4.0*WS_delta;
+    return WS_RA+12.0*WS_delta;
 }
 
 /* Some trivial functions */

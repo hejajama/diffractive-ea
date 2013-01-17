@@ -48,10 +48,10 @@ class Calculator
         void SetTAccuracy(REAL acc);
         
         // Flux of photons, ra is radius in GeV^(-1), z is charge 
-        double NuclearPhotonFlux(double y, double sqrts, int z=82);
+        double NuclearPhotonFlux(double y, double sqrts, bool pa=false, int z=82); // if pa=true, we have pA collision -> min. impact param is R_A, not 2R_A
         double ProtonPhotonFlux(double y, double sqrts);
-        double DiffractiveAAtoJpsi(double y, double sqrts, Diffraction d=COHERENT, int z=82);	// d\\sigma/dy
-        double DiffractiveAAtoJpsi_dt(double y, double sqrts, double t, Diffraction d=COHERENT, int z=82);	// d\\sigma/dydt
+        double DiffractiveAAtoJpsi(double y, double sqrts, Diffraction d=COHERENT, bool pa=false, int z=82);	// d\\sigma/dy
+        double DiffractiveAAtoJpsi_dt(double y, double sqrts, double t, Diffraction d=COHERENT, bool pa=false, int z=82);	// d\\sigma/dydt
         
         double CoherentIncoherent(double Qsqr, double bjorkx);	// find t where coherent=incoherent
         

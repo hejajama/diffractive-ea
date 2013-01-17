@@ -49,7 +49,7 @@ enum MODE
         MODE_XG, MODE_GLUEDIST, MODE_XG_X, MODE_XG_R, MODE_DSIGMA_DT_A,
         MODE_QUASIELASTIC_COHERENT_Q, MODE_QUASIELASTIC_COHERENT_X,
         MODE_QUASIELASTIC_COHERENT_A,
-        MODE_COHERENT_AA,
+        MODE_COHERENT_AA, MODE_INCOHERENT_AA,
 };
 
 
@@ -92,12 +92,13 @@ int main(int argc, char* argv[])
     bool output_fm=false;   // Use fm's when printing the value of r
     bool corrections=true;
     REAL r=-1;
-    
+    bool pa=false;	// pA instead of AA collision
     REAL M_n=0;     // Mass of nucleus/nucleon
     REAL bp=DEFAULT_B_p;
     int polarization = VM_MODE_TOT;
     REAL b=0;   // Impact parameter
     int wavef=WAVEF_BOOSTED_GAUSSIAN;
+    double sqrts=2760;	// AA and pA events
     
     string iim_file="iim.dat";  // Read parameters for IIM model from this file
             
@@ -106,7 +107,7 @@ int main(int argc, char* argv[])
     {
         if (string(argv[1])=="--help" or string(argv[1]) == "-help")
         {
-            cout << "Usage: -x x_pomeron -Q2 Q^2 -W W (specify only x or W)" << endl;
+            cout << "Usage: -x x_pomeron -Q2 Q^2 -W W (specify only x or W), -sqrts sqrts" << endl;
             cout << "-scalex (scale x by factor 1+M_V^2/Q^2) (can't be used with -W)" << endl;
             cout << "-dipole {ipsat,ipnonsat,iim,ipsat_nonsatp,ipsat-nofactor}" << endl;
             cout << "-gdist {dglap} -xgfile file" << endl;
@@ -142,7 +143,8 @@ int main(int argc, char* argv[])
                 << "[" << minA << " - " << maxA << "])" << endl;
             cout << "-quasielastic/coherent_x, -quasielastic/coherent_q2, -quasielastic/coherent_A" << endl
                 << "   (\\int quasieal. from mint to maxt / total coherent) as a function of x, A or Q)" << endl;
-            cout << "-coherent_AA: compute d\\sigma/dy in coherent AA -> j/\\psi + AA" << endl;
+            cout << "-coherent_AA, -incoherent_AA: compute d\\sigma/dy in coherent AA -> j/\\psi + AA" << endl;
+            cout << "-pA: compute pA instead of AA, allways incoherent!" << endl;
             cout << "-v, -version (print version and quit)" << endl;
             cout << endl;
             cout << "Default values: x="<<bjorkx <<", Q^2="<<Qsqr 
@@ -176,6 +178,8 @@ int main(int argc, char* argv[])
             }
             else if (string(argv[i])=="-Q2")
                 Qsqr=StrToReal(argv[i+1]); 
+            else if (string(argv[i])=="-sqrts")
+				sqrts=StrToReal(argv[i+1]);
             else if (string(argv[i])=="-A")
                 A=StrToInt(argv[i+1]);
             else if (string(argv[i])=="-N")
@@ -216,6 +220,10 @@ int main(int argc, char* argv[])
                 mode=MODE_TOTXS_W;
             else if (string(argv[i])=="-coherent_AA")
 				mode=MODE_COHERENT_AA;
+			else if (string(argv[i])=="-incoherent_AA")
+				mode=MODE_INCOHERENT_AA;
+			else if (string(argv[i])=="-pA" or string(argv[i])=="-pa")
+				pa=true;
             else if (string(argv[i])=="-t")
                 t=StrToReal(argv[i+1]);
             else if (string(argv[i])=="-r")
@@ -822,25 +830,36 @@ int main(int argc, char* argv[])
     
     }
     
-    else if (mode == MODE_COHERENT_AA)
+    else if (mode == MODE_COHERENT_AA or mode==MODE_INCOHERENT_AA)
     {
-		cout << "# d\\sigma/dy for AA -> AA + J/\\Psi" << endl;
-		double sqrts=2760;
+		if (!pa)
+			cout << "# d\\sigma/dy for AA -> AA + J/\\Psi" << endl;
+		else 
+			cout <<"# d\\sigma/dy for pA -> J/\\Psi pA" << endl;
+
 		cout <<"# sqrts=" << sqrts << " GeV" << endl;
-		double maxy=3.5;
-		for(double y=-maxy; y<=maxy; y+=0.2)
-		{
-			double res = calculator.DiffractiveAAtoJpsi(y, sqrts, INCOHERENT);
-			//double res = calculator.DiffractiveAAtoJpsi_dt(y, sqrts, 0.5, INCOHERENT);
-			if (res>0)
-			cout << y << " " << res  << endl;			
-		}
+		double miny=-3.5;
+		Diffraction d=COHERENT;
+		if (mode==MODE_INCOHERENT_AA) d=INCOHERENT;
+		if (d==COHERENT) cout <<"# Coherent" << endl;
+		else cout <<"# Incoherent" << endl;
 		
-		//cout << "# t    d\\sigma/(dtdy)" << endl;
-		//for (double t=0; t<0.3; t+=0.002)
-		/*for (double t=0.0; t<0.5; t+=0.1)
+		double maxy=0;
+		if (pa)
+			maxy=-miny;
+		
+		for(double y=miny; y<=maxy+0.00001; y+=0.1)
 		{
-			cout << t << " " << calculator.DiffractiveAAtoJpsi_dt(0, sqrts, t, COHERENT) << endl;
+			double res = calculator.DiffractiveAAtoJpsi(y, sqrts, d, pa);
+			if (res>0)
+				cout << y << " " << res  << endl;			
+		}
+		/*
+		cout << "# t    d\\sigma/(dtdy)" << endl;
+		//for (double t=0; t<0.3; t+=0.001)
+		for (double t=0.1; t<=0.3001; t+=0.002)
+		{
+			cout << t << " " << calculator.DiffractiveAAtoJpsi_dt(0, sqrts, t, d) << endl;
 		}*/
 
 	}

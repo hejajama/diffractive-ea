@@ -25,6 +25,9 @@ const REAL epsfact = 50.0;   // eps = x_pom/epsfact
 const REAL TOTXS_COHERENT_MINT  = 0.0;  // Min t for total cohernet xs integral
 const REAL TOTXS_COHERENT_MAXT = 0.1;
 
+const double eps_y = 0.05;	// when computing corrections amplitude
+							// is evaluated at y and y+eps_y
+
 using std::cout; using std::cerr; using std::endl;
 
 Calculator::Calculator(Dipxs* amplitude_, WaveFunction* wavef_)
@@ -63,6 +66,7 @@ REAL Calculator::CrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
     REAL eps = bjorkx/epsfact;
     if (polarization == VM_MODE_TOT)
     {
+		cerr <<"# Please improve numerics here... (derivative computation)" << endl;
         wavef->SetMode(VM_MODE_T);
         int status = gsl_integration_qng(&fun, MINR, MAXR, 0, RINTACCURACY, 
             &result, &abserr, &eval);
@@ -127,21 +131,19 @@ REAL Calculator::CrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
         rgsqr_l=1.0; betasqr_l=0;
         if (corrections)
         {
-            /*REAL xs = RIntAmplitude(t, Qsqr, bjorkx, &inthelperf_proton);
-            REAL xseps = RIntAmplitude(t, Qsqr, bjorkx+eps, &inthelperf_proton);
-            REAL lambda = log(xs/xseps)*(bjorkx/eps);
-            betasqr_l = SQR(Beta(lambda));
-            rgsqr_l = SQR(Rg(lambda));*/
+            /*REAL xs_old = RIntAmplitude(t, Qsqr, bjorkx, &inthelperf_proton);
+            REAL xseps_old = RIntAmplitude(t, Qsqr, bjorkx+eps, &inthelperf_proton);
+            REAL lambda_old = log(xs_old/xseps_old)*(bjorkx/eps);*/
+            
             double y0 = log(1.0/bjorkx);
-            //eps=0.001;
-            eps=0.05;
-            double y1 = y0-eps;
-            double y2 = y0 + eps;
+
+            double y1 = y0-eps_y;
+            double y2 = y0 + eps_y;
             double x1 = exp(-y1);
             double x2 = exp(-y2);
             double xs1 = RIntAmplitude(t, Qsqr, x1, &inthelperf_proton);
             double xs2 = RIntAmplitude(t, Qsqr, x2, &inthelperf_proton);
-            double lambda = log(xs2 / xs1) / (2.0*eps);
+            double lambda = log(xs2 / xs1) / (2.0*eps_y);
             rgsqr_l = SQR(Rg(lambda));
             betasqr_l=SQR(Beta(lambda));
             cache_Q2=Qsqr; cached_corrections=true;
@@ -202,6 +204,12 @@ REAL inthelperf_r2(REAL r2, void* p)
  
 REAL Calculator::CoherentCrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
 {
+	if (amplitude->GetNucleus().GetA()==1)
+	{
+		cerr <<"Coherent cross section is not defined for the proton! " << endl;
+		return 0;
+	}
+	
     REAL result,abserr, xs, xseps, lambda; size_t eval;
     REAL eps = std::min(bjorkx/epsfact,0.0001);
     result=0;
@@ -241,23 +249,23 @@ REAL Calculator::CoherentCrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
         result = RIntAmplitude(t, Qsqr, bjorkx, &inthelperf_coherent);
         if (corrections)
         {
-            /*REAL xs = RIntAmplitude(t, Qsqr, bjorkx, &inthelperf_proton);
-            REAL xseps = RIntAmplitude(t, Qsqr, bjorkx+eps, &inthelperf_proton);
-            REAL lambda = log(xs/xseps)*(bjorkx/eps);
-            */
+			/*
+            REAL xs_old = RIntAmplitude(0*t, Qsqr, bjorkx, &inthelperf_coherent);
+            REAL xseps_old = RIntAmplitude(0*t, Qsqr, bjorkx+eps, &inthelperf_coherent);
+            REAL lambda_old = log(xs_old/xseps_old)*(bjorkx/eps);*/
+            
             
             double y0 = log(1.0/bjorkx);
-            //eps=0.001;
-            eps=0.05;
-            double y1 = y0-eps;
-            double y2 = y0 + eps;
+
+            double y1 = y0-eps_y;
+            double y2 = y0 + eps_y;
             double x1 = exp(-y1);
             double x2 = exp(-y2);
-            double xs1 = RIntAmplitude(t, Qsqr, x1, &inthelperf_proton);
-            double xs2 = RIntAmplitude(t, Qsqr, x2, &inthelperf_proton);
-            REAL lambda = log(xs2 / xs1) / (2.0*eps);
+            double xs1 = RIntAmplitude(t, Qsqr, x1, &inthelperf_coherent);
+            double xs2 = RIntAmplitude(t, Qsqr, x2, &inthelperf_coherent);
+            REAL lambda = log(xs2 / xs1) / (2.0*eps_y);
             //cout << 1.0+SQR(Beta(lambda)) << " " << SQR(Rg(lambda)) << " " << lambda << endl;
-            //cout <<"# x=" << bjorkx <<", lambda: " << lambda << " rg " << SQR(Rg(lambda)) << " realpart " << SQR(Beta(lambda)) << endl;
+            //cout <<"# x=" << bjorkx <<", lambda: " << lambda << " oldlambda " << lambda_old << " rg " << SQR(Rg(lambda)) << " realpart " << SQR(Beta(lambda)) << endl;
             result=result*result*(1.0+SQR(Beta(lambda)))*SQR(Rg(lambda));
         }
         else result=result*result;
@@ -542,67 +550,76 @@ double Calculator::CoherentIncoherent(double qsqr, double bjorkx)
  
 const double M_v=3.097;	// J/\Psi mass in GeV
 // Cross section integrated over t
-double Calculator::DiffractiveAAtoJpsi(double y, double sqrts, Diffraction d, int z)
+double Calculator::DiffractiveAAtoJpsi(double y, double sqrts, Diffraction d, bool pa, int z)
 {
 	double wsqr = sqrts * M_v * std::exp(y);
 	double wsqr2 = sqrts * M_v * std::exp(-y);
 	double xbj=	SQR(M_v)/wsqr;	// y
 	double xbj2= SQR(M_v)/wsqr2;	// -y
 	SetPolarization(VM_MODE_T);
-	if (xbj > 0.02 or (amplitude->GetNucleus().GetA()>1 and xbj2>0.02)) return 0;
-	//std::cout << "# x: " << xbj << " x2 " << xbj2 << std::endl;
-	//return TotalCoherentCrossSection(0.0, xbj); 
+	if (xbj > 0.02 or xbj2>0.02) return 0;
 	
 	double switcht1=0, switcht2=0;
 	
-	if (d==INCOHERENT and amplitude->GetNucleus().GetA()>1) // for dipole-proton integrate from t=0
+	if (d==INCOHERENT and !pa) // for dipole-proton integrate from t=0
 	{
 		switcht1 = CoherentIncoherent(0, xbj);
 		switcht2 = CoherentIncoherent(0, xbj2);
-		cout << "# at x=" << xbj << " switch at t=" << switcht1 <<", at x=" << xbj2 <<" switch at t=" << switcht2 << endl;
+		cout << "# at x=" << xbj << ", wsqr=" << wsqr <<" switch at t=" << switcht1 <<", at x=" << xbj2 <<", wsqr=" << wsqr2 <<", switch at t=" << switcht2 << endl;
 	}
 	
+	const double incoh_maxt=1.5;
 	double res=0;
 	double res1=0,res2=0;
-	/*
-	int tmpa = amplitude->GetNucleus().GetA();
-	amplitude->GetNucleus().SetA(1);
-	double flux1 = NuclearPhotonFlux(y, sqrts, z);
-	double xs1= TotalCrossSection(0, xbj, 0, 0.7);
-	amplitude->GetNucleus().SetA(tmpa);
-	double flux2= ProtonPhotonFlux(-y, sqrts);
-	double xs2= TotalCoherentCrossSection(0, xbj2,0,0.1);
-	res1=flux1*xs1;
-	res2=flux2*xs2;
-	*/
-	//cout <<"#x1=" << xbj <<" flux1=" << flux1 <<" xs1=" << xs1 <<" res1=" << res1 << " x2=" << xbj2 << " flux2=" << flux2 <<" xs2=" << xs2<<" res2=" << res2<< endl;
+	if (pa)
+	{
+		if (d==INCOHERENT)
+			cerr <<"pA is implemented only for coherent scattering!!!!" << endl;
+		
+		double flux1 = NuclearPhotonFlux(y, sqrts, pa, z);
+		// change target to proton
+		int tmpa = amplitude->GetNucleus().GetA();
+		amplitude->GetNucleus().SetA(1);
+		double xs1= TotalCrossSection(0, xbj, 0, incoh_maxt);
+		// change target back to the original nuke
+		amplitude->GetNucleus().SetA(tmpa);
+		double flux2= ProtonPhotonFlux(-y, sqrts);
+		double xs2= TotalCoherentCrossSection(0, xbj2,0,0.1);
+		res1=flux1*xs1;
+		res2=flux2*xs2;
+		cout <<"#x1=" << xbj <<" flux1=" << flux1 <<" xs1=" << xs1 <<" res1=" << res1 << " x2=" << xbj2 << " flux2=" << flux2 <<" xs2=" << xs2<<" res2=" << res2<< endl;
+		return res1+res2;
+	}
 	
 	
+	
+	double res1_tmp;
 	if (xbj<1)
 	{
 		if (d==INCOHERENT)
-			res1 = NuclearPhotonFlux(y, sqrts, z) * TotalCrossSection(0.0, xbj,switcht1,1);
+		{
+			res1 = NuclearPhotonFlux(y, sqrts, pa, z) * TotalCrossSection(0.0, xbj,switcht1,incoh_maxt);
+		}
 		else
-			res1 = NuclearPhotonFlux(y, sqrts, z) * TotalCoherentCrossSection(0.0, xbj,0,0.03);
+		{
+			res1 = NuclearPhotonFlux(y, sqrts, pa, z) * TotalCoherentCrossSection(0.0, xbj,0,0.1);
+		}
 		//cout <<"x=" << xbj <<" nuclear flux=" << NuclearPhotonFlux(y, sqrts, z) << " photon flux=" << ProtonPhotonFlux(y, sqrts) << endl;
 	}
-	if (amplitude->GetNucleus().GetA()>1)	// in pA only one way, otherwise both nuclei can emit photon
+	if (xbj2<1)
 	{
-		if (xbj2<1)
-		{
-			if (d==INCOHERENT)
-				res2 = NuclearPhotonFlux(-y, sqrts, z) * TotalCrossSection(0.0, xbj2,switcht2,1);
-			else
-				res2=NuclearPhotonFlux(-y, sqrts, z) * TotalCoherentCrossSection(0.0, xbj2,0,0.03);
-		}
-		
+		if (d==INCOHERENT)
+			res2 = NuclearPhotonFlux(-y, sqrts, pa, z) * TotalCrossSection(0.0, xbj2,switcht2,incoh_maxt);
+		else
+			res2=NuclearPhotonFlux(-y, sqrts, pa, z) * TotalCoherentCrossSection(0.0, xbj2,0,0.1);
 	}
-	//cout << "# x1 " << xbj << " res1 " << res1 << " flux1 " << NuclearPhotonFlux(y, sqrts, z) << " xbj2 " << xbj2 << " res2 " << res2 << " flux2 " << ProtonPhotonFlux(-y, sqrts) << endl;
+		
+	
 	res=res1+res2;
 	return res;
 }
 
-double Calculator::DiffractiveAAtoJpsi_dt(double y, double sqrts, double t, Diffraction d, int z)
+double Calculator::DiffractiveAAtoJpsi_dt(double y, double sqrts, double t, Diffraction d, bool pa, int z)
 {
 	double wsqr = sqrts * M_v * std::exp(y);
 	double wsqr2 = sqrts * M_v * std::exp(-y);
@@ -611,28 +628,30 @@ double Calculator::DiffractiveAAtoJpsi_dt(double y, double sqrts, double t, Diff
 	SetPolarization(VM_MODE_T);
 	if (xbj > 0.02 or xbj2>0.02) return 0;
 
-	double res=0;
 	double res1=0,res2=0;
+	
+	if (pa)
+	{
+		cerr << "pa dt is not implemented yet...." << endl;
+		return 0;
+	}
 	
 	if (xbj<1)
 	{
-		if (amplitude->GetNucleus().GetA()==1) // nucleus emits a photon, scatters off the proton
-			res1 = NuclearPhotonFlux(y, sqrts, z) * ProtonCrossSection_dt(t, 0, xbj);
-		else if (d==INCOHERENT)
-			res1 = NuclearPhotonFlux(y, sqrts, z) * CrossSection_dt(t, 0, xbj);
+		if (d==INCOHERENT)
+			res1 = NuclearPhotonFlux(y, sqrts, pa, z) * CrossSection_dt(t, 0, xbj);
 		else
-			res1 = NuclearPhotonFlux(y, sqrts, z) * CoherentCrossSection_dt(t, 0, xbj);
+			res1 = NuclearPhotonFlux(y, sqrts, pa, z) * CoherentCrossSection_dt(t, 0, xbj);
 	}
 	if (xbj2<1)
 	{
 		if (d==INCOHERENT)
-			res2 = NuclearPhotonFlux(-y, sqrts, z) * CrossSection_dt(t, 0, xbj2);
+			res2 = NuclearPhotonFlux(-y, sqrts, pa, z) * CrossSection_dt(t, 0, xbj2);
 		else
-			res2=NuclearPhotonFlux(-y, sqrts, z) * CoherentCrossSection_dt(t, 0, xbj2);
+			res2=NuclearPhotonFlux(-y, sqrts, pa, z) * CoherentCrossSection_dt(t, 0, xbj2);
 	}
 	cout << "# x1 " << xbj << " res1 " << res1 << " x2 " << xbj2 << " res2 " << res2 << endl;
-	res=res1+res2;
-	return res1;
+	return res1+res2;
 	
 }
 
@@ -640,28 +659,34 @@ double Calculator::DiffractiveAAtoJpsi_dt(double y, double sqrts, double t, Diff
 /*
  * Photon flux for diffractive AA events
  * y: rapidity of produced meson, z: charge
+ * if pa=true, we have pA collision -> min. impact param is R_A, not 2R_A
  */
-double Calculator::NuclearPhotonFlux(double y,  double sqrts, int z)
+double Calculator::NuclearPhotonFlux(double y,  double sqrts,  bool pa, int z)
 {
 	///FIXME: hardcoded
 	
 	const double ma=193; // Mass of Pb
+	//const double ma = 183.47;
 	
 	
-	double omega = M_v/2*std::exp(y);
+	double omega = M_v/2.0*std::exp(y);
 	double wsqr = 2.0*omega*sqrts;
 	double xp = M_v*M_v/wsqr;
-	int a =208;
+	int a = amplitude->GetNucleus().GetA();
 	z=82;
+	//z=79;
 	if (a != 208 or z != 82)
 	{
-		std::cerr << "PhotonFlux uses hardcoded nucleus mass, so only A=" << a << " Pb is allowed!" << std::endl;
+		std::cerr << "PhotonFlux uses hardcoded nucleus mass, so only A=208 (Pb) is allowed!" << std::endl;
 		return 0;
 	}
 	
-	double ra = (1.13*std::pow(a, 1.0/3.0) - 0.86*std::pow(a, -1.0/3.0)) * FMGEV;
-	if (amplitude->GetNucleus().GetA() == 1)
+	double ra = (1.12*std::pow(a, 1.0/3.0) - 0.86*std::pow(a, -1.0/3.0)) * FMGEV;
+	//double ra = 1.13*std::pow(a, 1.0/3.0) * FMGEV;
+	if (pa)
+	{
 		ra/=2.0;	// in pA computation now we integrate from R_A to infty, not from 2R_A.
+	}
 	double gamma = a*sqrts/(2.0*ma);
 	
 	double xsi = 2.0*omega*ra /gamma;
