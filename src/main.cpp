@@ -99,6 +99,7 @@ int main(int argc, char* argv[])
     REAL b=0;   // Impact parameter
     int wavef=WAVEF_BOOSTED_GAUSSIAN;
     double sqrts=2760;	// AA and pA events
+    std::string waveffile="";   // file where wavefunction parameters are read, empty=default
     
     string iim_file="iim.dat";  // Read parameters for IIM model from this file
             
@@ -112,6 +113,7 @@ int main(int argc, char* argv[])
             cout << "-dipole {ipsat,ipnonsat,iim,ipsat_nonsatp,ipsat-nofactor}" << endl;
             cout << "-gdist {dglap} -xgfile file" << endl;
             cout << "-wavef {gaus-lc, boosted-gaussian} (specify VM wave function)" << endl;
+            cout << "-wavef_file filename: file where wavefunction parameters is read" << endl;
             cout << "-A number_of_nucleai -Mn nucleus_mass" << endl;
             cout << "-minA A, -maxA A, -Astep n (min and max mass of the nucleai, step in computations)" << endl;
             cout << "-N number_of_data_points" << endl;
@@ -131,7 +133,6 @@ int main(int argc, char* argv[])
             cout << "-xg_x (print xg as a function of x) " << endl;
 			cout << "-xg_r (print xg as a function of r) " << endl;
             cout << "-gdistval (print ONLY gluedist and quit)" << endl;
-            cout << "-Mv mass (mass of the produced vector meson) " << endl;
             cout << "-vm_intz (print \\int d^z/(4\\pi) r Psi^*Psi) -fm (print r in fm)" << endl;
             cout << "-pol {l, t, sum} (polarization of the VM, sum = l + t is default)" << endl;
             cout << "-dsigma/d2b_r impact_par (print d\\sgima_{q\bar q}/d^2 b as a function of r)" << endl;
@@ -240,8 +241,6 @@ int main(int argc, char* argv[])
                 iim_file=string(argv[i+1]);
             else if (string(argv[i])=="-xgfile")
                 xgfile=string(argv[i+1]);
-            else if (string(argv[i])=="-Mv")
-                M_v=StrToReal(argv[i+1]);
             else if (string(argv[i])=="-Mn")
                 M_n=StrToReal(argv[i+1]);
             else if (string(argv[i])=="-Bp")
@@ -298,6 +297,11 @@ int main(int argc, char* argv[])
                     cerr << "Model " << argv[i+1] << " is not valid" << endl;
                     return -1;
                 }
+            }
+            else if (string(argv[i])=="-wavef_file")
+            {
+                waveffile = argv[i+1];
+                    
             }
             else if (string(argv[i])=="-wavef")
             {
@@ -362,6 +366,7 @@ int main(int argc, char* argv[])
         //if (Qsqr<0.00001){ cerr << "Q^2=0, can't scale x" << endl; return -1;}
         //bjorkx = bjorkx * (1 + SQR(M_v)/Qsqr);
     }
+
     
     // Print values
     cout << "# A=" << A;
@@ -375,23 +380,33 @@ int main(int argc, char* argv[])
     
     // Wave function
     WaveFunction *JPsi;
+    std::string fname;
     switch (wavef)
     {
         case WAVEF_GAUS_LC:
            // J/Psi wave function:  e_f, N_T, N_L, R_T, R_L, m_f, M_V, delta
            //VM_Photon JPsi(2.0/3.0, 1.23, 0.83, sqrt(6.5), sqrt(3.0), 1.4, 3.097, 1);
-           JPsi = new GausLC("gaus-lc.dat");
+           fname="gaus-lc.dat";
+           if (waveffile != "")
+                fname=waveffile;
+           JPsi = new GausLC(waveffile);
+           cout << "# Wave function: " << *((GausLC*)JPsi) << endl;
            break;
         case WAVEF_BOOSTED_GAUSSIAN:
-            JPsi = new BoostedGauss("gauss-boosted.dat");
+            fname = "gauss-boosted.dat";
+            if (waveffile != "")
+                fname=waveffile;
+            JPsi = new BoostedGauss(waveffile);
+            cout << "# Wave function: " << *((BoostedGauss*)JPsi) << endl;
             break;
         default:
             cerr << "Unknown wave function set! Quitting...." << std::endl;
             return -1;
-    }   
-    
+    }
+
+    M_v = JPsi->MesonMass();
     JPsi->SetMode(polarization);
-    
+    cout << "# Produced meson mass: " << M_v << endl;
     // Intialize Dipxs and Nucleus
     Nucleus nuke(A);
     //GDist *gdist = new DGLAPDist();
@@ -848,16 +863,20 @@ int main(int argc, char* argv[])
 		if (pa)
 			maxy=-miny;
 		
-		for(double y=miny; y<=maxy+0.00001; y+=0.1)
+
+        for(double y=miny; y<=maxy+0.00001; y+=0.1)
 		{
 			double res = calculator.DiffractiveAAtoJpsi(y, sqrts, d, pa);
 			if (res>0)
-				cout << y << " " << res  << endl;			
+				cout << y << " " << res  << endl;
+            else
+                cout << y << " " << 0 << endl;
 		}
-		/*
-		cout << "# t    d\\sigma/(dtdy)" << endl;
-		//for (double t=0; t<0.3; t+=0.001)
-		for (double t=0.1; t<=0.3001; t+=0.002)
+	
+        //cout << calculator.DiffractiveAAtoJpsi_dt(0, sqrts, 0, d) << endl;
+		/*cout << "# t    d\\sigma/(dtdy)" << endl;
+		for (double t=0; t<0.3; t+=0.001)
+		//for (double t=0.1; t<=0.3001; t+=0.002)
 		{
 			cout << t << " " << calculator.DiffractiveAAtoJpsi_dt(0, sqrts, t, d) << endl;
 		}*/

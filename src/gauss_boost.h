@@ -6,7 +6,7 @@
  * Boosted Gaussian version, ref.
  * Kowalski, Motyka and Watt, see arXiv: hep-ph/0606272v2
  *
- * Heikki Mäntysaari <heikki.mantysaari@jyu.fi>, 2010
+ * Heikki Mäntysaari <heikki.mantysaari@jyu.fi>, 2010-2014
  */
 
 
@@ -43,6 +43,8 @@ class BoostedGauss : public WaveFunction {
         REAL Psi_L_D2R(REAL r, REAL z); // \partial^2_r Psi_L
         
         std::string GetParamString();
+
+        REAL MesonMass();
         
         
     private:
@@ -51,6 +53,8 @@ class BoostedGauss : public WaveFunction {
         REAL N_T, N_L; // Constants for Psi_T and Psi_L
         REAL R;
         REAL m_f,M_V;
+        REAL alpha; // needed for higher exited states like 2s
+        int S;      // S=1 is J/Psi etc.
         int delta;  // There are two different longitudial wave functions,
                     // delta=0 or delta=1
         

@@ -37,6 +37,8 @@ class GausLC : public WaveFunction {
         REAL Psi_T_DR(REAL r, REAL z); // \partial_r Psi_T
         REAL Psi_L_DR(REAL r, REAL z); 
         REAL Psi_L_D2R(REAL r, REAL z); // \partial^2_r Psi_L
+
+        REAL MesonMass();
         
         std::string GetParamString();
         

@@ -3,7 +3,7 @@ CXXFLAGS = `gsl-config --cflags` -O2
 #CXXFLAGS = `gsl-config --cflags` -O2 -fopenmp
 LDFLAGS = `gsl-config --libs` 
 
-SOURCES = src/main.cpp src/dipole.cpp src/gaus_lc.cpp src/vector.cpp src/nucleus.cpp \
+SOURCES = src/dipole.cpp src/gaus_lc.cpp src/vector.cpp src/nucleus.cpp \
 	src/dipxs.cpp src/gdist.cpp \
 	src/mersenne/mersenne_inline.cpp src/wave_function.cpp \
 	src/dipxs_ipsat.cpp  \
@@ -19,8 +19,11 @@ OBJECTS=$(SOURCES:.cpp=.o)
 
 all: dipole 
 
-dipole: $(OBJECTS)
-	g++ $(CXXFLAGS) $(LDFLAGS) $(OBJECTS) -o dipole 
+dipole: $(OBJECTS) src/main.cpp
+	g++ $(CXXFLAGS) $(LDFLAGS) $(OBJECTS) src/main.cpp -o dipole 
+
+generator:
+	g++ $(CXXFLAGS) $(LDFLAGS) $(OBJECTS) create_amplitudelib_from_ipsat.cpp -o dipxs_generator 
 
 .cpp.o:
 	g++ $(CXXFLAGS) $< -c -o $@

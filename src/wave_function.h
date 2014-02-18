@@ -24,6 +24,8 @@ class WaveFunction{
         REAL PsiSqr_tot_intz(REAL Qsqr, REAL r);
         REAL PsiSqr_intz(REAL Qsqr, REAL r);
         void SetMode(int m);
+
+        virtual REAL MesonMass()=0;   // Get vector meson mass
     private:
         int mode;   // What to return when PsiSqr_intz
 };

@@ -222,6 +222,11 @@ REAL GausLC::Psi_L_D2R(REAL r, REAL z)
     return N_L*(z-1)*z/pow(R_L,4) * (SQR(r)-SQR(R_L)) * exp(-SQR(r)/(2.0*SQR(R_L)));
 }
 
+REAL GausLC::MesonMass()
+{
+    return M_V;
+}
+
 std::string GausLC::GetParamString()
 {
     std::stringstream str;
@@ -234,7 +239,7 @@ std::string GausLC::GetParamString()
 
 std::ostream& operator<<(std::ostream& os, GausLC& ic)
 {
-    return os << " Vector meson and photon wave function overlap. Params: "
+    return os << " Wave function overlap, Gaus-LC, Params: "
         << ic.GetParamString() << " .";
         
 }

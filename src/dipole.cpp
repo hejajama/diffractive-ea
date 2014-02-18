@@ -9,11 +9,12 @@
 #include <gsl/gsl_sf_exp.h>
 #include <string>
 #include <sstream>
+#include <cstdlib>
 
 // eps(z,Q,r) = sqrt(z(1-z)*Q^2 + m^2)
 REAL epsfunsqr(REAL z, REAL Qsqr, REAL msqr)
 {
-    return z*(1-z)*Qsqr + msqr;
+    return z*(1.0-z)*Qsqr + msqr;
 }
 
 REAL epsfun(REAL z, REAL Qsqr, REAL msqr)
@@ -81,9 +82,10 @@ void ErrHandler(const char * reason,
                         int gsl_errno)
 {
     errors++;
-    if (gsl_errno !=14  )  // 14 = failed to reach tolerance, handle when gsl_int 
-                    // is called
+    if (gsl_errno !=14  )  // 14 = failed to reach tolerance, handle when gsl_int
+                  // is called
         std::cerr << file << ":"<< line <<": Error " << errors << ": " <<reason 
             << " (code " << gsl_errno << ")." << std::endl;
+    
 }
 

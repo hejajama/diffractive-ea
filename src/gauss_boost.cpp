@@ -47,7 +47,8 @@ BoostedGauss::BoostedGauss(std::string file)
   
     if (!f.is_open())
     {
-        std::cerr << "Could not open file " << file << "!";
+        std::cerr << "Could not open file " << file << " " << LINEINFO << "!" << std::endl ;
+        exit(1);
         return;
     }
     std::string line;
@@ -71,6 +72,10 @@ BoostedGauss::BoostedGauss(std::string file)
             R=StrToReal(line.substr(2));
         if (line.substr(0,3)=="del") 
             delta=StrToInt(line.substr(4));
+        if (line.substr(0,2)=="S:")
+            S=StrToInt(line.substr(2));
+        if (line.substr(0,5)=="alpha")
+            alpha=StrToReal(line.substr(6));
     }
     f.close();
 
@@ -158,7 +163,7 @@ REAL BoostedGauss::PsiSqr_T_intz(REAL Qsqr, REAL r)
             << __LINE__ << ": Result " << result << ", abserror: " << abserr <<
             std::endl;
 
-    result*=1/(4.0*M_PI); // Normalization
+    result*=1.0/(4.0*M_PI); // Normalization
     return result;
 }
 
@@ -194,33 +199,54 @@ REAL BoostedGauss::PsiSqr_L_intz(REAL Qsqr, REAL r)
  */
 REAL BoostedGauss::Psi_T(REAL r, REAL z)
 {
-    return N_T*z*(1-z)*exp(-SQR(m_f)*SQR(R)/(8*z*(1-z))
-        - 2*z*(1-z)*SQR(r)/SQR(R) + SQR(m_f)*SQR(R)/2 );
+    return N_T*z*(1-z)*exp(-SQR(m_f)*SQR(R)/(8.0*z*(1-z))
+        - 2.0*z*(1-z)*SQR(r)/SQR(R) + SQR(m_f)*SQR(R)/2.0 )
+        * (1.0 + alpha*
+                ( 2.0 - SQR(m_f*R) + SQR(m_f*R)/(4.0*z*(1.0-z))
+                    - 4.0*z*(1.0-z)*SQR(r)/SQR(R) ) );
 }
 
 REAL BoostedGauss::Psi_L(REAL r, REAL z)
 {
-        return N_L*z*(1-z)*exp(-SQR(m_f)*SQR(R)/(8*z*(1-z))
-        - 2*z*(1-z)*SQR(r)/SQR(R) + SQR(m_f)*SQR(R)/2 );
+        return N_L*z*(1.0-z)*exp(-SQR(m_f)*SQR(R)/(8.0*z*(1.0-z))
+        - 2.0*z*(1.0-z)*SQR(r)/SQR(R) + SQR(m_f)*SQR(R)/2.0 )
+            * (1.0 + alpha*
+                ( 2.0 - SQR(m_f*R) + SQR(m_f*R)/(4.0*z*(1.0-z))
+                    - 4.0*z*(1.0-z)*SQR(r)/SQR(R) ) );
 }
 
 // \partial_r Psi_T(r,z)
 REAL BoostedGauss::Psi_T_DR(REAL r, REAL z)
 {
-    return -4.0*z*(1-z)*r/SQR(R)*Psi_T(r,z);
+    return -4.0*z*(1.0-z)*r/SQR(R)*Psi_T(r,z)
+        -8.0*alpha*N_T*SQR(z*(1.0-z)) * r/SQR(R)
+            * std::exp(-SQR(m_f)*SQR(R)/(8.0*z*(1-z))
+                - 2.0*z*(1-z)*SQR(r)/SQR(R) + SQR(m_f)*SQR(R)/2.0 )  ;
 }
 
 // \partial_r PSI_L(r,z)
 REAL BoostedGauss::Psi_L_DR(REAL r, REAL z)
 {
-    return -4.0*z*(1-z)*r/SQR(R)*Psi_L(r,z);
+    return -4.0*z*(1-z)*r/SQR(R)*Psi_L(r,z)
+        -8.0*alpha*N_L*SQR(z*(1.0-z)) * r/SQR(R)
+            * std::exp(-SQR(m_f)*SQR(R)/(8.0*z*(1-z))
+                - 2.0*z*(1-z)*SQR(r)/SQR(R) + SQR(m_f)*SQR(R)/2.0 )  ;
 }
 
 // \partial^2_r PSI_L(r,z)
 REAL BoostedGauss::Psi_L_D2R(REAL r, REAL z)
 {
-    return -4.0*z*(1-z)/SQR(R)*Psi_L(r,z) 
-        + SQR(-4.0*z*(1-z)*r/SQR(R))*Psi_L(r,z);
+    return -4.0*z*(1.0-z)/SQR(R)*Psi_L(r,z) 
+        + SQR(4.0*z*(1.0-z)*r/SQR(R))*Psi_L(r,z)
+            - 8.0*alpha*N_T*SQR(z*(1.0-z))/std::pow(R,4.0)
+                * (8.0*SQR(r)*z*(-1.0+z) + SQR(R) )
+                * std::exp( 2.0*z*(-1.0+z)*SQR(r/R) + SQR(1.0-2.0*z)*SQR(m_f*R)/(8.0*z*(-1.0+z)) );
+    
+}
+
+REAL BoostedGauss::MesonMass()
+{
+    return M_V;
 }
 
 std::string BoostedGauss::GetParamString()
@@ -229,13 +255,13 @@ std::string BoostedGauss::GetParamString()
     str << "e_f = "
     << e_f << ", m_f = " << m_f << ", M_V = " << M_V << ", N_T = "
     << N_T << ", N_L = " << N_L << ", R = " << R 
-    << ", delta = " << delta << " ";
+    << ", delta = " << delta << " " << " S = " << S << ", alpha = " << alpha ;
     return str.str();
 }
 
 std::ostream& operator<<(std::ostream& os, BoostedGauss& ic)
 {
-    return os << " Vector meson and photon wave function overlap. Params: "
+    return os << "Wave function overlap: Boosted Gaussian, Params: "
         << ic.GetParamString() << " .";
         
 }

@@ -25,7 +25,7 @@ const REAL epsfact = 50.0;   // eps = x_pom/epsfact
 const REAL TOTXS_COHERENT_MINT  = 0.0;  // Min t for total cohernet xs integral
 const REAL TOTXS_COHERENT_MAXT = 0.1;
 
-const double eps_y = 0.05;	// when computing corrections amplitude
+const double eps_y = 0.06;	// when computing corrections amplitude
 							// is evaluated at y and y+eps_y
 
 using std::cout; using std::cerr; using std::endl;
@@ -141,6 +141,8 @@ REAL Calculator::CrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
             double y2 = y0 + eps_y;
             double x1 = exp(-y1);
             double x2 = exp(-y2);
+			// NOTE: there could be problem if xs1 and xs2 have different sign which is 
+			// possible in principle
             double xs1 = RIntAmplitude(t, Qsqr, x1, &inthelperf_proton);
             double xs2 = RIntAmplitude(t, Qsqr, x2, &inthelperf_proton);
             double lambda = log(xs2 / xs1) / (2.0*eps_y);
@@ -249,9 +251,9 @@ REAL Calculator::CoherentCrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
         result = RIntAmplitude(t, Qsqr, bjorkx, &inthelperf_coherent);
         if (corrections)
         {
-			/*
-            REAL xs_old = RIntAmplitude(0*t, Qsqr, bjorkx, &inthelperf_coherent);
-            REAL xseps_old = RIntAmplitude(0*t, Qsqr, bjorkx+eps, &inthelperf_coherent);
+			
+            /*REAL xs_old = RIntAmplitude(t, Qsqr, bjorkx, &inthelperf_proton);
+            REAL xseps_old = RIntAmplitude(t, Qsqr, bjorkx+eps, &inthelperf_proton);
             REAL lambda_old = log(xs_old/xseps_old)*(bjorkx/eps);*/
             
             
@@ -261,10 +263,10 @@ REAL Calculator::CoherentCrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
             double y2 = y0 + eps_y;
             double x1 = exp(-y1);
             double x2 = exp(-y2);
-            double xs1 = RIntAmplitude(t, Qsqr, x1, &inthelperf_coherent);
-            double xs2 = RIntAmplitude(t, Qsqr, x2, &inthelperf_coherent);
+            double xs1 = RIntAmplitude(t, Qsqr, x1, &inthelperf_proton);
+            double xs2 = RIntAmplitude(t, Qsqr, x2, &inthelperf_proton);
             REAL lambda = log(xs2 / xs1) / (2.0*eps_y);
-            //cout << 1.0+SQR(Beta(lambda)) << " " << SQR(Rg(lambda)) << " " << lambda << endl;
+            //cout <<"x " << bjorkx << " realpart " << 1.0+SQR(Beta(lambda)) << " skew " << SQR(Rg(lambda)) << " lambda " << lambda << endl;
             //cout <<"# x=" << bjorkx <<", lambda: " << lambda << " oldlambda " << lambda_old << " rg " << SQR(Rg(lambda)) << " realpart " << SQR(Beta(lambda)) << endl;
             result=result*result*(1.0+SQR(Beta(lambda)))*SQR(Rg(lambda));
         }
@@ -279,9 +281,11 @@ REAL Calculator::CoherentCrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
 REAL inthelperf_coherent(REAL r, void* p)
 {
     inthelper_r* par = (inthelper_r*)p;
-    return 2*M_PI*r*par->vm->PsiSqr_intz(par->Qsqr, r)
+    REAL result = 2.0*M_PI*r*par->vm->PsiSqr_intz(par->Qsqr, r)
         * par->amplitude->CoherentDipoleAmplitude_avg(SQR(r), par->bjorkx,
          par->delta);
+    //cout << r << " " << result << endl;
+    return result;
 }
 
 /*
@@ -387,7 +391,7 @@ REAL Calculator::ProtonCrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
         result=xs*xs*(1.0+SQR(Beta(lambda)) ) * SQR(Rg(lambda));
    }
     
-     
+
     return result/(16.0*M_PI);
 }
 
@@ -396,9 +400,11 @@ REAL Calculator::ProtonCrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
 REAL inthelperf_proton(REAL r, void* p)
 {
     inthelper_r* par = (inthelper_r*)p;
-    return 2.0*M_PI*r*par->vm->PsiSqr_intz(par->Qsqr, r)
+    REAL result =  2.0*M_PI*r*par->vm->PsiSqr_intz(par->Qsqr, r)
         * par->amplitude->DipoleAmplitude_proton(SQR(r), par->bjorkx,
          par->delta);
+
+    return result;
        
 }
 
@@ -478,6 +484,8 @@ REAL Calculator::TotalCrossSection(REAL Qsqr, REAL bjorkx, REAL mint, REAL maxt)
     if (status and result>0.00001)
         std::cerr << "Total cross section integral failed to reach tolerance: "
         << "Result: " << result << ", abserr: " << abserr << std::endl;
+
+    return result;
 }
 
 // Integration over t 
@@ -548,10 +556,11 @@ double Calculator::CoherentIncoherent(double qsqr, double bjorkx)
  * d\\sigma/dy for AA -> AA+J/\Psi
  */
  
-const double M_v=3.097;	// J/\Psi mass in GeV
+//const double M_v=3.097;	// J/\Psi mass in GeV
 // Cross section integrated over t
 double Calculator::DiffractiveAAtoJpsi(double y, double sqrts, Diffraction d, bool pa, int z)
 {
+    double M_v = wavef->MesonMass();
 	double wsqr = sqrts * M_v * std::exp(y);
 	double wsqr2 = sqrts * M_v * std::exp(-y);
 	double xbj=	SQR(M_v)/wsqr;	// y
@@ -621,6 +630,7 @@ double Calculator::DiffractiveAAtoJpsi(double y, double sqrts, Diffraction d, bo
 
 double Calculator::DiffractiveAAtoJpsi_dt(double y, double sqrts, double t, Diffraction d, bool pa, int z)
 {
+    double M_v = wavef->MesonMass();
 	double wsqr = sqrts * M_v * std::exp(y);
 	double wsqr2 = sqrts * M_v * std::exp(-y);
 	double xbj=	SQR(M_v)/wsqr;	// y
@@ -663,10 +673,30 @@ double Calculator::DiffractiveAAtoJpsi_dt(double y, double sqrts, double t, Diff
  */
 double Calculator::NuclearPhotonFlux(double y,  double sqrts,  bool pa, int z)
 {
-	///FIXME: hardcoded
-	
-	const double ma=193; // Mass of Pb
-	//const double ma = 183.47;
+    double M_v = wavef->MesonMass();
+	///FIXME: argument z is useless
+
+    double mass=0;
+    z=0;
+    if (sqrts==2760)
+    {
+        // LHC
+        mass=193.729;
+        z=82;
+    }
+    else if (sqrts==200)
+    {
+        mass=183.47;
+        z=79;
+    }
+    else
+    {
+        cerr << "Sqrts " << sqrts << " is unknown, don't know nuclear mass and z" << endl;
+        exit(1);
+    }
+    
+	const double ma=193.729; // Mass of Pb
+	//const double ma = 
 	
 	
 	double omega = M_v/2.0*std::exp(y);
@@ -677,8 +707,8 @@ double Calculator::NuclearPhotonFlux(double y,  double sqrts,  bool pa, int z)
 	//z=79;
 	if (a != 208 or z != 82)
 	{
-		std::cerr << "PhotonFlux uses hardcoded nucleus mass, so only A=208 (Pb) is allowed!" << std::endl;
-		return 0;
+	//	std::cerr << "PhotonFlux uses hardcoded nucleus mass, so only A=208 (Pb) is allowed!" << std::endl;
+		//return 0;
 	}
 	
 	double ra = (1.12*std::pow(a, 1.0/3.0) - 0.86*std::pow(a, -1.0/3.0)) * FMGEV;
@@ -700,6 +730,7 @@ double Calculator::NuclearPhotonFlux(double y,  double sqrts,  bool pa, int z)
 
 double Calculator::ProtonPhotonFlux(double y, double sqrts)
 {
+    double M_v = wavef->MesonMass();
 	double omega = M_v/2*std::exp(y);
 	double wsqr = 2.0*omega*sqrts;
 	double xp = M_v*M_v/wsqr;
