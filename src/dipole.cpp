@@ -58,6 +58,7 @@ REAL Mu2(REAL rsqr)
 /*
  * Str to REAL/int
  */
+ /*
 REAL StrToReal(std::string str)
 {
     std::stringstream buff(str);
@@ -73,8 +74,9 @@ int StrToInt(std::string str)
     buff >> tmp;
     return tmp;
 }
-
+*/
 // GSL Error handler
+/*
 int errors;
 void ErrHandler(const char * reason,
                         const char * file,
@@ -88,4 +90,5 @@ void ErrHandler(const char * reason,
             << " (code " << gsl_errno << ")." << std::endl;
     
 }
+*/
 

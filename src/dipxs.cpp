@@ -178,4 +178,13 @@ REAL Dipxs::Qq_proton_amplitude(REAL rsqr, REAL xbj, REAL b)
     std::cerr << "Dipxs::Qq_amplitude is not impelmented" << std::endl;
 }
 
+REAL Dipxs::Sigma0()
+{
+    std::cerr <<"Dipxs::Sigma0 is not implemented" << std::endl;
+}
 
+
+REAL Dipxs::Bp()
+{
+    std::cerr <<"Dipxs::Bp is not implemented" << std::endl;
+}

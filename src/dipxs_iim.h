@@ -50,6 +50,9 @@ class Dipxs_IIM : public Dipxs
 
         REAL Q_s(REAL x);       // Saturation scale
         REAL GetB_D();
+
+        REAL Sigma0();
+        REAL Bp();
     private:
         void Intialize();
         int ReadParameters(std::string file);

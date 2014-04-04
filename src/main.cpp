@@ -25,6 +25,7 @@
 #include "dipxs_ipnonsat.h"
 #include "dipxs_ipsat.h"
 #include "dipxs_iim.h"
+#include "dipxs_bk.h"
 #include "gdist/gdist_dglap.h"
 #include "mersenne/mersenne.h"
 #include "calculator.h"
@@ -36,6 +37,7 @@ const std::string DATE = "2013-xx-xx";
 
 const int MODEL_IPSAT=1; const int MODEL_IPNONSAT=2; const int MODEL_IIM=3;
 const int MODEL_IPSAT_NONSATP=4; const int MODEL_IPSAT_NOFACTOR=5;
+const int MODEL_BK=6;
 const int GDIST_DGLAP=1; 
 
 const int WAVEF_GAUS_LC=1; const int WAVEF_BOOSTED_GAUSSIAN=2;
@@ -110,7 +112,7 @@ int main(int argc, char* argv[])
         {
             cout << "Usage: -x x_pomeron -Q2 Q^2 -W W (specify only x or W), -sqrts sqrts" << endl;
             cout << "-scalex (scale x by factor 1+M_V^2/Q^2) (can't be used with -W)" << endl;
-            cout << "-dipole {ipsat,ipnonsat,iim,ipsat_nonsatp,ipsat-nofactor}" << endl;
+            cout << "-dipole {ipsat,ipnonsat,iim,ipsat_nonsatp,ipsat-nofactor,bk}" << endl;
             cout << "-gdist {dglap} -xgfile file" << endl;
             cout << "-wavef {gaus-lc, boosted-gaussian} (specify VM wave function)" << endl;
             cout << "-wavef_file filename: file where wavefunction parameters is read" << endl;
@@ -292,6 +294,8 @@ int main(int argc, char* argv[])
                     model=MODEL_IIM;
                 else if (string(argv[i+1])=="ipsat_nonsatp")
                     model=MODEL_IPSAT_NONSATP;
+                else if (string(argv[i+1])=="bk")
+                    model=MODEL_BK;
                 else
                 {
                     cerr << "Model " << argv[i+1] << " is not valid" << endl;
@@ -438,6 +442,9 @@ int main(int argc, char* argv[])
         amplitude = new Dipxs_IPSat(nuke, IPSAT_MODE_NONSAT_P,bp);
         ((Dipxs_IPSat*)amplitude)->SetFactorize(true);
         break;
+    case MODEL_BK:
+        amplitude = new Dipxs_BK(nuke);
+        break;
     }
 
     if (Qsqr < 0.00001 and polarization != VM_MODE_T)
@@ -516,20 +523,25 @@ int main(int argc, char* argv[])
      
     else if (mode==MODE_TOTXS_Q)    // Total cross section as a function of Q^2
     {                               // W fixed
-        cout << "# Total cross section [nb], W=" << W << " GeV" << endl;
+        cout << "#Q^2 [GeV^2]   Total cross section [nb], W=" << W << " GeV" << endl;
         if (minQsqr==0) minQsqr=0.0001; // Qsqr=0 doesn't work
         REAL multiplier = pow(maxQsqr/minQsqr, 1.0/points);
-        #pragma omp parallel for
+        ////#pragma omp parallel for
         for (int i=0; i<=points; i++)
         {
             REAL tmpqsqr = minQsqr*pow(multiplier, i);
             //bjorkx = tmpqsqr/(tmpqsqr+SQR(W))*(1+SQR(M_v)/tmpqsqr);
             //bjorkx = (tmpqsqr + SQR(M_v))/SQR(W);
             bjorkx = (tmpqsqr + SQR(M_v))/(SQR(W)+tmpqsqr);
-            REAL xs = calculator.TotalCrossSection(tmpqsqr, bjorkx);
+
+            REAL xs = 0;
+            if (A==1)
+                xs = 1.0/calculator.GetAmplitude()->Bp() * calculator.ProtonCrossSection_dt(0, tmpqsqr, bjorkx);
+            else
+                xs =  calculator.TotalCrossSection(tmpqsqr, bjorkx);
 
             xs *= NBGEVSQR;     // 1/Gev^2 -> nb  
-            #pragma omp critical
+            //#pragma omp critical
             {
                 cout.precision(5);
                 cout << fixed << tmpqsqr;
@@ -545,22 +557,24 @@ int main(int argc, char* argv[])
         cout << "# W [GeV]  total cross section [nb], Q^2=" << Qsqr << " GeV" << endl;
         if (minW<0.0001) minW=10; // small W -> huge x -> model doesn't work
         //REAL multiplier = pow(maxW/minW, 1.0/points);
-        #pragma omp parallel for
+        ////#pragma omp parallel for
         for (int i=0; i<=points; i++)
         {
             //REAL tmpw = minW*pow(multiplier, i);
             REAL tmpw = minW + (maxW-minW)/points*i;
             bjorkx = (Qsqr + SQR(M_v))/(SQR(tmpw)+Qsqr);
             REAL xs=0;
-            xs = calculator.TotalCrossSection(Qsqr, bjorkx);
+            if (A==1)
+                xs = 1.0/calculator.GetAmplitude()->Bp() * calculator.ProtonCrossSection_dt(0, Qsqr, bjorkx)*NBGEVSQR;
+            else
+                xs = calculator.TotalCrossSection(Qsqr, bjorkx)*NBGEVSQR;
 
-            xs *= NBGEVSQR;     // 1/Gev^2 -> nb  
-            #pragma omp critical
+            //#pragma omp critical
             {
                 cout.precision(5);
                 cout << fixed << tmpw;
                 cout.precision(8);
-                cout << " " << xs << endl;
+                cout << " " << xs <<  endl;
             }
         
         }    
@@ -573,7 +587,7 @@ int main(int argc, char* argv[])
         cout << "# Longitudnal xs / transversioal xs, W=" << W << " GeV" << endl;
         if (minQsqr==0) minQsqr=0.0001; // Qsqr=0 doesn't work
         REAL multiplier = pow(maxQsqr/minQsqr, 1.0/points);
-        #pragma omp parallel for
+        //#pragma omp parallel for
         for (int i=0; i<=points; i++)
         {
             REAL tmpqsqr = minQsqr*pow(multiplier, i);
@@ -584,7 +598,7 @@ int main(int argc, char* argv[])
             calculator.SetPolarization(VM_MODE_T);
             REAL xst = calculator.TotalCrossSection(tmpqsqr, bjorkx);
            
-            #pragma omp critical
+            //#pragma omp critical
             {
                 cout.precision(5);
                 cout << fixed << tmpqsqr;
@@ -603,14 +617,14 @@ int main(int argc, char* argv[])
         calculator.SetCorrections(false);
         if (minQsqr==0) minQsqr=0.0001; // Qsqr=0 doesn't work
         REAL multiplier = pow(maxQsqr/minQsqr, 1.0/points);
-        #pragma omp parallel for
+        //#pragma omp parallel for
         for (int i=0; i<=points; i++)
         {
             //REAL tmpqsqr=maxQsqr/points*i;
             REAL tmpqsqr = minQsqr*pow(multiplier, i);
             REAL protonxs = calculator.ProtonCrossSection_dt(t, tmpqsqr, bjorkx);
             REAL nukexs = calculator.CrossSection_dt(t, tmpqsqr, bjorkx);
-            #pragma omp critical
+            //#pragma omp critical
             {
                 cout.precision(5);
                 cout << fixed << tmpqsqr;
@@ -630,14 +644,14 @@ int main(int argc, char* argv[])
         if (minx==0) minx=1e-6; // x=0 doesn't work
         REAL multiplier = pow(maxx/minx, 1.0/points);
             
-        #pragma omp parallel for
+        //#pragma omp parallel for
         for (int i=0; i<points; i++)
         {
             //REAL tmpx = minx + (maxx-minx)/points*i;
             REAL tmpx = minx*pow(multiplier,i);
             REAL protonxs = calculator.ProtonCrossSection_dt(t, Qsqr, tmpx);
             REAL nukexs = calculator.CrossSection_dt(t, Qsqr, tmpx);
-            #pragma omp critical
+            //#pragma omp critical
             {
                 cout.precision(8);
                 cout << fixed << tmpx;
@@ -774,14 +788,14 @@ int main(int argc, char* argv[])
         cout << "# t [Gev^2]  d\\sigma/dt [nb/GeV^2], coherent scattering " << endl;
         cout << "# x_pomeron = " << bjorkx << ", Q^2 = " << Qsqr << endl;
         // All iterations are independent, so this is straightforward to parallerize   
-        #pragma omp parallel for
+        //#pragma omp parallel for
         for (int i=0; i<=points; i++)
         {
             REAL tmpt = (maxt-mint)/points*i;
             REAL delta = sqrt(tmpt);
             REAL result = calculator.CoherentCrossSection_dt(tmpt, Qsqr, bjorkx);
             
-            #pragma omp critical
+            //#pragma omp critical
             {
                 cout.precision(5);
                 cout << fixed << tmpt;
@@ -798,7 +812,7 @@ int main(int argc, char* argv[])
         cout << "# t [GeV^2]  d\\sigma/dt [nb/GeV^2] " << endl;
         cout << "# x_pomeron = " << bjorkx << ", Q^2 = " << Qsqr << endl;
         // All iterations are independent, so this is straightforward to parallerize   
-        #pragma omp parallel for
+        //#pragma omp parallel for
         for (int i=0; i<=points; i++)
         {
             REAL tmpt = mint+(maxt-mint)/points*i;
@@ -812,7 +826,7 @@ int main(int argc, char* argv[])
             {
                 result = calculator.CrossSection_dt(tmpt, Qsqr, bjorkx); 
             }
-            #pragma omp critical
+            //#pragma omp critical
             {
                 cout.precision(5);
                 cout << fixed << tmpt;
@@ -853,24 +867,24 @@ int main(int argc, char* argv[])
 			cout <<"# d\\sigma/dy for pA -> J/\\Psi pA" << endl;
 
 		cout <<"# sqrts=" << sqrts << " GeV" << endl;
-		double miny=-3.5;
+		double miny=-3.4;   // -3.5
 		Diffraction d=COHERENT;
 		if (mode==MODE_INCOHERENT_AA) d=INCOHERENT;
 		if (d==COHERENT) cout <<"# Coherent" << endl;
 		else cout <<"# Incoherent" << endl;
-		
+	    cout << "# y totxs dsigma/dt" << endl;	
 		double maxy=0;
 		if (pa)
 			maxy=-miny;
 		
 
-        for(double y=miny; y<=maxy+0.00001; y+=0.1)
+        for(double y=miny; y<=maxy+0.00001; y+=0.2)
 		{
 			double res = calculator.DiffractiveAAtoJpsi(y, sqrts, d, pa);
 			if (res>0)
-				cout << y << " " << res  << endl;
+				cout << y << " " << res  << " " << calculator.DiffractiveAAtoJpsi_dt(y, sqrts, 0, d) << endl;
             else
-                cout << y << " " << 0 << endl;
+                cout << y << " 0 0" << endl;
 		}
 	
         //cout << calculator.DiffractiveAAtoJpsi_dt(0, sqrts, 0, d) << endl;

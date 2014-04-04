@@ -56,7 +56,7 @@ class Nucleus
         int A;      // Number of nucleons
         
         // Woods-Saxon parameters
-        static const REAL WS_delta=0.54*FMGEV;
+        
         REAL WS_RA;
         GDist* gdist;
     
@@ -74,7 +74,7 @@ class Nucleus
 
 
 };
-
+static const REAL WS_delta=0.54*FMGEV;
 std::ostream& operator<<(std::ostream& os, Nucleus& ic);
  
 #endif

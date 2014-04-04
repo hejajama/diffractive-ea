@@ -41,6 +41,9 @@ class Dipxs_IPSat : public Dipxs
         
         // 1/2*d\sigma/d^2b = q\barq-proton scattering amplitude
         REAL Qq_proton_amplitude(REAL rsqr, REAL xbj, REAL b);
+
+        REAL Sigma0();
+        REAL Bp();
         
         
 

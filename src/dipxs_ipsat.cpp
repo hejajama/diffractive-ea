@@ -350,3 +350,12 @@ void Dipxs_IPSat::SetFactorize(bool f)
     factorize=f;
 }
 
+REAL Dipxs_IPSat::Bp()
+{
+    return B_p;
+}
+
+REAL Dipxs_IPSat::Sigma0()
+{
+    return 4.0*M_PI*Bp();
+}

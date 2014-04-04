@@ -12,14 +12,17 @@
 #include <complex>
 #include <string>
 #include <iostream>
+#include <tools/config.hpp>
 
 // *** Datatypes ***
 // REAL = double
-#define REAL double
-#define COMPLEX std::complex<REAL>
+//#define REAL double
+typedef  double  REAL;
+typedef  std::complex<REAL> COMPLEX;
+//#define COMPLEX std::complex<REAL>
 
 // *** Macros ***
-#define SQR(x) ((x)*(x))
+//#define SQR(x) ((x)*(x))
 #define CUBE(x) ((x)*(x)*(x))
 #define ABS(val) ((val) < 0 ? -(val) : (val))
 
@@ -34,7 +37,7 @@ const REAL LAMBDAQCD2=0.21416*0.21416;   // GeV^2
 const REAL FOURPI = (4.0*M_PI);
 const REAL DEFAULT_B_p=4.0;	// Default proton shape for ipsat and ipnonsat
 const REAL NBGEVSQR = 1.0/SQR(5.068)*1.0e7; // 1/Gev^4 -> nb/Gev^2
-#define FMGEV 5.068       // fm * GeV
+const REAL FMGEV = 5.068;       // fm * GeV
 #define LINEINFO __FILE__ << ":" << __LINE__
 
 

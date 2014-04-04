@@ -349,4 +349,13 @@ REAL Dipxs_IIM::GetB_D()
     return B_D;
 }
 
+REAL Dipxs_IIM::Bp()
+{
+    return B_D;
+}
+
+REAL Dipxs_IIM::Sigma0()
+{
+    return 4.0*M_PI*B_D;
+}
 

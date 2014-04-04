@@ -16,7 +16,7 @@
 #include <sstream>
 
 const REAL ZINTACCURACY=0.001;
-const int MAXITER_ZINT=1000;
+const int MAXITER_ZINT=100;
 const REAL MINZ=0.00001;  // Integration limits
 const REAL MAXZ=0.9999;
 
@@ -153,12 +153,12 @@ REAL BoostedGauss::PsiSqr_T_intz(REAL Qsqr, REAL r)
     int_helper.function=&boostzhelperfuncT;
     int_helper.params=&zintpar;
     
-    int status = gsl_integration_qng(&int_helper, MINZ, MAXZ,  0, ZINTACCURACY, 
-        &result, &abserr, &eval);
-    //gsl_integration_workspace* ws = gsl_integration_workspace_alloc(MAXITER_ZINT);
-    //int status = gsl_integration_qag(&int_helper, 0, 1, 0, ZINTACCURACY,
-    //    MAXITER_ZINT, GSL_INTEG_GAUSS51, ws, &result, &abserr);
-    //gsl_integration_workspace_free(ws);
+    //int status = gsl_integration_qng(&int_helper, MINZ, MAXZ,  0, ZINTACCURACY, 
+    //    &result, &abserr, &eval);
+    gsl_integration_workspace* ws = gsl_integration_workspace_alloc(MAXITER_ZINT);
+    int status = gsl_integration_qag(&int_helper, 0, 1, 0, ZINTACCURACY,
+        MAXITER_ZINT, GSL_INTEG_GAUSS51, ws, &result, &abserr);
+    gsl_integration_workspace_free(ws);
     if (status and ABS(result)>0.000001) std::cerr << "Error " << status << " at " << __FILE__ << ":"
             << __LINE__ << ": Result " << result << ", abserror: " << abserr <<
             std::endl;

@@ -123,14 +123,14 @@ struct zinthelper{
     double  r;
 };
 
-REAL  zhelperfuncT(REAL z, void * p){
+REAL  zhelperfunc_lc_T(REAL z, void * p){
   return ((zinthelper*)p)->vm_p->PsiSqr_T(
 							((zinthelper*)p)->Qsqr,
 							((zinthelper*)p)->r,
 							z);
 }
 
-REAL  zhelperfuncL(REAL z, void * p){
+REAL  zhelperfunc_lc_L(REAL z, void * p){
   return ((zinthelper*)p)->vm_p->PsiSqr_L(
 							((zinthelper*)p)->Qsqr,
 							((zinthelper*)p)->r,
@@ -146,7 +146,7 @@ REAL GausLC::PsiSqr_T_intz(REAL Qsqr, REAL r)
     zintpar.Qsqr=Qsqr;
     zintpar.r=r;
     gsl_function int_helper;
-    int_helper.function=&zhelperfuncT;
+    int_helper.function=&zhelperfunc_lc_T;
     int_helper.params=&zintpar;
     
     int status = gsl_integration_qng(&int_helper, MINZ, MAXZ,  0, ZINTACCURACY, 
@@ -173,7 +173,7 @@ REAL GausLC::PsiSqr_L_intz(REAL Qsqr, REAL r)
     zintpar.Qsqr=Qsqr;
     zintpar.r=r;
     gsl_function int_helper;
-    int_helper.function=&zhelperfuncL;
+    int_helper.function=&zhelperfunc_lc_L;
     int_helper.params=&zintpar;
     
     int status = gsl_integration_qng(&int_helper, MINZ, MAXZ, 0, ZINTACCURACY, 

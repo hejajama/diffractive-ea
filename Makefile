@@ -1,7 +1,7 @@
 #CXXFLAGS = `gsl-config --cflags` -g #-fopenmp #-pg -Wall
-CXXFLAGS = `gsl-config --cflags` -O2 
+CXXFLAGS = `gsl-config --cflags` -O2 -I /nashome2/hejajama/amplitudelib/  
 #CXXFLAGS = `gsl-config --cflags` -O2 -fopenmp
-LDFLAGS = `gsl-config --libs` 
+LDFLAGS = `gsl-config --libs` -fopenmp 
 
 SOURCES = src/dipole.cpp src/gaus_lc.cpp src/vector.cpp src/nucleus.cpp \
 	src/dipxs.cpp src/gdist.cpp \
@@ -9,7 +9,7 @@ SOURCES = src/dipole.cpp src/gaus_lc.cpp src/vector.cpp src/nucleus.cpp \
 	src/dipxs_ipsat.cpp  \
 	src/dipxs_ipnonsat.cpp src/dipxs_iim.cpp \
 	src/gdist/gdist_dglap.cpp src/calculator.cpp \
-	src/gauss_boost.cpp
+	src/gauss_boost.cpp src/dipxs_bk.cpp
 
 OBJECTS=$(SOURCES:.cpp=.o)
 
@@ -20,7 +20,7 @@ OBJECTS=$(SOURCES:.cpp=.o)
 all: dipole 
 
 dipole: $(OBJECTS) src/main.cpp
-	g++ $(CXXFLAGS) $(LDFLAGS) $(OBJECTS) src/main.cpp -o dipole 
+	g++ $(CXXFLAGS) $(LDFLAGS) $(OBJECTS) src/main.cpp /nashome2/hejajama/amplitudelib/libamplitude.a -o dipole 
 
 generator:
 	g++ $(CXXFLAGS) $(LDFLAGS) $(OBJECTS) create_amplitudelib_from_ipsat.cpp -o dipxs_generator 

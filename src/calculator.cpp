@@ -1,7 +1,7 @@
 /*
  * Calculates different cross sections
  *
- * Heikki Mäntysaari <heikki.mantysaari@jyu.fi>, 2010-2013
+ * Heikki Mäntysaari <heikki.mantysaari@jyu.fi>, 2010-2014
  */
 
 #include "dipole.h"
@@ -25,7 +25,7 @@ const REAL epsfact = 50.0;   // eps = x_pom/epsfact
 const REAL TOTXS_COHERENT_MINT  = 0.0;  // Min t for total cohernet xs integral
 const REAL TOTXS_COHERENT_MAXT = 0.1;
 
-const double eps_y = 0.06;	// when computing corrections amplitude
+const double eps_y = 0.07  ;	// when computing corrections amplitude
 							// is evaluated at y and y+eps_y
 
 using std::cout; using std::cerr; using std::endl;
@@ -404,6 +404,11 @@ REAL inthelperf_proton(REAL r, void* p)
         * par->amplitude->DipoleAmplitude_proton(SQR(r), par->bjorkx,
          par->delta);
 
+    if (isnan(result) or isinf(result))
+        cerr << result << "  result at " << LINEINFO << ", r=" << r << " delta " << par->delta << " dipole amplitude " << par->amplitude->DipoleAmplitude_proton(SQR(r), par->bjorkx,
+         par->delta)
+            << " vm overlap " << par->vm->PsiSqr_intz(par->Qsqr, r) << endl;
+
     return result;
        
 }
@@ -497,6 +502,56 @@ REAL inthelper_totxs(REAL t, void* p)
         return par->calculator->ProtonCrossSection_dt(t, par->Qsqr, par->bjorkx); 
     }
     return par->calculator->CrossSection_dt(t, par->Qsqr, par->bjorkx);
+
+}
+
+/*
+ * Calculate total gammap -> jpsi p cross section directly without integrating
+ * over t
+ * Analytically one can show that
+ * sigma = \int d^2 b T(b)^2 | \int d^2 r dz/4pi psi^*psi N(r) |^2
+ *
+ * We use an approximation \int d^2 b T(b)^2 = \pi B_p = \sigma_0/4
+ *  = 1/4 \sigma_0^2/(4pi B_p)  = 1/(16pi) sigma_0^2 / (B_p)
+ */
+///TODO: For some weird reason this does not give the same result as TotalCrossSection,
+///and the difference is even more than a constant factor????????
+REAL inthelperf_totxs_notint(double r, void *p)
+{
+    inthelper_r* par = (inthelper_r*)p;
+    REAL result =  2.0*M_PI*r*par->vm->PsiSqr_intz(par->Qsqr, r)
+        * par->amplitude->Qq_proton_amplitude(SQR(r), par->bjorkx, 0);
+
+    return result/2.0;  // divide by 2.0 as RIntAmplitude multiplies by 2
+}
+
+REAL Calculator::TotalCrossSection_noint(REAL Qsqr, REAL bjorkx)
+{
+    gsl_function fun;   
+    inthelper_r inthelp;
+    inthelp.amplitude=amplitude;
+    inthelp.vm=wavef; inthelp.bjorkx=bjorkx;
+    inthelp.Qsqr=Qsqr;
+    inthelp.calculator=this;
+    inthelp.delta=0;
+    fun.function=inthelperf_totxs_notint;
+    fun.params=&inthelp;
+
+    
+        
+    REAL result,abserr; 
+    result=0;
+    //size_t eval;
+    //int status = gsl_integration_qng(&fun, MINR, MAXR, 0, RINTACCURACY, 
+    //    &result, &abserr, &eval);
+    gsl_integration_workspace* ws = gsl_integration_workspace_alloc(100);
+	int status = gsl_integration_qag(&fun, MINR, MAXR, 0, RINTACCURACY,
+		100, GSL_INTEG_GAUSS51, ws, &result, &abserr);
+	gsl_integration_workspace_free(ws);
+
+    result = result * result * 1.0/(16.0*M_PI) * SQR(amplitude->Sigma0())/amplitude->Bp();
+
+    return result;
 
 }
 
@@ -635,6 +690,7 @@ double Calculator::DiffractiveAAtoJpsi_dt(double y, double sqrts, double t, Diff
 	double wsqr2 = sqrts * M_v * std::exp(-y);
 	double xbj=	SQR(M_v)/wsqr;	// y
 	double xbj2= SQR(M_v)/wsqr2;	// -y
+
 	SetPolarization(VM_MODE_T);
 	if (xbj > 0.02 or xbj2>0.02) return 0;
 
@@ -660,7 +716,7 @@ double Calculator::DiffractiveAAtoJpsi_dt(double y, double sqrts, double t, Diff
 		else
 			res2=NuclearPhotonFlux(-y, sqrts, pa, z) * CoherentCrossSection_dt(t, 0, xbj2);
 	}
-	cout << "# x1 " << xbj << " res1 " << res1 << " x2 " << xbj2 << " res2 " << res2 << endl;
+	cout << "# x1 " << xbj << " W1^2 " << wsqr << " dsigma/dt " << res1 << " x2 " <<  xbj2 << " W2^2 " << wsqr2 << " dsigma/dt " <<  res2 << endl;
 	return res1+res2;
 	
 }

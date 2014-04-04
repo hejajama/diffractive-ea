@@ -56,9 +56,7 @@ Thanks:
  
 License:
  Files written by Heikki Mäntysaari:
- This program is free software licensed under the terms of the GNU General
- Public License, either version 3 or (at your opinion) any later version 
- released by Free Software Foundation.
+ If you use this code for a publication, please ask the author which paper you should cite.
 
  Files under src/mersenne folder are licensed under LGPL version 2 or (at 
  your opinion) any later version reelased by Free Software Foundation.
