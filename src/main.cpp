@@ -104,6 +104,8 @@ int main(int argc, char* argv[])
     std::string waveffile="";   // file where wavefunction parameters are read, empty=default
     
     string iim_file="iim.dat";  // Read parameters for IIM model from this file
+    string bk_file="";
+    REAL bk_sigma0=0;   // sigma0 in GeV^-2, required for BK dipole amplitude
             
     // Parse parameters
     if (argc>1)
@@ -112,7 +114,7 @@ int main(int argc, char* argv[])
         {
             cout << "Usage: -x x_pomeron -Q2 Q^2 -W W (specify only x or W), -sqrts sqrts" << endl;
             cout << "-scalex (scale x by factor 1+M_V^2/Q^2) (can't be used with -W)" << endl;
-            cout << "-dipole {ipsat,ipnonsat,iim,ipsat_nonsatp,ipsat-nofactor,bk}" << endl;
+            cout << "-dipole {ipsat,ipnonsat,iim,ipsat_nonsatp,ipsat-nofactor,bk} [bkfilename bksigma0]" << endl;
             cout << "-gdist {dglap} -xgfile file" << endl;
             cout << "-wavef {gaus-lc, boosted-gaussian} (specify VM wave function)" << endl;
             cout << "-wavef_file filename: file where wavefunction parameters is read" << endl;
@@ -295,7 +297,11 @@ int main(int argc, char* argv[])
                 else if (string(argv[i+1])=="ipsat_nonsatp")
                     model=MODEL_IPSAT_NONSATP;
                 else if (string(argv[i+1])=="bk")
+                {
                     model=MODEL_BK;
+                    bk_file = string(argv[i+2]);
+                    bk_sigma0 = StrToReal(argv[i+3]);
+                }
                 else
                 {
                     cerr << "Model " << argv[i+1] << " is not valid" << endl;
@@ -393,14 +399,14 @@ int main(int argc, char* argv[])
            fname="gaus-lc.dat";
            if (waveffile != "")
                 fname=waveffile;
-           JPsi = new GausLC(waveffile);
+           JPsi = new GausLC(fname);
            cout << "# Wave function: " << *((GausLC*)JPsi) << endl;
            break;
         case WAVEF_BOOSTED_GAUSSIAN:
             fname = "gauss-boosted.dat";
             if (waveffile != "")
                 fname=waveffile;
-            JPsi = new BoostedGauss(waveffile);
+            JPsi = new BoostedGauss(fname);
             cout << "# Wave function: " << *((BoostedGauss*)JPsi) << endl;
             break;
         default:
@@ -443,7 +449,8 @@ int main(int argc, char* argv[])
         ((Dipxs_IPSat*)amplitude)->SetFactorize(true);
         break;
     case MODEL_BK:
-        amplitude = new Dipxs_BK(nuke);
+        amplitude = new Dipxs_BK(nuke, bk_file);
+        ((Dipxs_BK*)amplitude)->SetSigma0(bk_sigma0);
         break;
     }
 
@@ -867,7 +874,7 @@ int main(int argc, char* argv[])
 			cout <<"# d\\sigma/dy for pA -> J/\\Psi pA" << endl;
 
 		cout <<"# sqrts=" << sqrts << " GeV" << endl;
-		double miny=-3.4;   // -3.5
+		double miny=-2.2;   // -3.5
 		Diffraction d=COHERENT;
 		if (mode==MODE_INCOHERENT_AA) d=INCOHERENT;
 		if (d==COHERENT) cout <<"# Coherent" << endl;
@@ -878,13 +885,13 @@ int main(int argc, char* argv[])
 			maxy=-miny;
 		
 
-        for(double y=miny; y<=maxy+0.00001; y+=0.2)
+        for(double y=miny; y<=maxy+0.00001; y+=0.1)
 		{
 			double res = calculator.DiffractiveAAtoJpsi(y, sqrts, d, pa);
 			if (res>0)
 				cout << y << " " << res  << " " << calculator.DiffractiveAAtoJpsi_dt(y, sqrts, 0, d) << endl;
-            else
-                cout << y << " 0 0" << endl;
+            //else
+            //    cout << y << " 0 0" << endl;
 		}
 	
         //cout << calculator.DiffractiveAAtoJpsi_dt(0, sqrts, 0, d) << endl;

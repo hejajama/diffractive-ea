@@ -28,12 +28,14 @@ const size_t MAXITER_FT=1000;  // Max number of interations when
 
 Dipxs_BK::Dipxs_BK(Nucleus& nuke) : Dipxs(nuke)
 {
+    cerr << "BK class initialized without bk file specification, really???" << endl;
     Intialize();
+    filename="/nashome2/hejajama/rbk/data/bestfits/mve/bestfit.dat"; // default
 }
 
 Dipxs_BK::Dipxs_BK(Nucleus& nuke, std::string file) : Dipxs(nuke)
 {
-
+    filename = file;
     Intialize();
 }
 
@@ -41,10 +43,11 @@ void Dipxs_BK::Intialize()
 {
     prevdelta=prevft=-1;
 
-    N = new AmplitudeLib("/nashome2/hejajama/rbk/data/bestfits/mve/bestfit.dat");
-    cout <<"# Amplitude read from file /nashome2/hejajama/rbk/data/bestfits/mve/bestfit.dat, info: " << N->GetString() << endl;
+    N = new AmplitudeLib(filename);
+    cout <<"# Amplitude read from file " << filename << ", info: " << N->GetString() << endl;
     B_D=4.0;
-    sigma0=83.985; // GeV^(-2)
+
+    sigma0=0;   // User defines trough SetSigma0()
     
     ft_workspace_coh = gsl_integration_workspace_alloc(MAXITER_FT);
 }
@@ -279,5 +282,10 @@ REAL Dipxs_BK::Bp()
 
 REAL Dipxs_BK::Sigma0()
 {
-    return 2.0/3.0*sigma0;
+    return sigma0;
+}
+
+void Dipxs_BK::SetSigma0(REAL sigma0_)
+{
+    sigma0=sigma0_;
 }

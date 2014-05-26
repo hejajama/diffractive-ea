@@ -4,7 +4,6 @@
 /*
  * Dipole cross section
  * Dipole amplitude from BK
- * B-dependence like in IIM
  *
  * Heikki Mäntysaari <heikki.mantysaari@jyu.fi>, 2014
  */
@@ -12,6 +11,7 @@
 #include "dipxs.h"
 #include "nucleus.h"
 #include <vector>
+#include <string>
 #include <gsl/gsl_integration.h>
 #include <amplitudelib/amplitudelib.hpp>
 
@@ -49,6 +49,8 @@ class Dipxs_BK : public Dipxs
 
         REAL Bp();
         REAL Sigma0();
+
+        void SetSigma0(REAL sigma0_);
     private:
         void Intialize();
         REAL prevft, prevdelta;     // To optimize Dipxsection_sqr_avg
@@ -56,6 +58,7 @@ class Dipxs_BK : public Dipxs
         gsl_integration_workspace *ft_workspace_coh;
         
         AmplitudeLib* N;
+        std::string filename;   // bk solution filename
 
         REAL B_D;       // = 5.591 or 4.0;    // GeV^{-2}
         REAL sigma0; 

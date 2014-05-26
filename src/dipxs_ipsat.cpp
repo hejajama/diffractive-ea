@@ -125,6 +125,7 @@ REAL Dipxs_IPSat::DipoleAmplitude_sqr_avg(REAL rsqr, REAL r2sqr, REAL xbj,
     //        0, AVGINTACCURACY, &result, &abserr, &eval);
     gsl_integration_workspace *workspace 
      = gsl_integration_workspace_alloc(MAXITER_BINT);
+     // maxb: MAXB
     int status=gsl_integration_qag(&int_helper, 0, MAXB, 0, AVGINTACCURACY, 
         MAXITER_BINT, GSL_INTEG_GAUSS61, workspace, &result, &abserr);
     gsl_integration_workspace_free(workspace);

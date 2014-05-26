@@ -734,7 +734,7 @@ double Calculator::NuclearPhotonFlux(double y,  double sqrts,  bool pa, int z)
 
     double mass=0;
     z=0;
-    if (sqrts==2760)
+    if (sqrts==2760 or sqrts==5020)
     {
         // LHC
         mass=193.729;
@@ -751,7 +751,8 @@ double Calculator::NuclearPhotonFlux(double y,  double sqrts,  bool pa, int z)
         exit(1);
     }
     
-	const double ma=193.729; // Mass of Pb
+    double ma=mass;
+    //const double ma=193.729; // Mass of Pb
 	//const double ma = 
 	
 	
@@ -759,8 +760,7 @@ double Calculator::NuclearPhotonFlux(double y,  double sqrts,  bool pa, int z)
 	double wsqr = 2.0*omega*sqrts;
 	double xp = M_v*M_v/wsqr;
 	int a = amplitude->GetNucleus().GetA();
-	z=82;
-	//z=79;
+
 	if (a != 208 or z != 82)
 	{
 	//	std::cerr << "PhotonFlux uses hardcoded nucleus mass, so only A=208 (Pb) is allowed!" << std::endl;
