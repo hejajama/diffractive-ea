@@ -65,7 +65,7 @@ C--   -6  -5  -4  -3  -2  -1   0   1   2   3   4   5   6
 	ENDDO
 	IF(XKEY_TMP.EQ.XKEY)RETURN ! This is old set of parameters
 	XKEY=XKEY_TMP
- 	WRITE(0,*)"DEBUG :: init_gluons ::mu2=",pars(3)
+! 	WRITE(0,*)"DEBUG :: init_gluons ::mu2=",pars(3)
 
 	IF(NPAR.GT.MAX_PAR)THEN
 	 WRITE(0,*)"init_gluons :: maximal number of parameters was fixed

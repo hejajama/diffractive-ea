@@ -24,6 +24,7 @@
 #include "nucleus.h"
 #include "dipxs_ipnonsat.h"
 #include "dipxs_ipsat.h"
+#include "dipxs_ipsat2012.h"
 #include "dipxs_iim.h"
 #include "dipxs_bk.h"
 #include "gdist/gdist_dglap.h"
@@ -37,7 +38,7 @@ const std::string DATE = "2013-xx-xx";
 
 const int MODEL_IPSAT=1; const int MODEL_IPNONSAT=2; const int MODEL_IIM=3;
 const int MODEL_IPSAT_NONSATP=4; const int MODEL_IPSAT_NOFACTOR=5;
-const int MODEL_BK=6;
+const int MODEL_BK=6; const int MODEL_IPSAT2012=7;
 const int GDIST_DGLAP=1; 
 
 const int WAVEF_GAUS_LC=1; const int WAVEF_BOOSTED_GAUSSIAN=2;
@@ -114,7 +115,7 @@ int main(int argc, char* argv[])
         {
             cout << "Usage: -x x_pomeron -Q2 Q^2 -W W (specify only x or W), -sqrts sqrts" << endl;
             cout << "-scalex (scale x by factor 1+M_V^2/Q^2) (can't be used with -W)" << endl;
-            cout << "-dipole {ipsat,ipnonsat,iim,ipsat_nonsatp,ipsat-nofactor,bk} [bkfilename bksigma0]" << endl;
+            cout << "-dipole {ipsat,ipnonsat,iim,ipsat_nonsatp,ipsat-nofactor,bk,ipsat2012} [bkfilename bksigma0]" << endl;
             cout << "-gdist {dglap} -xgfile file" << endl;
             cout << "-wavef {gaus-lc, boosted-gaussian} (specify VM wave function)" << endl;
             cout << "-wavef_file filename: file where wavefunction parameters is read" << endl;
@@ -292,6 +293,8 @@ int main(int argc, char* argv[])
                     model=MODEL_IPSAT_NOFACTOR;
                 else if (string(argv[i+1])=="ipnonsat")
                     model=MODEL_IPNONSAT;
+                else if (string(argv[i+1])=="ipsat2012")
+                    model=MODEL_IPSAT2012;
                 else if (string(argv[i+1])=="iim")
                     model=MODEL_IIM;
                 else if (string(argv[i+1])=="ipsat_nonsatp")
@@ -440,6 +443,10 @@ int main(int argc, char* argv[])
         break;
     case MODEL_IPNONSAT:
         amplitude = new Dipxs_IPNonSat(nuke, bp);
+        break;
+    case MODEL_IPSAT2012:
+        amplitude = new Dipxs_IPSat2012(nuke);
+        ((Dipxs_IPSat2012*)amplitude)->SetFactorize(true);
         break;
     case MODEL_IIM:
         amplitude = new Dipxs_IIM(nuke, iim_file);

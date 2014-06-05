@@ -9,7 +9,8 @@ SOURCES = src/dipole.cpp src/gaus_lc.cpp src/vector.cpp src/nucleus.cpp \
 	src/dipxs_ipsat.cpp  \
 	src/dipxs_ipnonsat.cpp src/dipxs_iim.cpp \
 	src/gdist/gdist_dglap.cpp src/calculator.cpp \
-	src/gauss_boost.cpp src/dipxs_bk.cpp
+	src/gauss_boost.cpp src/dipxs_bk.cpp \
+	src/dipxs_ipsat2012.cpp
 
 OBJECTS=$(SOURCES:.cpp=.o)
 
@@ -20,7 +21,11 @@ OBJECTS=$(SOURCES:.cpp=.o)
 all: dipole 
 
 dipole: $(OBJECTS) src/main.cpp
-	g++ $(CXXFLAGS) $(LDFLAGS) $(OBJECTS) src/main.cpp /nashome2/hejajama/amplitudelib/libamplitude.a -o dipole 
+	g++ $(CXXFLAGS) $(LDFLAGS) $(OBJECTS) src/main.cpp src/libColorDipole/libraries/libColorDipole.a /nashome2/hejajama/amplitudelib/libamplitude.a -o dipole -lgfortran
+
+libColorDipole: src/libColorDipole/src/*.f
+	cd src/libColorDipole/ && make TEST_DIPOLE FC=gfortran
+	#$(MAKE) -C src/libColorDipole/ TEST_DIPOLE FC=gfortran
 
 generator:
 	g++ $(CXXFLAGS) $(LDFLAGS) $(OBJECTS) create_amplitudelib_from_ipsat.cpp -o dipxs_generator 
