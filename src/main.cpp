@@ -79,8 +79,8 @@ int main(int argc, char* argv[])
     int points=100;
     REAL maxt=0.3; REAL mint=0; 
     REAL t=0.5;
-    REAL maxQsqr=30;
-    REAL minQsqr=0;
+    REAL maxQsqr=-1;
+    REAL minQsqr=-1;
     REAL minW=0;
     REAL maxW=200;
     MODE mode=MODE_DIFFXS;   // What to do
@@ -287,13 +287,13 @@ int main(int argc, char* argv[])
                 mode=MODE_QUASIELASTIC_COHERENT_A;
             else if (string(argv[i])=="-dipole")
             {
-                if (string(argv[i+1])=="ipsat")
+                if (string(argv[i+1])=="ipsat" or string(argv[i+1])=="ipsat06")
                     model=MODEL_IPSAT;
                 else if (string(argv[i+1])=="ipsat-nofactor")
                     model=MODEL_IPSAT_NOFACTOR;
                 else if (string(argv[i+1])=="ipnonsat")
                     model=MODEL_IPNONSAT;
-                else if (string(argv[i+1])=="ipsat2012")
+                else if (string(argv[i+1])=="ipsat2012" or string(argv[i+1])=="ipsat12")
                     model=MODEL_IPSAT2012;
                 else if (string(argv[i+1])=="iim")
                     model=MODEL_IIM;
@@ -568,7 +568,10 @@ int main(int argc, char* argv[])
     
     else if (mode==MODE_TOTXS_W)    // Total cross section as a function of W
     {                               // Q^2 fixed
-        cout << "# W [GeV]  total cross section [nb], Q^2=" << Qsqr << " GeV" << endl;
+        cout << "# W [GeV]  total cross section [nb]; " << endl;
+        if (minQsqr>=0)
+            cout << "# minQ^2: " << minQsqr << ", maxQ^2: " << maxQsqr << endl;
+        else cout << "# Q^2=" << Qsqr << " GeV" << endl;
         if (minW<0.0001) minW=10; // small W -> huge x -> model doesn't work
         //REAL multiplier = pow(maxW/minW, 1.0/points);
         ////#pragma omp parallel for
@@ -579,7 +582,14 @@ int main(int argc, char* argv[])
             bjorkx = (Qsqr + SQR(M_v))/(SQR(tmpw)+Qsqr);
             REAL xs=0;
             if (A==1)
-                xs = 1.0/calculator.GetAmplitude()->Bp() * calculator.ProtonCrossSection_dt(0, Qsqr, bjorkx)*NBGEVSQR;
+            {
+                if (minQsqr>=0)  // average
+                {
+                    xs = 1.0/calculator.GetAmplitude()->Bp() * calculator.ProtonCrossSection_dt_qsqravg(0, minQsqr, maxQsqr, tmpw, M_v)*NBGEVSQR;
+                }
+                else
+                    xs = 1.0/calculator.GetAmplitude()->Bp() * calculator.ProtonCrossSection_dt(0, Qsqr, bjorkx)*NBGEVSQR;
+            }
             else
                 xs = calculator.TotalCrossSection(Qsqr, bjorkx)*NBGEVSQR;
 

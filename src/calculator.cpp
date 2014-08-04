@@ -349,17 +349,32 @@ REAL Calculator::ProtonCrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
         
     if (polarization == VM_MODE_TOT)
     {
+        // TRANSVERSE
         wavef->SetMode(VM_MODE_T);
         REAL xs = RIntAmplitude(t, Qsqr, bjorkx, &inthelperf_proton);
-        REAL xseps = RIntAmplitude(t, Qsqr, bjorkx+eps, &inthelperf_proton);
+        //REAL xseps = RIntAmplitude(t, Qsqr, bjorkx+eps, &inthelperf_proton);
+        //REAL lambda = log(xs/xseps)*(bjorkx/eps); 
+
+        eps=0.07;
+        double y0 = log(1.0/bjorkx);
+        double y1 = y0-eps;
+        double y2 = y0 + eps;
+        double x1 = exp(-y1);
+        double x2 = exp(-y2);
+        double xs1 = RIntAmplitude(t, Qsqr, x1, &inthelperf_proton);
+        double xs2 = RIntAmplitude(t, Qsqr, x2, &inthelperf_proton);
+        double lambda = log(xs2 / xs1) / (2.0*eps);
         
-        REAL lambda = log(xs/xseps)*(bjorkx/eps); 
+        
+        
         result=xs*xs*(1.0+SQR(Beta(lambda)) ) * SQR(Rg(lambda));
 
+        // LONGITUDINAL
         wavef->SetMode(VM_MODE_L);
         xs = RIntAmplitude(t, Qsqr, bjorkx, &inthelperf_proton);
-        xseps = RIntAmplitude(t, Qsqr, bjorkx+eps, &inthelperf_proton);
-        lambda = log(xs/xseps)*(bjorkx/eps);
+        xs1 = RIntAmplitude(t, Qsqr, x1, &inthelperf_proton);
+        xs2 = RIntAmplitude(t, Qsqr, x2, &inthelperf_proton);
+        lambda = log(xs2 / xs1) / (2.0*eps);
 
         result+= xs*xs*(1.0+SQR(Beta(lambda)) ) * SQR(Rg(lambda));
         
@@ -396,6 +411,7 @@ REAL Calculator::ProtonCrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
 }
 
 
+
 // Only one r integral for dipole-proton scattering
 REAL inthelperf_proton(REAL r, void* p)
 {
@@ -414,6 +430,41 @@ REAL inthelperf_proton(REAL r, void* p)
 }
 
 
+/*
+ * Proton-dipole cross section averaged over qsqr range
+ */
+struct inthelper_qsqravg{ Calculator* calc; double t; double w; double M_v; };
+double inthelperf_qsqravg( double qsqr, void* p);
+double Calculator::ProtonCrossSection_dt_qsqravg(double t, double minQsqr, double maxQsqr, double W, double M_v)
+{
+    gsl_function fun;
+    fun.function = inthelperf_qsqravg;
+    inthelper_qsqravg helper; helper.calc=this; helper.M_v=M_v;
+    helper.t=t; helper.w=W;
+    fun.params=&helper;
+
+    double result, abserr;
+    gsl_integration_workspace* ws = gsl_integration_workspace_alloc(100);
+	int status = gsl_integration_qag(&fun, minQsqr, maxQsqr, 0, 0.01,
+		100, GSL_INTEG_GAUSS51, ws, &result, &abserr);
+	gsl_integration_workspace_free(ws);
+
+    if (status)
+        cerr << "Qsqrint failed at " << __FILE__ << ":"
+            << __LINE__ << ": Result " << result << ", relerror: "
+            << std::abs(abserr/result) << endl;
+
+    return result;
+    
+}
+
+double inthelperf_qsqravg( double qsqr, void* p)
+{
+    inthelper_qsqravg* par = (inthelper_qsqravg*) p;
+    Calculator* calc = par->calc;
+    double x =  (qsqr + SQR(par->M_v))/(SQR(par->w)+qsqr);
+    return calc->ProtonCrossSection_dt(par->t, qsqr, x) ;
+}
 /*
  * Integrate dipole amplitude over r
  * To be used with dipole-proton and coherent dipole-nucleus amplitudes,

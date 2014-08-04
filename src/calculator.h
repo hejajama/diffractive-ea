@@ -37,6 +37,8 @@ class Calculator
             REAL mint, REAL maxt);
         REAL TotalCoherentCrossSection(REAL Qsqr, REAL bjorkx);
         REAL ProtonCrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx);
+        REAL ProtonCrossSection_dt_qsqravg(REAL dt, REAL minQsqr, REAL maxQsqr, REAL W, REAL M_v);
+        
         REAL TotalCrossSection_noint(REAL Qsqr, REAL bjorkx);
         REAL TotalCrossSection(REAL Qsqr, REAL bjorkx);
         REAL TotalCrossSection(REAL Qsqr, REAL bjorkx, REAL mint, REAL maxt); 
