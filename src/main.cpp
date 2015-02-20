@@ -52,7 +52,7 @@ enum MODE
         MODE_XG, MODE_GLUEDIST, MODE_XG_X, MODE_XG_R, MODE_DSIGMA_DT_A,
         MODE_QUASIELASTIC_COHERENT_Q, MODE_QUASIELASTIC_COHERENT_X,
         MODE_QUASIELASTIC_COHERENT_A,
-        MODE_COHERENT_AA, MODE_INCOHERENT_AA,
+        MODE_COHERENT_AA, MODE_INCOHERENT_AA
 };
 
 
@@ -536,23 +536,29 @@ int main(int argc, char* argv[])
     }
      
     else if (mode==MODE_TOTXS_Q)    // Total cross section as a function of Q^2
-    {                               // W fixed
-        cout << "#Q^2 [GeV^2]   Total cross section [nb], W=" << W << " GeV" << endl;
+    {                               // W fixed / x fixed
+        cout << "#Q^2 [GeV^2]   Total cross section [nb], xpom=" << bjorkx << endl; /*W=" << W << " GeV, t = 0.2 (nucleai)" << endl;*/
         if (minQsqr==0) minQsqr=0.0001; // Qsqr=0 doesn't work
         REAL multiplier = pow(maxQsqr/minQsqr, 1.0/points);
         ////#pragma omp parallel for
         for (int i=0; i<=points; i++)
         {
             REAL tmpqsqr = minQsqr*pow(multiplier, i);
-            //bjorkx = tmpqsqr/(tmpqsqr+SQR(W))*(1+SQR(M_v)/tmpqsqr);
-            //bjorkx = (tmpqsqr + SQR(M_v))/SQR(W);
-            bjorkx = (tmpqsqr + SQR(M_v))/(SQR(W)+tmpqsqr);
 
+            //bjorkx = (tmpqsqr + SQR(M_v))/(SQR(W)+tmpqsqr);
+            
+            
+            
             REAL xs = 0;
             if (A==1)
                 xs = 1.0/calculator.GetAmplitude()->Bp() * calculator.ProtonCrossSection_dt(0, tmpqsqr, bjorkx);
             else
+            {
+                
                 xs =  calculator.TotalCrossSection(tmpqsqr, bjorkx);
+                /// TODO: TEMPORARY!
+                //xs = calculator.CrossSection_dt(0.2, tmpqsqr, bjorkx);
+            }
 
             xs *= NBGEVSQR;     // 1/Gev^2 -> nb  
             //#pragma omp critical
@@ -837,7 +843,7 @@ int main(int argc, char* argv[])
         cout << "# x_pomeron = " << bjorkx << ", Q^2 = " << Qsqr << endl;
         // All iterations are independent, so this is straightforward to parallerize   
         //#pragma omp parallel for
-        for (int i=0; i<=points; i++)
+        for (int i=0; i<points; i++)
         {
             REAL tmpt = mint+(maxt-mint)/points*i;
             REAL delta = sqrt(tmpt);

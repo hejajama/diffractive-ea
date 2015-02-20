@@ -40,7 +40,7 @@ class Calculator
         REAL ProtonCrossSection_dt_qsqravg(REAL dt, REAL minQsqr, REAL maxQsqr, REAL W, REAL M_v);
         
         REAL TotalCrossSection_noint(REAL Qsqr, REAL bjorkx);
-        REAL TotalCrossSection(REAL Qsqr, REAL bjorkx);
+        REAL TotalCrossSection(REAL Qsqr, REAL bjorkx); // incoherent
         REAL TotalCrossSection(REAL Qsqr, REAL bjorkx, REAL mint, REAL maxt); 
         REAL TotalProtonCrossSection(REAL Qsqr, REAL bjorkx);
         void SetPolarization(int pol);

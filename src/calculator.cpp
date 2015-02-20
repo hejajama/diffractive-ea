@@ -66,7 +66,6 @@ REAL Calculator::CrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
     REAL eps = bjorkx/epsfact;
     if (polarization == VM_MODE_TOT)
     {
-		cerr <<"# Please improve numerics here... (derivative computation)" << endl;
         wavef->SetMode(VM_MODE_T);
         int status = gsl_integration_qng(&fun, MINR, MAXR, 0, RINTACCURACY, 
             &result, &abserr, &eval);
@@ -81,10 +80,27 @@ REAL Calculator::CrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
         if (corrections)
         {
             xs = RIntAmplitude(t, Qsqr, bjorkx, &inthelperf_proton);
+            /*
             xseps = RIntAmplitude(t, Qsqr, bjorkx+eps, &inthelperf_proton);
             lambda = log(xs/xseps)*(bjorkx/eps);
             betasqr_t = SQR(Beta(lambda));
+            rgsqr_t = SQR(Rg(lambda));*/
+
+            double y0 = log(1.0/bjorkx);
+
+            double y1 = y0-eps_y;
+            double y2 = y0 + eps_y;
+            double x1 = exp(-y1);
+            double x2 = exp(-y2);
+			// NOTE: there could be problem if xs1 and xs2 have different sign which is 
+			// possible in principle
+            double xs1 = RIntAmplitude(t, Qsqr, x1, &inthelperf_proton);
+            double xs2 = RIntAmplitude(t, Qsqr, x2, &inthelperf_proton);
+            double lambda = log(xs2 / xs1) / (2.0*eps_y);
             rgsqr_t = SQR(Rg(lambda));
+            betasqr_t=SQR(Beta(lambda));
+            
+            
         }
         result = result*(1.0+betasqr_t)*rgsqr_t;
         
@@ -103,10 +119,25 @@ REAL Calculator::CrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
         if (corrections)
         {
             xs = RIntAmplitude(t, Qsqr, bjorkx, &inthelperf_proton);
+            /*
             xseps = RIntAmplitude(t, Qsqr, bjorkx+eps, &inthelperf_proton);
             lambda = log(xs/xseps)*(bjorkx/eps);
             betasqr_l = SQR(Beta(lambda));
+            rgsqr_l = SQR(Rg(lambda));*/
+
+            double y0 = log(1.0/bjorkx);
+
+            double y1 = y0-eps_y;
+            double y2 = y0 + eps_y;
+            double x1 = exp(-y1);
+            double x2 = exp(-y2);
+			// NOTE: there could be problem if xs1 and xs2 have different sign which is 
+			// possible in principle
+            double xs1 = RIntAmplitude(t, Qsqr, x1, &inthelperf_proton);
+            double xs2 = RIntAmplitude(t, Qsqr, x2, &inthelperf_proton);
+            double lambda = log(xs2 / xs1) / (2.0*eps_y);
             rgsqr_l = SQR(Rg(lambda));
+            betasqr_l=SQR(Beta(lambda));
             
             //cache_Q2=Qsqr; cached_corrections=true;
         }

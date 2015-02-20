@@ -91,8 +91,8 @@ REAL BoostedGauss::PsiSqr_T(REAL Qsqr, REAL r, REAL z)
     REAL result;
     REAL epstmp=epsfun(z,Qsqr,SQR(m_f));
     result = SQR(m_f)*gsl_sf_bessel_K0(epstmp*r)*Psi_T(r,z) 
-        - (SQR(z)+SQR(1-z))*epstmp*gsl_sf_bessel_K1(epstmp*r)*Psi_T_DR(r,z);
-    result *= e_f*e*NC/(M_PI*z*(1-z));
+        - (SQR(z)+SQR(1.0-z))*epstmp*gsl_sf_bessel_K1(epstmp*r)*Psi_T_DR(r,z);
+    result *= e_f*e*NC/(M_PI*z*(1.0-z));
     
     return result;
 }
