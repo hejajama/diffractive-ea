@@ -533,19 +533,20 @@ int main(int argc, char* argv[])
         REAL xs=0;
         xs = calculator.TotalCrossSection(Qsqr, bjorkx);
         cout << "Total cross section: " << xs*NBGEVSQR << " nb" << endl;
+        cout << "Or " << 1.0/calculator.GetAmplitude()->Bp() * calculator.CrossSection_dt(0, Qsqr, bjorkx) * NBGEVSQR << " nb " << endl;
     }
      
     else if (mode==MODE_TOTXS_Q)    // Total cross section as a function of Q^2
     {                               // W fixed / x fixed
-        cout << "#Q^2 [GeV^2]   Total cross section [nb], xpom=" << bjorkx << endl; /*W=" << W << " GeV, t = 0.2 (nucleai)" << endl;*/
-        if (minQsqr==0) minQsqr=0.0001; // Qsqr=0 doesn't work
+        cout << "#Q^2 [GeV^2]   Total cross section [nb] " /*, xpom=" << bjorkx << endl;*/ <<" W=" << W << " GeV, t = 0.0 (nucleai)" << endl;
+        if (minQsqr<=0) minQsqr=0.0001; // Qsqr=0 doesn't work
         REAL multiplier = pow(maxQsqr/minQsqr, 1.0/points);
         ////#pragma omp parallel for
         for (int i=0; i<=points; i++)
         {
             REAL tmpqsqr = minQsqr*pow(multiplier, i);
 
-            //bjorkx = (tmpqsqr + SQR(M_v))/(SQR(W)+tmpqsqr);
+            bjorkx = (tmpqsqr + SQR(M_v))/(SQR(W)+tmpqsqr);
             
             
             

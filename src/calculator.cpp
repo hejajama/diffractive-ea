@@ -1,7 +1,7 @@
 /*
  * Calculates different cross sections
  *
- * Heikki Mäntysaari <heikki.mantysaari@jyu.fi>, 2010-2014
+ * Heikki Mäntysaari <heikki.mantysaari@jyu.fi>, 2010-2015
  */
 
 #include "dipole.h"
@@ -25,7 +25,7 @@ const REAL epsfact = 50.0;   // eps = x_pom/epsfact
 const REAL TOTXS_COHERENT_MINT  = 0.0;  // Min t for total cohernet xs integral
 const REAL TOTXS_COHERENT_MAXT = 0.1;
 
-const double eps_y = 0.07  ;	// when computing corrections amplitude
+const double eps_y = 0.13  ;	// when computing corrections amplitude
 							// is evaluated at y and y+eps_y
 
 using std::cout; using std::cerr; using std::endl;
@@ -377,6 +377,7 @@ REAL Calculator::ProtonCrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
     // nonfactorized IPsat there is quite significant t-dependence
     REAL eps = bjorkx/epsfact;
     REAL result=0;
+    eps=0.13;
         
     if (polarization == VM_MODE_TOT)
     {
@@ -386,7 +387,7 @@ REAL Calculator::ProtonCrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
         //REAL xseps = RIntAmplitude(t, Qsqr, bjorkx+eps, &inthelperf_proton);
         //REAL lambda = log(xs/xseps)*(bjorkx/eps); 
 
-        eps=0.07;
+        
         double y0 = log(1.0/bjorkx);
         double y1 = y0-eps;
         double y2 = y0 + eps;
@@ -424,8 +425,6 @@ REAL Calculator::ProtonCrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
         
         }*/
         double y0 = log(1.0/bjorkx);
-        //eps=0.001;
-        eps=0.07;
         double y1 = y0-eps;
         double y2 = y0 + eps;
         double x1 = exp(-y1);
@@ -452,7 +451,7 @@ REAL inthelperf_proton(REAL r, void* p)
          par->delta);
 
     if (isnan(result) or isinf(result))
-        cerr << result << "  result at " << LINEINFO << ", r=" << r << " delta " << par->delta << " dipole amplitude " << par->amplitude->DipoleAmplitude_proton(SQR(r), par->bjorkx,
+        cerr << result << "  result at " << LINEINFO << ", r=" << r << " delta " << par->delta << ", Q^2=" << par->Qsqr <<", x=" << par->bjorkx <<", dipole amplitude " << par->amplitude->DipoleAmplitude_proton(SQR(r), par->bjorkx,
          par->delta)
             << " vm overlap " << par->vm->PsiSqr_intz(par->Qsqr, r) << endl;
 
@@ -543,7 +542,8 @@ REAL Calculator::RIntAmplitude(REAL t, REAL Qsqr, REAL bjorkx,
  */
 REAL Calculator::TotalCrossSection(REAL Qsqr, REAL bjorkx)
 {
-    REAL result = TotalCrossSection(Qsqr, bjorkx, 0, TOTXS_MAXT);
+    //REAL result = TotalCrossSection(Qsqr, bjorkx, 0, TOTXS_MAXT);
+    REAL result = 1.0 / GetAmplitude()->Bp() * CrossSection_dt(0, Qsqr, bjorkx);
     return result;
 }
 
@@ -738,13 +738,12 @@ double Calculator::DiffractiveAAtoJpsi(double y, double sqrts, Diffraction d, bo
 	}
 	
 	
-	
 	double res1_tmp;
 	if (xbj<1)
 	{
-		if (d==INCOHERENT)
+		if (d==INCOHERENT)  ///TODO: BK-laskuja varten ei t-integrointia kunnolla
 		{
-			res1 = NuclearPhotonFlux(y, sqrts, pa, z) * TotalCrossSection(0.0, xbj,switcht1,incoh_maxt);
+			res1 = NuclearPhotonFlux(y, sqrts, pa, z) * TotalCrossSection(0.0, xbj, switcht1,incoh_maxt);
 		}
 		else
 		{

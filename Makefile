@@ -30,8 +30,8 @@ libColorDipole: src/libColorDipole/src/*.f
 tools: $(OBJECTS) tools/tws.cpp
 	g++ $(CXXFLAGS) $(LDFLAGS) $(OBJECTS) tools/tws.cpp src/libColorDipole/libraries/libColorDipole.a /nashome2/hejajama/amplitudelib/libamplitude.a -o tws -lgfortran
 
-generator:
-	g++ $(CXXFLAGS) $(LDFLAGS) $(OBJECTS) create_amplitudelib_from_ipsat.cpp -o dipxs_generator 
+generator: tools/create_amplitudelib_from_ipsat.cpp
+	g++ $(CXXFLAGS) $(LDFLAGS) $(OBJECTS) -I. tools/create_amplitudelib_from_ipsat.cpp src/libColorDipole/libraries/libColorDipole.a  /nashome2/hejajama/amplitudelib/libamplitude.a   -o dipxs_generator -lgfortran 
 
 .cpp.o:
 	g++ $(CXXFLAGS) $< -c -o $@

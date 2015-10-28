@@ -3,7 +3,7 @@
  * Dipole amplitude from BK
  * B-dependence like in IIM
  *
- * Heikki Mäntysaari <heikki.mantysaari@jyu.fi>, 2014
+ * Heikki Mäntysaari <heikki.mantysaari@jyu.fi>, 2014-2015
  */
  
 #include "dipxs_bk.h"
@@ -64,11 +64,10 @@ Dipxs_BK::~Dipxs_BK()
  *      * \int d^2 b d^2 b' e^(-i(b-b')*\Delta) 
  *      * 1/2*(d\sigma^2 / d^2 b)(b,r) 1/2*(d\sgima^2 / d^2b)(b',r')
  *
- * IIM model we use:
+ * BK model we use:
  * A = S(b)N(r,x), where
  * S(b) = exp(-b^2/(2*B_D))   impact parameter dependence
  * N(r,x) is the dipole scattering amplitude
- * eq. (13) in paper arXiv 0706.2682v1
  */
  
 
@@ -121,6 +120,9 @@ REAL inthelperf_bkavg(REAL b, void* p)
 REAL Dipxs_BK::DipoleAmplitude_sqr_avg(REAL rsqr, REAL r2sqr, REAL xbj, 
                 REAL delta)
 {
+    if (xbj > N->X0())
+        return 0;
+    
     REAL r1 = sqrt(rsqr); REAL r2 = sqrt(r2sqr);    // Stupid..
     int A = nucleus.GetA();
     
@@ -146,7 +148,7 @@ REAL Dipxs_BK::DipoleAmplitude_sqr_avg(REAL rsqr, REAL r2sqr, REAL xbj,
         
         if (status) std::cerr << "Error " << status << " at " << __FILE__ << ":"
             << __LINE__ << ": Result " << result << ", abserror: " << abserr 
-            << " (t=" << delta*delta <<")" << std::endl;
+            << " (t=" << delta*delta <<"), xbj=" << xbj << std::endl;
         
         return result;
     
@@ -209,7 +211,7 @@ REAL Dipxs_BK::CoherentDipoleAmplitude_avg(REAL rsqr, REAL xbj, REAL delta)
  * Dipole-proton amplitude as a function of \Delta
  * Integrated over impact parameter dependence
  * 
- * 2 \pi B_D exp(-B_D*\Delta^2/2) * DipoleAmplitude(rq,x)
+ * sigma_0 exp(-B_D*\Delta^2/2) * DipoleAmplitude(rq,x)
  *
  */
  ///TODO: What is the impact parameter profile??? Factor 2 correctly?
@@ -220,6 +222,7 @@ REAL Dipxs_BK::DipoleAmplitude_proton(REAL rsqr, REAL xbj, REAL delta)
     //    cerr << "Dipxs_BK::DipoleAmplitude_proton does not support delta dependence " << LINEINFO << endl;
         
     return Sigma0()/2.0*DipoleAmplitude(rq,xbj);
+    // Divided by 2, because this is called from calculator.cpp:RIntAmplitude which adds factor 2
 }
 
 /*
