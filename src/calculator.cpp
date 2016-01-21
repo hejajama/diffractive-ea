@@ -297,7 +297,7 @@ REAL Calculator::CoherentCrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
             double xs1 = RIntAmplitude(t, Qsqr, x1, &inthelperf_proton);
             double xs2 = RIntAmplitude(t, Qsqr, x2, &inthelperf_proton);
             REAL lambda = log(xs2 / xs1) / (2.0*eps_y);
-            //cout <<"x " << bjorkx << " realpart " << 1.0+SQR(Beta(lambda)) << " skew " << SQR(Rg(lambda)) << " lambda " << lambda << endl;
+            cout <<"#x " << bjorkx << " realpart " << 1.0+SQR(Beta(lambda)) << " skew " << SQR(Rg(lambda)) << " lambda " << lambda << " totalcor " << (1.0+SQR(Beta(lambda))) * SQR(Rg(lambda)) << endl;
             //cout <<"# x=" << bjorkx <<", lambda: " << lambda << " oldlambda " << lambda_old << " rg " << SQR(Rg(lambda)) << " realpart " << SQR(Beta(lambda)) << endl;
             result=result*result*(1.0+SQR(Beta(lambda)))*SQR(Rg(lambda));
         }
@@ -542,8 +542,8 @@ REAL Calculator::RIntAmplitude(REAL t, REAL Qsqr, REAL bjorkx,
  */
 REAL Calculator::TotalCrossSection(REAL Qsqr, REAL bjorkx)
 {
-    //REAL result = TotalCrossSection(Qsqr, bjorkx, 0, TOTXS_MAXT);
-    REAL result = 1.0 / GetAmplitude()->Bp() * CrossSection_dt(0, Qsqr, bjorkx);
+    REAL result = TotalCrossSection(Qsqr, bjorkx, 0, TOTXS_MAXT);
+    //REAL result = 1.0 / GetAmplitude()->Bp() * CrossSection_dt(0, Qsqr, bjorkx);
     return result;
 }
 

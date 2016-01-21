@@ -446,7 +446,7 @@ int main(int argc, char* argv[])
         break;
     case MODEL_IPSAT2012:
         amplitude = new Dipxs_IPSat2012(nuke);
-        ((Dipxs_IPSat2012*)amplitude)->SetFactorize(true);
+        ((Dipxs_IPSat2012*)amplitude)->SetFactorize(false);
         break;
     case MODEL_IIM:
         amplitude = new Dipxs_IIM(nuke, iim_file);
@@ -551,15 +551,13 @@ int main(int argc, char* argv[])
             
             
             REAL xs = 0;
-            if (A==1)
-                xs = 1.0/calculator.GetAmplitude()->Bp() * calculator.ProtonCrossSection_dt(0, tmpqsqr, bjorkx);
-            else
-            {
+            //if (A==1)  FOR bK
+            //    xs = 1.0/calculator.GetAmplitude()->Bp() * calculator.ProtonCrossSection_dt(0, tmpqsqr, bjorkx);
+            //else
+            //{
                 
                 xs =  calculator.TotalCrossSection(tmpqsqr, bjorkx);
-                /// TODO: TEMPORARY!
-                //xs = calculator.CrossSection_dt(0.2, tmpqsqr, bjorkx);
-            }
+            //}
 
             xs *= NBGEVSQR;     // 1/Gev^2 -> nb  
             //#pragma omp critical
@@ -908,7 +906,7 @@ int main(int argc, char* argv[])
 		if (pa)
 			maxy=-miny;
 		
-
+	/*
         for(double y=miny; y<=maxy+0.00001; y+=0.1)
 		{
 			double res = calculator.DiffractiveAAtoJpsi(y, sqrts, d, pa);
@@ -917,14 +915,14 @@ int main(int argc, char* argv[])
             //else
             //    cout << y << " 0 0" << endl;
 		}
-	
+	*/
         //cout << calculator.DiffractiveAAtoJpsi_dt(0, sqrts, 0, d) << endl;
-		/*cout << "# t    d\\sigma/(dtdy)" << endl;
+		cout << "# t    d\\sigma/(dtdy)" << endl;
 		for (double t=0; t<0.3; t+=0.001)
 		//for (double t=0.1; t<=0.3001; t+=0.002)
 		{
 			cout << t << " " << calculator.DiffractiveAAtoJpsi_dt(0, sqrts, t, d) << endl;
-		}*/
+		}
 
 	}
     

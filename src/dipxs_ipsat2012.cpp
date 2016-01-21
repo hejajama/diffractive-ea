@@ -34,8 +34,9 @@ using std::cout; using std::endl; using std::cerr;
 extern "C" {
   double dipole_amplitude_(double* xBj, double* r, double* b, int* param);
 };
-double DipoleAmplitude(double r, double xBj, double b=0, int param=1)
+double DipoleAmplitude(double r, double xBj, double b=0, int param=2)
 {
+		// param 2: m_c=1.4
 	return 0.5*dipole_amplitude_(&xBj, &r, &b, &param);
 }
 
@@ -158,6 +159,7 @@ REAL Dipxs_IPSat2012::DipoleAmplitude_sqr_avg(REAL rsqr, REAL r2sqr, REAL xbj,
 
 REAL inthelperf_ipsat_coherentavg2012(REAL b, void* p)
 {
+		cerr << "TODO: b dependence for proton correctly!" << endl;
     inthelper_ipsatavg2012* par=(inthelper_ipsatavg2012*)p;
     int A = par->nuke->GetA();
     return 2.0*M_PI*b*gsl_sf_bessel_J0(b*par->delta)*
@@ -229,8 +231,9 @@ REAL Dipxs_IPSat2012::TotalDipxsection_proton(REAL rsqr, REAL xbj)
             ", (tot qqp-xs)" << std::endl;
         return result;
     }   
-    return 4.0*M_PI*B_p*DipoleAmplitude(std::sqrt(rsqr), xbj);
+	cerr << "Factorization is not implemented in TotalDipxsection_proton" << endl;
 }
+
 
 REAL inthelperf_totxs_satp2012(REAL b, void* p)
 {
@@ -257,9 +260,9 @@ REAL Dipxs_IPSat2012::DipoleAmplitude_proton(REAL rsqr, REAL xbj, REAL delta)
     
     if (factorize) // Factorize T(b) dependency
     {
-        return 2.0*M_PI*B_p*exp(-B_p*SQR(delta)/2.0)*DipoleAmplitude(rsqr, xbj);
+			cerr << "Factorized ipsat2012 is todo!" << endl;
     }
-    cerr << "Check non-factorized version! dipxs_ipsat2012.cpp DipoleAmplitude_proton" << endl;
+    //cerr << "Check non-factorized version! dipxs_ipsat2012.cpp DipoleAmplitude_proton" << endl;
     // Else: Integrate numerically over impact parameter dependence, oscillatory
     // integral...
     inthelper_ipsatavg2012 helper;
@@ -301,8 +304,7 @@ REAL inthelperf_satp2012(REAL b, void* p)
 REAL Dipxs_IPSat2012::Qq_proton_amplitude(REAL rsqr, REAL xbj, REAL b)
 {
     if (factorize)
-        return exp(-SQR(b)/(2.0*B_p))*DipoleAmplitude(std::sqrt(rsqr), xbj);
-	
+	cerr << "Factorized ipsat2012 is not implemented" << endl;	
     return DipoleAmplitude(std::sqrt(rsqr), xbj, b);
 }
 
