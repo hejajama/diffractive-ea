@@ -180,7 +180,7 @@ REAL Calculator::CrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
             rgsqr_l = SQR(Rg(lambda));
             betasqr_l=SQR(Beta(lambda));
             cache_Q2=Qsqr; cached_corrections=true;
-            //cout <<"# x=" << bjorkx << " realpartcorr " << betasqr_l <<" skewedness " << rgsqr_l << endl;
+            cout <<"# x=" << bjorkx << " realpartcorr " << betasqr_l <<" skewedness " << rgsqr_l << endl;
         }
         result *= (1.0 + betasqr_l)*rgsqr_l;
     }
@@ -297,7 +297,7 @@ REAL Calculator::CoherentCrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
             double xs1 = RIntAmplitude(t, Qsqr, x1, &inthelperf_proton);
             double xs2 = RIntAmplitude(t, Qsqr, x2, &inthelperf_proton);
             REAL lambda = log(xs2 / xs1) / (2.0*eps_y);
-            cout <<"#x " << bjorkx << " realpart " << 1.0+SQR(Beta(lambda)) << " skew " << SQR(Rg(lambda)) << " lambda " << lambda << " totalcor " << (1.0+SQR(Beta(lambda))) * SQR(Rg(lambda)) << endl;
+//            cout <<"#x " << bjorkx << " realpart " << 1.0+SQR(Beta(lambda)) << " skew " << SQR(Rg(lambda)) << " lambda " << lambda << " totalcor " << (1.0+SQR(Beta(lambda))) * SQR(Rg(lambda)) << endl;
             //cout <<"# x=" << bjorkx <<", lambda: " << lambda << " oldlambda " << lambda_old << " rg " << SQR(Rg(lambda)) << " realpart " << SQR(Beta(lambda)) << endl;
             result=result*result*(1.0+SQR(Beta(lambda)))*SQR(Rg(lambda));
         }
@@ -432,7 +432,7 @@ REAL Calculator::ProtonCrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
         double xs1 = RIntAmplitude(t, Qsqr, x1, &inthelperf_proton);
         double xs2 = RIntAmplitude(t, Qsqr, x2, &inthelperf_proton);
         double lambda = log(xs2 / xs1) / (2.0*eps);
-
+		//cout << "Correction " << (1.0+SQR(Beta(lambda)) ) * SQR(Rg(lambda)) << endl;
         result=xs*xs*(1.0+SQR(Beta(lambda)) ) * SQR(Rg(lambda));
    }
     
