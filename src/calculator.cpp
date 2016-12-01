@@ -15,7 +15,7 @@
 #include <iostream>
 
 // Integration settings
-const REAL MAXR=20;
+const REAL MAXR=5*5.068;//20;
 const REAL MINR=0.0001;   // r=0 doesn't work, K_{0,1}(0)=inf
 const REAL RINTACCURACY=0.01;
 const REAL TINTACCURACY=0.001;
@@ -180,7 +180,7 @@ REAL Calculator::CrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
             rgsqr_l = SQR(Rg(lambda));
             betasqr_l=SQR(Beta(lambda));
             cache_Q2=Qsqr; cached_corrections=true;
-            cout <<"# x=" << bjorkx << " realpartcorr " << betasqr_l <<" skewedness " << rgsqr_l << endl;
+            //cout <<"# x=" << bjorkx << " realpartcorr " << betasqr_l <<" skewedness " << rgsqr_l << endl;
         }
         result *= (1.0 + betasqr_l)*rgsqr_l;
     }
@@ -306,6 +306,44 @@ REAL Calculator::CoherentCrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
         
     result *= 1.0/(16.0*M_PI);  
     return result;
+}
+
+
+struct inthelper_coherentq2avg
+{
+		Calculator* calc;
+		REAL t;
+		REAL M_v;
+		REAL W;
+};
+
+REAL Inthelperf_coherentq2avg(REAL q2, void* p)
+{
+		inthelper_coherentq2avg* par = (inthelper_coherentq2avg*)p;
+		double M_v = par->M_v; double W = par->W;
+		double bjorkx = (q2 + M_v*M_v+par->t)/(W*W + q2); 
+		return par->calc->CoherentCrossSection_dt(par->t, q2, bjorkx);
+}
+
+REAL Calculator::CoherentCrossSection_avgqsqr(REAL t, REAL minq2, REAL maxq2, REAL W, REAL M_v)
+{
+	inthelper_coherentq2avg par;
+	par.calc=this;
+	par.t=t;
+	par.W=W;
+	par.M_v = M_v;
+	gsl_function fun;
+
+	fun.function=&Inthelperf_coherentq2avg;
+    fun.params=&par; 
+        
+    REAL result,abserr; size_t eval;
+    int status = gsl_integration_qng(&fun, minq2, maxq2, 0, 0.001 ,
+        &result, &abserr, &eval);
+    if (status and result>0.0000001)
+        std::cerr << "Total cross section integral failed to reach tolerance: "
+        << "Result: " << result << std::endl;
+	return result/(maxq2-minq2);
 }
 
 // Only one r integral for cohernet dipole-nucleus scattering
@@ -484,7 +522,7 @@ double Calculator::ProtonCrossSection_dt_qsqravg(double t, double minQsqr, doubl
             << __LINE__ << ": Result " << result << ", relerror: "
             << std::abs(abserr/result) << endl;
 
-    return result;
+    return result/(maxQsqr-minQsqr);
     
 }
 
@@ -492,7 +530,7 @@ double inthelperf_qsqravg( double qsqr, void* p)
 {
     inthelper_qsqravg* par = (inthelper_qsqravg*) p;
     Calculator* calc = par->calc;
-    double x =  (qsqr + SQR(par->M_v))/(SQR(par->w)+qsqr);
+    double x =  (qsqr + SQR(par->M_v)+par->t)/(SQR(par->w)+qsqr);
     return calc->ProtonCrossSection_dt(par->t, qsqr, x) ;
 }
 /*
@@ -711,7 +749,7 @@ double Calculator::DiffractiveAAtoJpsi(double y, double sqrts, Diffraction d, bo
 	{
 		switcht1 = CoherentIncoherent(0, xbj);
 		switcht2 = CoherentIncoherent(0, xbj2);
-		cout << "# at x=" << xbj << ", wsqr=" << wsqr <<" switch at t=" << switcht1 <<", at x=" << xbj2 <<", wsqr=" << wsqr2 <<", switch at t=" << switcht2 << endl;
+		//cout << "# at x=" << xbj << ", wsqr=" << wsqr <<" switch at t=" << switcht1 <<", at x=" << xbj2 <<", wsqr=" << wsqr2 <<", switch at t=" << switcht2 << endl;
 	}
 	
 	const double incoh_maxt=1.5;
@@ -797,7 +835,7 @@ double Calculator::DiffractiveAAtoJpsi_dt(double y, double sqrts, double t, Diff
 		else
 			res2=NuclearPhotonFlux(-y, sqrts, pa, z) * CoherentCrossSection_dt(t, 0, xbj2);
 	}
-	cout << "# x1 " << xbj << " W1^2 " << wsqr << " dsigma/dt " << res1 << " x2 " <<  xbj2 << " W2^2 " << wsqr2 << " dsigma/dt " <<  res2 << endl;
+	//cout << "# x1 " << xbj << " W1^2 " << wsqr << " dsigma/dt " << res1 << " x2 " <<  xbj2 << " W2^2 " << wsqr2 << " dsigma/dt " <<  res2 << endl;
 	return res1+res2;
 	
 }
@@ -815,7 +853,7 @@ double Calculator::NuclearPhotonFlux(double y,  double sqrts,  bool pa, int z)
 
     double mass=0;
     z=0;
-    if (sqrts==2760 or sqrts==5020)
+    if (sqrts==2760 or sqrts==5020 or true)
     {
         // LHC
         mass=193.729;

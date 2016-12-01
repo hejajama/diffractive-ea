@@ -9,6 +9,7 @@
 #include <iostream>
 #include <gsl/gsl_monte.h>
 #include <gsl/gsl_monte_plain.h>
+#include <gsl/gsl_roots.h>
 #include <gsl/gsl_integration.h>
 #include <gsl/gsl_sf_exp.h>
 #include <gsl/gsl_sf_gamma.h>
@@ -340,4 +341,71 @@ REAL Dipxs_IPSat2012::Bp()
 REAL Dipxs_IPSat2012::Sigma0()
 {
     return 4.0*M_PI*Bp();
+}
+
+struct satscalehelper_ipsat2012
+{
+	Dipxs_IPSat2012* dipole;
+	int A;
+	double b;
+	double xbj;
+	Nucleus *nuke;
+};
+
+double satscalehelperf_ipsat2012(double r, void* p)
+{
+	satscalehelper_ipsat2012* par= (satscalehelper_ipsat2012*) p;
+
+	if (par->A == 1)
+		return par->dipole->Qq_proton_amplitude(r*r, par->xbj, par->b) - (1.0 - std::exp(-0.5));
+	
+
+// Factorized approximation: factorize e^(-b62/(2B)) in front
+	 
+     double B_p=4.0;
+     double n = DipoleAmplitude(r, par->xbj, 0);
+     double tp = 1.0/(2.0*B_p*M_PI)*std::exp(-SQR(0)/(2.0*B_p));
+     // Remove tp from exponent
+     double expon = std::log(1.0 - n);
+     expon /= tp;
+	 return  (1.0 - std::exp( expon  * par->A * par->nuke->T_WS(par->b) ) ) - (1.0-std::exp(-0.5));
+	
+}
+
+
+REAL Dipxs_IPSat2012::SaturationScale(double x, int A, double b)
+{
+	 const gsl_root_fsolver_type *T = gsl_root_fsolver_bisection;
+     gsl_root_fsolver *s = gsl_root_fsolver_alloc(T);
+	 gsl_function f;
+	 f.function = satscalehelperf_ipsat2012;
+	 satscalehelper_ipsat2012 par;
+	 par.dipole=this;
+	 par.xbj=x;
+	 par.b=b;
+	 par.A=A;
+	 Nucleus nuke(A);
+	 nuke.Intialize();
+	 par.nuke=&nuke;
+	 f.params=&par;
+	 double maxr = 50;
+	 double ACC = 0.01;
+	 int MAXITER = 100;
+	 gsl_root_fsolver_set(s, &f, 0, maxr);
+     int iter=0; int status; double min,max;
+     do
+     {
+         iter++;
+         gsl_root_fsolver_iterate(s);
+         min = gsl_root_fsolver_x_lower(s);
+         max = gsl_root_fsolver_x_upper(s);
+         status = gsl_root_test_interval(min, max, 0, ACC);
+     } while (iter <= MAXITER and status == GSL_CONTINUE);
+																			     
+	  double satr = gsl_root_fsolver_root(s);
+											     
+	  double qs = std::sqrt( 2.0) / satr;
+																							     
+	  gsl_root_fsolver_free(s);
+	return qs*qs;
 }

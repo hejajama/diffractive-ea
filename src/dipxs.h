@@ -68,6 +68,8 @@ class Dipxs
 
         virtual REAL Sigma0();
         virtual REAL Bp();
+
+		virtual REAL SaturationScale(double x, int A, double b);   // Saturation scale in proton or nucleus
         
         // Fourier transformation of non-averaged cross sect. Dipxsection_b
         //COMPLEX FTDipxsection(REAL rsqr, REAL xbjorken,REAL deltax,REAL deltay,

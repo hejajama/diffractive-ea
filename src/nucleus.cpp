@@ -103,7 +103,7 @@ int Nucleus::Intialize()
         return -1;
     }
         
-    WS_N = 1/result;
+    WS_N = 1.0/result;
     //T_WS_0=T_WS(0);
     
     next_config=-1;    

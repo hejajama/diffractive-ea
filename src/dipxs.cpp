@@ -188,3 +188,9 @@ REAL Dipxs::Bp()
 {
     std::cerr <<"Dipxs::Bp is not implemented" << std::endl;
 }
+
+REAL Dipxs::SaturationScale(double x, int A, double b)
+{
+	std::cerr <<"Dipxs::SaturationScale is nto implemented!" << std::endl;
+	return 0;
+}

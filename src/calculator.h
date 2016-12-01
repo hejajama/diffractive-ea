@@ -33,6 +33,7 @@ class Calculator
         Calculator(Dipxs* amplitude_, WaveFunction* wavef_);
         REAL CrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx);  // d\sigma / dt
         REAL CoherentCrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx);
+		REAL CoherentCrossSection_avgqsqr(REAL t, REAL minq2, REAL maxq2, REAL W, REAL M_v);
         REAL TotalCoherentCrossSection(REAL Qsqr, REAL bjorkx, 
             REAL mint, REAL maxt);
         REAL TotalCoherentCrossSection(REAL Qsqr, REAL bjorkx);

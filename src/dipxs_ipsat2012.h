@@ -55,6 +55,8 @@ class Dipxs_IPSat2012 : public Dipxs
     
         REAL GetB_p();
 
+		REAL SaturationScale(double x, int A, double b);
+
         void SetFactorize(bool f);
     private:
         void Intialize();

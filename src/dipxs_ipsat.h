@@ -45,7 +45,7 @@ class Dipxs_IPSat : public Dipxs
         REAL Sigma0();
         REAL Bp();
         
-        
+	    REAL SaturationScale(double x, int A, double b);        
 
         //REAL Dipxsection_b_avg_sqr(REAL rsqr, REAL r2sqr, Vec b, Vec b2, REAL xbjork ); // Impact parameter representation
         
