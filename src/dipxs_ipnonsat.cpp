@@ -172,5 +172,10 @@ REAL Dipxs_IPNonSat::Sigmap(REAL rsqr, REAL xbjork)
  */
 REAL Dipxs_IPNonSat::Qq_proton_amplitude(REAL rsqr, REAL xbj, REAL b)
 {
-    return Sigmap(rsqr, xbj)*exp(-SQR(b)/(2.0*B_p))/(2.0*M_PI*B_p);
+    return 0.5*Sigmap(rsqr, xbj)*exp(-SQR(b)/(2.0*B_p))/(2.0*M_PI*B_p);
+}
+
+REAL Dipxs_IPNonSat::Bp()
+{
+	return B_p;
 }

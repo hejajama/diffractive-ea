@@ -15,7 +15,7 @@
 #include <string>
 #include <sstream>
 
-const REAL ZINTACCURACY=0.001;
+const REAL ZINTACCURACY=0.00001;
 const int MAXITER_ZINT=100;
 const REAL MINZ=0.00001;  // Integration limits
 const REAL MAXZ=0.9999;
@@ -85,9 +85,10 @@ BoostedGauss::BoostedGauss(std::string file)
 /*
  * Transversially polarized component of the overlap
  */
-
+const double RSQR_QSQR_LIMIT = 1000;
 REAL BoostedGauss::PsiSqr_T(REAL Qsqr, REAL r, REAL z)
 {
+	//if (r*r > RSQR_QSQR_LIMIT / Qsqr) return 0;
     REAL result;
     REAL epstmp=epsfun(z,Qsqr,SQR(m_f));
     result = SQR(m_f)*gsl_sf_bessel_K0(epstmp*r)*Psi_T(r,z) 
@@ -103,6 +104,7 @@ REAL BoostedGauss::PsiSqr_T(REAL Qsqr, REAL r, REAL z)
 
 REAL BoostedGauss::PsiSqr_L(REAL Qsqr, REAL r, REAL z)
 {
+    //if (r*r > RSQR_QSQR_LIMIT / Qsqr) return 0;
     REAL epstmp=epsfun(z,Qsqr,SQR(m_f));
     REAL result;
     result = M_V*Psi_L(r,z)+delta/(M_V*z*(1-z))*(SQR(m_f)*Psi_L(r,z) 
@@ -156,7 +158,7 @@ REAL BoostedGauss::PsiSqr_T_intz(REAL Qsqr, REAL r)
     //int status = gsl_integration_qng(&int_helper, MINZ, MAXZ,  0, ZINTACCURACY, 
     //    &result, &abserr, &eval);
     gsl_integration_workspace* ws = gsl_integration_workspace_alloc(MAXITER_ZINT);
-    int status = gsl_integration_qag(&int_helper, 0, 1, 0, ZINTACCURACY,
+    int status = gsl_integration_qag(&int_helper, MINZ, MAXZ, 0, ZINTACCURACY,
         MAXITER_ZINT, GSL_INTEG_GAUSS51, ws, &result, &abserr);
     gsl_integration_workspace_free(ws);
     if (status and ABS(result)>0.000001) std::cerr << "Error " << status << " at " << __FILE__ << ":"

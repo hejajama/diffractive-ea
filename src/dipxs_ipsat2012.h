@@ -47,17 +47,22 @@ class Dipxs_IPSat2012 : public Dipxs
 
         REAL N(double r, double x); // Evaluate dipole amplitude
         
-        
+		// Dipole amplitude where T_p is taken away,
+		// C = 1 - exp(-Pi^2/(2*NC)*r^2*\alpha_s*xg/(2*Pi*Bp))
+		// Stupid name, but use same as for the old ipsat
+        REAL FactorC(REAL rsqr, REAL x);	 
 
         //REAL Dipxsection_b_avg_sqr(REAL rsqr, REAL r2sqr, Vec b, Vec b2, REAL xbjork ); // Impact parameter representation
         
         //REAL Dipxsection_delta(REAL rsqr, REAL r2sqr, REAL xbjork, Vec delta);
     
         REAL GetB_p();
+		void SetB_p(double bp) { B_p = bp; }
 
 		REAL SaturationScale(double x, int A, double b);
 
         void SetFactorize(bool f);
+		bool GetFactorize();
     private:
         void Intialize();
         REAL B_p;   

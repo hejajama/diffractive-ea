@@ -10,7 +10,7 @@ SOURCES = src/dipole.cpp src/gaus_lc.cpp src/vector.cpp src/nucleus.cpp \
 	src/dipxs_ipnonsat.cpp src/dipxs_iim.cpp \
 	src/gdist/gdist_dglap.cpp src/calculator.cpp \
 	src/gauss_boost.cpp src/dipxs_bk.cpp \
-	src/dipxs_ipsat2012.cpp
+	src/dipxs_ipsat2012.cpp src/virtual_photon.cpp
 
 OBJECTS=$(SOURCES:.cpp=.o)
 

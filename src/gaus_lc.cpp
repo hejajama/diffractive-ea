@@ -183,11 +183,11 @@ REAL GausLC::PsiSqr_L_intz(REAL Qsqr, REAL r)
     //    MAXITER_ZINT, GSL_INTEG_GAUSS51, ws, &result, &abserr);
     //gsl_integration_workspace_free(ws);
     
-    if(status){ std::cerr<< "\\int z in GausLC failed: code " 
+    if(status){ std::cerr<< "\\int z in GausLC failed (res " << result << ": code " 
         << status << " (longitudinal, Qsqr=" << Qsqr << ", r=" << r 
         << "relerr=" << abserr/result << ")" << std::endl;}
 
-    result*=1/(4.0*M_PI); // Normalization
+    result*=1.0/(4.0*M_PI); // Normalization
     return result;
 }
 

@@ -34,6 +34,7 @@ class Dipxs_IPNonSat : public Dipxs
        // 1/2*d\sigma/d^2b = q\barq-proton scattering amplitude
        REAL Qq_proton_amplitude(REAL rsqr, REAL xbj, REAL b);
     
+		REAL Bp();
     private:
         REAL Sigmap(REAL rsqr, REAL xbjork);
         REAL prevft, prevdelta; // To optimize Dipxsection_sqr_avg

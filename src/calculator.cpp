@@ -10,20 +10,21 @@
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_sf_gamma.h>
+#include <gsl/gsl_sf_result.h>
 #include <gsl/gsl_roots.h>
 #include <gsl/gsl_sf_bessel.h>
 #include <iostream>
 
 // Integration settings
-const REAL MAXR=5*5.068;//20;
-const REAL MINR=0.0001;   // r=0 doesn't work, K_{0,1}(0)=inf
+const REAL MAXR=20*5.068;//20;
+const REAL MINR=0.00001;   // r=0 doesn't work, K_{0,1}(0)=inf
 const REAL RINTACCURACY=0.01;
 const REAL TINTACCURACY=0.001;
 const REAL DEFAULTACCURACY=0.001;
-const REAL TOTXS_MAXT=2;  // Max |t| in GeV^2 when calculating total xs
+const REAL TOTXS_MAXT=1;  // Max |t| in GeV^2 when calculating total xs
 const REAL epsfact = 50.0;   // eps = x_pom/epsfact
 const REAL TOTXS_COHERENT_MINT  = 0.0;  // Min t for total cohernet xs integral
-const REAL TOTXS_COHERENT_MAXT = 0.1;
+const REAL TOTXS_COHERENT_MAXT = 0.2;
 
 const double eps_y = 0.13  ;	// when computing corrections amplitude
 							// is evaluated at y and y+eps_y
@@ -229,6 +230,45 @@ REAL inthelperf_r2(REAL r2, void* p)
 
 }
 
+
+struct inthelper_coherentq2avg
+{
+		Calculator* calc;
+		REAL t;
+		REAL M_v;
+		REAL W;
+};
+
+REAL Inthelperf_incoherentq2avg(REAL q2, void* p)
+{
+		inthelper_coherentq2avg* par = (inthelper_coherentq2avg*)p;
+		double M_v = par->M_v; double W = par->W;
+		double bjorkx = (q2 + M_v*M_v+par->t)/(W*W + q2); 
+		return par->calc->CrossSection_dt(par->t, q2, bjorkx);
+}
+
+REAL Calculator::CrossSection_dt_avgqsqr(REAL t, REAL minq2, REAL maxq2, REAL W, REAL M_v)
+{
+	inthelper_coherentq2avg par;
+	par.calc=this;
+	par.t=t;
+	par.W=W;
+	par.M_v = M_v;
+	gsl_function fun;
+
+	fun.function=&Inthelperf_incoherentq2avg;
+    fun.params=&par; 
+        
+    REAL result,abserr; size_t eval;
+    int status = gsl_integration_qng(&fun, minq2, maxq2, 0, 0.001 ,
+        &result, &abserr, &eval);
+    if (status and result>0.0000001)
+        std::cerr << "Total cross section integral failed to reach tolerance: "
+        << "Result: " << result << std::endl;
+	return result/(maxq2-minq2);
+}
+
+
 /*
  * Differential cross section for coherent \gamma^*A scattering
  * We calculate correction factors from dipole-proton amplitude!
@@ -309,6 +349,7 @@ REAL Calculator::CoherentCrossSection_dt(REAL t, REAL Qsqr, REAL bjorkx)
 }
 
 
+/* defined above as it i used with incoherent xs
 struct inthelper_coherentq2avg
 {
 		Calculator* calc;
@@ -316,7 +357,7 @@ struct inthelper_coherentq2avg
 		REAL M_v;
 		REAL W;
 };
-
+*/
 REAL Inthelperf_coherentq2avg(REAL q2, void* p)
 {
 		inthelper_coherentq2avg* par = (inthelper_coherentq2avg*)p;
@@ -338,7 +379,7 @@ REAL Calculator::CoherentCrossSection_avgqsqr(REAL t, REAL minq2, REAL maxq2, RE
     fun.params=&par; 
         
     REAL result,abserr; size_t eval;
-    int status = gsl_integration_qng(&fun, minq2, maxq2, 0, 0.001 ,
+    int status = gsl_integration_qng(&fun, minq2, maxq2, 0, 0.01 ,
         &result, &abserr, &eval);
     if (status and result>0.0000001)
         std::cerr << "Total cross section integral failed to reach tolerance: "
@@ -371,7 +412,6 @@ REAL Calculator::TotalCoherentCrossSection(REAL Qsqr, REAL bjorkx)
 REAL Calculator::TotalCoherentCrossSection(REAL Qsqr, REAL bjorkx, 
     REAL mint, REAL maxt)
 {
-    
     gsl_function fun;   
     inthelper_r inthelp;
     inthelp.amplitude=amplitude;
@@ -395,7 +435,8 @@ REAL Calculator::TotalCoherentCrossSection(REAL Qsqr, REAL bjorkx,
 REAL inthelper_totcohxs(REAL t, void* p)
 {
     inthelper_r* par = (inthelper_r*)p; 
-    return par->calculator->CoherentCrossSection_dt(t, par->Qsqr, par->bjorkx);
+    double dt = par->calculator->CoherentCrossSection_dt(t, par->Qsqr, par->bjorkx);
+	return dt;
 }    
 
 
@@ -931,7 +972,14 @@ REAL Calculator::Rg(REAL lambda)
     if (!corrections)
         return 1.0;
     REAL result=pow(2.0,2.0*lambda+3.0)/sqrt(M_PI);
-    result *= gsl_sf_gamma(lambda+5.0/2.0)/gsl_sf_gamma(lambda+4.0);
+
+	double lambda4=0; double lambda52=0;
+	gsl_sf_result res4; gsl_sf_result res52;
+	int l4 = gsl_sf_gamma_e(lambda+4.0, &res4);
+	int l52 = gsl_sf_gamma_e(lambda+5.0/2.0, &res52); 
+	if (l4 or l52)
+		return 1;
+    result *= res52.val/res4.val;
     return result;
 }
 

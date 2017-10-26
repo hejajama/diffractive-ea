@@ -35,10 +35,17 @@ using std::cout; using std::endl; using std::cerr;
 extern "C" {
   double dipole_amplitude_(double* xBj, double* r, double* b, int* param);
 };
-double DipoleAmplitude(double r, double xBj, double b=0, int param=2)
+double DipoleAmplitude(double r, double xBj, double b=0, int param=2, double Bp=4)
 {
+		return 0.5*dipole_amplitude_(&xBj, &r, &b, &param);
 		// param 2: m_c=1.4
-	return 0.5*dipole_amplitude_(&xBj, &r, &b, &param);
+	double n = 0.5*dipole_amplitude_(&xBj, &r, &b, &param);
+	if (n ==1 or n==0) return n;
+	// Change Bp
+	double lns = log(1.0-n);	
+	double newlns = lns / (1.0 / (2.0*M_PI*4.0) * exp(-b*b/(2.0*4.0))) * 1.0 / (2.0*M_PI*Bp) * exp(-b*b/(2.0*Bp) );
+
+	return 1.0 - exp(newlns);
 }
 
 
@@ -93,13 +100,13 @@ REAL inthelperf_ipsatavg2012(REAL b, void* p)
     for (int i=1; i<=N_MAX2012; i++)
     {
         sum+=gsl_sf_choose(A,i)/((REAL)i)*exp(-B_p*SQR(par->delta)/i)
-             * exp(-2.0*A*M_PI*B_p*twstmp*(DipoleAmplitude(r,x)
-               + DipoleAmplitude(r2, x) ) )
+             * exp(-2.0*A*M_PI*B_p*twstmp*(par->dip->FactorC(r*r,x)
+               + par->dip->FactorC(r2*r2, x) ) )
              * pow( 
-                M_PI*B_p*DipoleAmplitude(r, x)
-                * DipoleAmplitude(r2, x)*twstmp
+                M_PI*B_p*par->dip->FactorC(r*r, x)
+                * par->dip->FactorC(r2*r2, x)*twstmp
                 / (1.0-2.0*M_PI*B_p*twstmp
-                *(DipoleAmplitude(r, x)+DipoleAmplitude(r2, x)
+                *(par->dip->FactorC(r*r, x)+par->dip->FactorC(r2*r2, x)
                 ))  ,i);    
     }
     
@@ -107,6 +114,8 @@ REAL inthelperf_ipsatavg2012(REAL b, void* p)
     
     // 2D integral -> 1D
     sum*=2.0*M_PI*b;
+ 
+ 
     return sum;
 }
 
@@ -235,7 +244,7 @@ REAL Dipxs_IPSat2012::TotalDipxsection_proton(REAL rsqr, REAL xbj)
 	// Factorized approximation: factorize e^(-b62/(2B)) in front
 	double n = DipoleAmplitude(std::sqrt(rsqr), xbj, 0);
 
-	return 4.0*M_PI*B_p*n;
+	return 4.0*M_PI*GetB_p()*n;
 }
 
 
@@ -265,7 +274,7 @@ REAL Dipxs_IPSat2012::DipoleAmplitude_proton(REAL rsqr, REAL xbj, REAL delta)
 		// Factorized approximation: factorize e^(-b62/(2B)) in front
 		double n = DipoleAmplitude(std::sqrt(rsqr), xbj, 0);
 
-		return 2.0*M_PI*B_p*std::exp(-B_p*SQR(delta)/2.0)*n;
+		return 2.0*M_PI*GetB_p()*std::exp(-GetB_p()*SQR(delta)/2.0)*n;
     }
     //cerr << "Check non-factorized version! dipxs_ipsat2012.cpp DipoleAmplitude_proton" << endl;
     // Else: Integrate numerically over impact parameter dependence, oscillatory
@@ -310,17 +319,29 @@ REAL Dipxs_IPSat2012::Qq_proton_amplitude(REAL rsqr, REAL xbj, REAL b)
 {
     if (factorize)
 	{
-		// Factorized approximation: factorize e^(-b62/(2B)) in front
+		// Factorized approximation: factorize e^(-b^2/(2B)) in front
 		double n = DipoleAmplitude(std::sqrt(rsqr), xbj, b);
-		double tp = std::exp(-SQR(b)/(2.0*B_p));
+		double tp = std::exp(-SQR(b)/(2.0*GetB_p()));
 		// Remove tmp from exponent
 		double expon = std::log(1.0 - n);
 		expon /= tp;
 		return tp * (1.0 - std::exp( expon ) ); 
 	}
-    return DipoleAmplitude(std::sqrt(rsqr), xbj, b);
+    return DipoleAmplitude(std::sqrt(rsqr), xbj, b, 2, GetB_p());
 }
 
+// Dipole amplitude without T_p, but with 1/(2pi B)
+REAL Dipxs_IPSat2012::FactorC(REAL rsqr, REAL x)
+{
+		// Factorized approximation: factorize e^(-b^2/(2B)) in front
+		double b=0;
+		double n = DipoleAmplitude(std::sqrt(rsqr), x, b);
+		double tp = std::exp(-SQR(b)/(2.0*GetB_p()));
+		// Remove tmp from exponent
+		double expon = std::log(1.0 - n);
+		expon /= tp;
+		return 1.0 - std::exp(expon);	
+}
 
 
 REAL Dipxs_IPSat2012::GetB_p()
@@ -408,4 +429,10 @@ REAL Dipxs_IPSat2012::SaturationScale(double x, int A, double b)
 																							     
 	  gsl_root_fsolver_free(s);
 	return qs*qs;
+}
+
+
+bool Dipxs_IPSat2012::GetFactorize()
+{
+	return factorize;
 }

@@ -42,12 +42,12 @@ REAL wsinthelperf1d(REAL z, void* p){
 
 Nucleus::Nucleus()
 {
-    A=0; gdist=0;
+    A=0; gdist=0; B_G=4;
 }
 
 Nucleus::Nucleus(int A_)
 {
-    A=A_; gdist=0;
+    A=A_; gdist=0; B_G=4;
     Intialize();
 }
 

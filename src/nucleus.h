@@ -66,7 +66,7 @@ class Nucleus
         REAL T_WS_0;    // T_WS(0)
         
         // Proton shape
-        static const REAL B_G=4;
+        REAL B_G;
         
         // Generated random nucleon configurations
         std::vector< std::vector<Vec> > nucleon_configs;

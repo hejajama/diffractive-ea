@@ -52,3 +52,9 @@ void WaveFunction::SetMode(int m)
 {
     mode=m;
 }
+
+REAL WaveFunction::MesonMass()
+{
+	// Not specified, so probably dvcs
+	return 0;
+}
