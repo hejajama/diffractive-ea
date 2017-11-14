@@ -12,6 +12,7 @@
 #include "nucleus.h"
 #include "dipole.h"
 #include <vector>
+#include "ipsat_mz/dipoleamplitude.hpp"
 #include <gsl/gsl_integration.h>
  
 class Dipxs_IPSat2012 : public Dipxs
@@ -45,8 +46,7 @@ class Dipxs_IPSat2012 : public Dipxs
         REAL Sigma0();
         REAL Bp();
 
-        REAL N(double r, double x); // Evaluate dipole amplitude
-        
+       double DipoleAmplitude(double r, double xBj, double b=0, int param=2 ); 
 		// Dipole amplitude where T_p is taken away,
 		// C = 1 - exp(-Pi^2/(2*NC)*r^2*\alpha_s*xg/(2*Pi*Bp))
 		// Stupid name, but use same as for the old ipsat
@@ -67,6 +67,7 @@ class Dipxs_IPSat2012 : public Dipxs
         void Intialize();
         REAL B_p;   
         bool factorize;
+		IPsat_MZ::DipoleAmplitude *ipsat_mz;
 };
 
 const int N_MAX2012=1;  // Upper limit for the sum in Dipxsection_sqr_avg

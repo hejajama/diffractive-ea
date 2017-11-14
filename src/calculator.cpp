@@ -17,7 +17,7 @@
 
 // Integration settings
 const REAL MAXR=20*5.068;//20;
-const REAL MINR=0.00001;   // r=0 doesn't work, K_{0,1}(0)=inf
+const REAL MINR=0.0000001;   // r=0 doesn't work, K_{0,1}(0)=inf
 const REAL RINTACCURACY=0.01;
 const REAL TINTACCURACY=0.001;
 const REAL DEFAULTACCURACY=0.001;

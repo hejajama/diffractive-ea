@@ -15,7 +15,7 @@
 #include <gsl/gsl_sf_gamma.h>
 #include <gsl/gsl_sf_bessel.h>
 #include <vector>
-
+#include "ipsat_mz/dipoleamplitude.hpp"
 #include "dipxs_ipsat2012.h"
 #include "dipole.h"
 
@@ -35,15 +35,17 @@ using std::cout; using std::endl; using std::cerr;
 extern "C" {
   double dipole_amplitude_(double* xBj, double* r, double* b, int* param);
 };
-double DipoleAmplitude(double r, double xBj, double b=0, int param=2, double Bp=4)
+//double Dipxs_IPSat2012::DipoleAmplitude(double r, double xBj, double b=0, int param=2, double Bp=4)
+double Dipxs_IPSat2012::DipoleAmplitude(double r, double xBj, double b, int param )
 {
+		return ipsat_mz->N(r, xBj, b);
 		return 0.5*dipole_amplitude_(&xBj, &r, &b, &param);
 		// param 2: m_c=1.4
 	double n = 0.5*dipole_amplitude_(&xBj, &r, &b, &param);
 	if (n ==1 or n==0) return n;
 	// Change Bp
 	double lns = log(1.0-n);	
-	double newlns = lns / (1.0 / (2.0*M_PI*4.0) * exp(-b*b/(2.0*4.0))) * 1.0 / (2.0*M_PI*Bp) * exp(-b*b/(2.0*Bp) );
+	double newlns = lns / (1.0 / (2.0*M_PI*4.0) * exp(-b*b/(2.0*4.0))) * 1.0 / (2.0*M_PI*Bp()) * exp(-b*b/(2.0*Bp()) );
 
 	return 1.0 - exp(newlns);
 }
@@ -58,11 +60,15 @@ Dipxs_IPSat2012::Dipxs_IPSat2012(Nucleus &n) : Dipxs(n)
 void Dipxs_IPSat2012::Intialize()
 {
     factorize=false;
+//	ipsat_mz = new IPsat_MZ::DipoleAmplitude(2.146034445992, 1.1, 0.09665075464199, 2.103826220003, 1.351650642298);
+//	ipsat_mz->SetSaturation(true);
+	ipsat_mz =  new IPsat_MZ::DipoleAmplitude(4.939286653112, 1.1, -0.009631194037871, 3.058791613883, 1.342035015621);
+    ipsat_mz->SetSaturation(false);
 }
 
 Dipxs_IPSat2012::~Dipxs_IPSat2012()
 {
-
+	delete ipsat_mz;
 }
 
 /* Amplitude squared averaged over nucleon configurations as a 
@@ -327,7 +333,7 @@ REAL Dipxs_IPSat2012::Qq_proton_amplitude(REAL rsqr, REAL xbj, REAL b)
 		expon /= tp;
 		return tp * (1.0 - std::exp( expon ) ); 
 	}
-    return DipoleAmplitude(std::sqrt(rsqr), xbj, b, 2, GetB_p());
+    return DipoleAmplitude(std::sqrt(rsqr), xbj, b, 2 );
 }
 
 // Dipole amplitude without T_p, but with 1/(2pi B)
@@ -384,7 +390,7 @@ double satscalehelperf_ipsat2012(double r, void* p)
 // Factorized approximation: factorize e^(-b62/(2B)) in front
 	 
      double B_p=4.0;
-     double n = DipoleAmplitude(r, par->xbj, 0);
+     double n = par->dipole->DipoleAmplitude(r, par->xbj, 0);
      double tp = 1.0/(2.0*B_p*M_PI)*std::exp(-SQR(0)/(2.0*B_p));
      // Remove tp from exponent
      double expon = std::log(1.0 - n);

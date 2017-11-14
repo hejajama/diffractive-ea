@@ -502,10 +502,13 @@ int main(int argc, char* argv[])
 
     if (mode==MODE_XG)  // Print the value of xg(x,µ) and quit
     {
-        cout << "# r = " << r << " GeV^(-1), x = " << bjorkx << endl;
-        REAL gd = gdist->Gluedist(bjorkx, r*r);
-        REAL tmp = gd* 2*NC/(M_PI*M_PI*Alpha_s(Mu2(SQR(r))) );
-        cout <<"xg = " << tmp << " (Gluedist = " << gd <<")"  << endl;
+        //cout << "# r = " << r << " GeV^(-1), x = " << bjorkx << endl;
+        //REAL gd = gdist->Gluedist(bjorkx, r*r);
+        //REAL tmp = gd* 2*NC/(M_PI*M_PI*Alpha_s(Mu2(SQR(r))) );
+		//#        cout <<"xg = " << tmp << " (Gluedist = " << gd <<")"  << endl;
+		cout << "# Q^2    pi^2/(2Nc) as * xg (x=" << bjorkx << ", Q^2)" << endl;
+		for (double q2=1.5; q2 < 100000; q2*=1.2)
+			cout << q2 << " " << gdist->Gluedist(bjorkx, q2) << endl;
     }
     
     else if (mode==MODE_XG_X) // xg as a function of x
@@ -615,6 +618,7 @@ int main(int argc, char* argv[])
             //REAL tmpw = minW*pow(multiplier, i);
             REAL tmpw = minW + (maxW-minW)/points*i;
             bjorkx = (Qsqr + SQR(M_v))/(SQR(tmpw)+Qsqr);
+			if (bjorkx < 1e-10) continue;
             REAL xs=0;
 			REAL xscoh=0;
             if (A==1 and false)
@@ -832,129 +836,130 @@ int main(int argc, char* argv[])
             cout << " " << nukexs / (tmpA*tmpA*protonxs) << endl;
         }
     }
-    
-    
-    
-    
-    // \\int quasielstic from minQsqr to maxQsqr / \\int coherent
-    else if (mode==MODE_QUASIELASTIC_COHERENT_Q)
-    {
-        cout << "# \\int quasielstic from mint to maxt/ \\int coherent" 
-            << endl;
-        cout << "# mint=" << mint << ", maxt=" << maxt << ", x=" << bjorkx << endl;
-       
-        if (minQsqr<0.000001) minQsqr=0.01;
-        REAL multiplier = pow(maxQsqr/minQsqr, 1.0/points);
-        calculator.SetTAccuracy(0.01);
-        
-        if (mint < 0.1)
-            cerr << "mint=" << mint << ", are you sure?" << endl;
-        
-        for (int i=0; i<=points; i++)
-        {
-            REAL tmpQsqr = minQsqr*pow(multiplier, i);
-            REAL coherent = calculator.TotalCoherentCrossSection(tmpQsqr, 
-                                                                bjorkx);
-            REAL quasiel = calculator.TotalCrossSection(tmpQsqr, bjorkx, 
-                                                            mint, maxt);
-            cout << tmpQsqr << " " << quasiel/coherent << endl;
-        }
-    }
-    
-    // \\int quasielstic from minQsqr to maxQsqr / \\int coherent
-    else if (mode==MODE_QUASIELASTIC_COHERENT_X)
-    {
-        cout << "# \\int quasielstic from mint to maxt / \\int coherent" 
-            << endl;
-        cout << "# Q^2=" << Qsqr << endl;
-        
-        if (minx<1e-8) minx=1e-8;
-        REAL multiplier = pow(maxx/minx, 1.0/points);
-        calculator.SetTAccuracy(0.01);
-        
-        if (mint < 0.1)
-            cerr << "mint=" << mint << ", are you sure?" << endl;
-        
-        for (int i=0; i<=points; i++)
-        {
-            REAL tmpx = minx*pow(multiplier, i);
-            REAL coherent = calculator.TotalCoherentCrossSection(Qsqr, 
-                                                                tmpx);
-            REAL quasiel = calculator.TotalCrossSection(Qsqr, tmpx, 
-                                                            mint, maxt);
-            cout << tmpx << " " << quasiel/coherent << endl;
-        }
-    }
-    
-    else if (mode==MODE_QUASIELASTIC_COHERENT_A)
-    {
-        cout << "# \\int quasielstic from mint to maxt / \\int coherent" 
-            << endl;
-        cout << "# Q^2=" << Qsqr << ", bjorkx="<< bjorkx << endl;
-        
 
-        calculator.SetTAccuracy(0.01);
-        
-        if (mint < 0.1)
-            cerr << "mint=" << mint << ", are you sure?" << endl;
-        
-        for (int tmpA=minA; tmpA<=maxA; tmpA+=Astep)
-        {
-            Nucleus tmpnuke(tmpA);
-            tmpnuke.SetGDist(gdist);
-            amplitude->SetNucleus(tmpnuke);
-            REAL coherent = calculator.TotalCoherentCrossSection(Qsqr, 
-                                                                bjorkx);
-            REAL quasiel = calculator.TotalCrossSection(Qsqr, bjorkx, 
-                                                            mint, maxt);
-            cout << tmpA << " " << quasiel/coherent << endl;
-        }
-    }
-    
-    else if (mode==MODE_COHERENT_DT)   // d\sigma^A/dt for coherent scattering
-    {
-        if (A==1) { 
-            std::cerr << "A=1, can't be coherent scattering." << std::endl;
-            return -1;
-        }
-        cout << "# t [Gev^2]  d\\sigma/dt [nb/GeV^2], coherent scattering " << endl;
+
+
+
+// \\int quasielstic from minQsqr to maxQsqr / \\int coherent
+else if (mode==MODE_QUASIELASTIC_COHERENT_Q)
+{
+cout << "# \\int quasielstic from mint to maxt/ \\int coherent" 
+	<< endl;
+cout << "# mint=" << mint << ", maxt=" << maxt << ", x=" << bjorkx << endl;
+
+if (minQsqr<0.000001) minQsqr=0.01;
+REAL multiplier = pow(maxQsqr/minQsqr, 1.0/points);
+calculator.SetTAccuracy(0.01);
+
+if (mint < 0.1)
+	cerr << "mint=" << mint << ", are you sure?" << endl;
+
+for (int i=0; i<=points; i++)
+{
+	REAL tmpQsqr = minQsqr*pow(multiplier, i);
+	REAL coherent = calculator.TotalCoherentCrossSection(tmpQsqr, 
+														bjorkx);
+	REAL quasiel = calculator.TotalCrossSection(tmpQsqr, bjorkx, 
+													mint, maxt);
+	cout << tmpQsqr << " " << quasiel/coherent << endl;
+}
+}
+
+// \\int quasielstic from minQsqr to maxQsqr / \\int coherent
+else if (mode==MODE_QUASIELASTIC_COHERENT_X)
+{
+cout << "# \\int quasielstic from mint to maxt / \\int coherent" 
+	<< endl;
+cout << "# Q^2=" << Qsqr << endl;
+
+if (minx<1e-8) minx=1e-8;
+REAL multiplier = pow(maxx/minx, 1.0/points);
+calculator.SetTAccuracy(0.01);
+
+if (mint < 0.1)
+	cerr << "mint=" << mint << ", are you sure?" << endl;
+
+for (int i=0; i<=points; i++)
+{
+	REAL tmpx = minx*pow(multiplier, i);
+	REAL coherent = calculator.TotalCoherentCrossSection(Qsqr, 
+														tmpx);
+	REAL quasiel = calculator.TotalCrossSection(Qsqr, tmpx, 
+													mint, maxt);
+	cout << tmpx << " " << quasiel/coherent << endl;
+}
+}
+
+else if (mode==MODE_QUASIELASTIC_COHERENT_A)
+{
+cout << "# \\int quasielstic from mint to maxt / \\int coherent" 
+	<< endl;
+cout << "# Q^2=" << Qsqr << ", bjorkx="<< bjorkx << endl;
+
+
+calculator.SetTAccuracy(0.01);
+
+if (mint < 0.1)
+	cerr << "mint=" << mint << ", are you sure?" << endl;
+
+for (int tmpA=minA; tmpA<=maxA; tmpA+=Astep)
+{
+	Nucleus tmpnuke(tmpA);
+	tmpnuke.SetGDist(gdist);
+	amplitude->SetNucleus(tmpnuke);
+	REAL coherent = calculator.TotalCoherentCrossSection(Qsqr, 
+														bjorkx);
+	REAL quasiel = calculator.TotalCrossSection(Qsqr, bjorkx, 
+													mint, maxt);
+	cout << tmpA << " " << quasiel/coherent << endl;
+}
+}
+
+else if (mode==MODE_COHERENT_DT)   // d\sigma^A/dt for coherent scattering
+{
+if (A==1) { 
+	std::cerr << "A=1, can't be coherent scattering." << std::endl;
+	return -1;
+}
+cout << "# t [Gev^2]  d\\sigma/dt [nb/GeV^2], coherent scattering " << endl;
 //        cout << "# x_pomeron = " << bjorkx << ", Q^2 = " << Qsqr << endl;
-        if (minQsqr>=0)
-			cout << "# W = " << W << " min Q^2 " << minQsqr << " max Q^2 = " << maxQsqr << endl;
-		else
-			cout << "# x_pomeron = " << bjorkx << ", Q^2 = " << Qsqr << endl;
-		// All iterations are independent, so this is straightforward to parallerize   
-        //#pragma omp parallel for
-        for (int i=0; i<=points; i++)
-        {
-            REAL tmpt = mint+(maxt-mint)/points*i;
-            REAL delta = sqrt(tmpt);
-            REAL result=0;
-			if (minQsqr>=0)
-			{
-				result = calculator.CoherentCrossSection_avgqsqr(tmpt,  minQsqr, maxQsqr,  W,  M_v);
-			}
-			else
-			{
-				result = calculator.CoherentCrossSection_dt(tmpt, Qsqr, bjorkx);
-            }
-            //#pragma omp critical
-            {
-                cout.precision(5);
-                cout << fixed << tmpt;
-                cout.precision(12);
-                cout << " " << result*NBGEVSQR << endl;
-            }
-        }
-   
-   		cout << "# Total coherent cross section: " << calculator.TotalCoherentCrossSection(Qsqr, bjorkx)*NBGEVSQR << " nb " << endl; 
-    
-    }    
-  
-    else if (mode==MODE_DIFFXS)   // dsigma/dt as a function of t
+if (minQsqr>=0)
+	cout << "# W = " << W << " min Q^2 " << minQsqr << " max Q^2 = " << maxQsqr << endl;
+else
+	cout << "# x_pomeron = " << bjorkx << ", Q^2 = " << Qsqr << endl;
+// All iterations are independent, so this is straightforward to parallerize   
+//#pragma omp parallel for
+for (int i=0; i<=points; i++)
+{
+	REAL tmpt = mint+(maxt-mint)/points*i;
+	REAL delta = sqrt(tmpt);
+	REAL result=0;
+	if (minQsqr>=0)
+	{
+		result = calculator.CoherentCrossSection_avgqsqr(tmpt,  minQsqr, maxQsqr,  W,  M_v);
+	}
+	else
+	{
+		result = calculator.CoherentCrossSection_dt(tmpt, Qsqr, bjorkx);
+	}
+	//#pragma omp critical
+	{
+		cout.precision(5);
+		cout << fixed << tmpt;
+		cout.precision(12);
+		cout << " " << result*NBGEVSQR << endl;
+	}
+}
+
+cout << "# Total coherent cross section: " << calculator.TotalCoherentCrossSection(Qsqr, bjorkx)*NBGEVSQR << " nb " << endl; 
+
+}    
+
+else if (mode==MODE_DIFFXS)   // dsigma/dt as a function of t
     {
         cout << "# t [GeV^2]  d\\sigma/dt [nb/GeV^2] " << endl;
         cout << "# x_pomeron = " << bjorkx << ", Q^2 = " << Qsqr << endl;
+		cout << "# W = " << W << endl;
 
 		if (minQsqr >= 0)
 				cout << "# Average minQ^2 " << minQsqr << " maxQ^2 " << maxQsqr << ", W=" << W << endl;
@@ -973,8 +978,12 @@ int main(int argc, char* argv[])
 					result = calculator.ProtonCrossSection_dt_qsqravg(tmpt, minQsqr, maxQsqr, W,  M_v);
 				}
 				else
-                	result = calculator.ProtonCrossSection_dt(tmpt, Qsqr, bjorkx); 
-
+				{
+                	bjorkx = (M_v * M_v + Qsqr + tmpt) / (W*W + Qsqr);
+					result = calculator.ProtonCrossSection_dt(tmpt, Qsqr, bjorkx); 
+					
+				}
+	
             }
             else
             {
@@ -1097,6 +1106,7 @@ int main(int argc, char* argv[])
     {
 
         cout << "# d\\sigma/d^2b for dipole-proton scattering" << endl;
+		bjorkx = 0.01*exp(-bjorkx);
         cout << "# b = " << b << ", x = " << bjorkx << endl;
         cout << "# r [GeV^-1]   dsigma/d2b" << endl;
         REAL maxr = 100; REAL minr=0.00001;
