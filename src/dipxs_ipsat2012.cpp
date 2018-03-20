@@ -23,7 +23,7 @@
 REAL inthelperf_satp2012(REAL b, void* p);  // Integrate over impact parameter 
 REAL inthelperf_totxs_satp2012(REAL b, void* p);
 
-const REAL MAXB=100;
+const REAL MAXB=120;
 const int MAXITER_BINT=1000;
 
 const REAL AVGINTACCURACY = 0.001;
@@ -38,8 +38,9 @@ extern "C" {
 //double Dipxs_IPSat2012::DipoleAmplitude(double r, double xBj, double b=0, int param=2, double Bp=4)
 double Dipxs_IPSat2012::DipoleAmplitude(double r, double xBj, double b, int param )
 {
+		if (r==0) return 0;
 		return ipsat_mz->N(r, xBj, b);
-		return 0.5*dipole_amplitude_(&xBj, &r, &b, &param);
+	//	return 0.5*dipole_amplitude_(&xBj, &r, &b, &param);
 		// param 2: m_c=1.4
 	double n = 0.5*dipole_amplitude_(&xBj, &r, &b, &param);
 	if (n ==1 or n==0) return n;
@@ -59,11 +60,13 @@ Dipxs_IPSat2012::Dipxs_IPSat2012(Nucleus &n) : Dipxs(n)
 
 void Dipxs_IPSat2012::Intialize()
 {
-    factorize=false;
-//	ipsat_mz = new IPsat_MZ::DipoleAmplitude(2.146034445992, 1.1, 0.09665075464199, 2.103826220003, 1.351650642298);
-//	ipsat_mz->SetSaturation(true);
-	ipsat_mz =  new IPsat_MZ::DipoleAmplitude(4.939286653112, 1.1, -0.009631194037871, 3.058791613883, 1.342035015621);
-    ipsat_mz->SetSaturation(false);
+    //factorize=false;
+	ipsat_mz = new IPsat_MZ::DipoleAmplitude(2.289363553168, std::sqrt(1.1), 0.08289088639946, 2.195310911936, 1.35277437092);
+	ipsat_mz->SetSaturation(true);
+	//ipsat_mz =  new IPsat_MZ::DipoleAmplitude(4.297444629517, std::sqrt(1.1), -0.006657294973805, 3.039134356321, 1.350367375905);
+    //ipsat_mz->SetSaturation(false);
+	//factorize=true;
+	//factorize=true;
 }
 
 Dipxs_IPSat2012::~Dipxs_IPSat2012()
@@ -382,7 +385,6 @@ struct satscalehelper_ipsat2012
 double satscalehelperf_ipsat2012(double r, void* p)
 {
 	satscalehelper_ipsat2012* par= (satscalehelper_ipsat2012*) p;
-
 	if (par->A == 1)
 		return par->dipole->Qq_proton_amplitude(r*r, par->xbj, par->b) - (1.0 - std::exp(-0.5));
 	
