@@ -20,6 +20,7 @@
 #include "dipole.h"
 #include "gaus_lc.h"
 #include "gauss_boost.h"
+#include "nonrealtivistic_wavef.h"
 #include "vector.h"
 #include "nucleus.h"
 #include "dipxs_ipnonsat.h"
@@ -35,7 +36,7 @@
 using namespace std;
 
 const std::string VERSION = "1.02-dev";
-const std::string DATE = "2016-xx-xx";
+const std::string DATE = "2017-xx-xx";
 
 const int MODEL_IPSAT=1; const int MODEL_IPNONSAT=2; const int MODEL_IIM=3;
 const int MODEL_IPSAT_NONSATP=4; const int MODEL_IPSAT_NOFACTOR=5;
@@ -43,7 +44,7 @@ const int MODEL_BK=6; const int MODEL_IPSAT2012=7;
 const int GDIST_DGLAP=1; 
 
 const int WAVEF_GAUS_LC=1; const int WAVEF_BOOSTED_GAUSSIAN=2;
-const int WAVEF_DVCS = 3;
+const int WAVEF_DVCS = 3; const int WAVEF_NR =4;
 enum MODE
 {
         MODE_TOTXS, MODE_DIFFXS, MODE_Ap,
@@ -331,6 +332,8 @@ int main(int argc, char* argv[])
                     wavef=WAVEF_BOOSTED_GAUSSIAN;
 				else if (string(argv[i+1])=="dvcs")
 					wavef = WAVEF_DVCS;
+				else if (string(argv[i+1])=="nonrel")
+					wavef = WAVEF_NR;
                 else
                 {
                     cerr << "Wavef " << argv[i+1] << " is not valid" << endl;
@@ -384,7 +387,7 @@ int main(int argc, char* argv[])
         // x = x_bj*(1+M^2/Q^2) = Q^2/(Q^2+W^2+M_n^2)(1+M^2/Q^2)
         //   = (Q^2 + M_v^2) / (Q^2 + W^2 + M_n^2)
         //std::cout << "# x scaled from " << bjorkx << " to " ;
-        bjorkx = (Qsqr + SQR(M_v))/( Qsqr + SQR(W) + SQR(M_n) );
+        bjorkx = (Qsqr + SQR(M_v))/( Qsqr + SQR(W) - SQR(M_n) );
         //cout << bjorkx << endl;
     }
 
@@ -430,6 +433,13 @@ int main(int argc, char* argv[])
 		case WAVEF_DVCS:
 			JPsi = new PhotonDVCS();
 			cout << "# Wave function: " << *((PhotonDVCS*)JPsi) << endl;
+			break;
+		case WAVEF_NR:
+			fname="nrwavef.dat";
+			if (waveffile != "")
+					fname=waveffile;
+			JPsi = new NRWaveFunction(fname); 
+			cout << "# Wave function: " << *((NRWaveFunction*)JPsi) << endl;
 			break;
         default:
             cerr << "Unknown wave function set! Quitting...." << std::endl;
@@ -564,7 +574,9 @@ int main(int argc, char* argv[])
      
     else if (mode==MODE_TOTXS_Q)    // Total cross section as a function of Q^2
     {                               // W fixed / x fixed
-        cout << "#Q^2 [GeV^2]   Total cross section [nb] " /*, xpom=" << bjorkx << endl;*/ <<" W=" << W << " GeV"  << endl;
+//        cout << "#Q^2 [GeV^2]   Total cross section [nb] " /*, xpom=" << bjorkx << endl;*/ <<" W=" << W << " GeV"  << endl;
+        cout << "#Q^2 [GeV^2]   dsigma/dt(t=0) [nb/GeV^2] " /*, xpom=" << bjorkx << endl;*/ <<" W=" << W << " GeV"  << endl;
+
         if (minQsqr<=0) minQsqr=0.0001; // Qsqr=0 doesn't work
 		maxQsqr = 100000;
         REAL multiplier = pow(maxQsqr/minQsqr, 1.0/points);
@@ -573,7 +585,7 @@ int main(int argc, char* argv[])
         {
             REAL tmpqsqr = minQsqr*pow(multiplier, i);
 
-            //bjorkx = (tmpqsqr + SQR(M_v))/(SQR(W)+tmpqsqr);
+            bjorkx = (tmpqsqr + SQR(M_v))/(SQR(W)+tmpqsqr);
             //bjorkx = (SQR(M_v) + tmpqsqr)/( 40.0*40.0 );
 			if (bjorkx>0.02)
 				continue;
@@ -581,10 +593,12 @@ int main(int argc, char* argv[])
             
             REAL xs = 0;
             if (A==1)  
-				//xs = calculator.TotalProtonCrossSection(tmpqsqr, bjorkx);
-				xs = /*1.0/calculator.GetAmplitude()->Bp() * */ calculator.ProtonCrossSection_dt(0, tmpqsqr, bjorkx);
+				//xs = calculator.TotalCrossSection(tmpqsqr, bjorkx);
+				xs = calculator.ProtonCrossSection_dt(0, tmpqsqr, bjorkx);
+				//xs = /*1.0/calculator.GetAmplitude()->Bp() * */ calculator.ProtonCrossSection_dt(0, tmpqsqr, bjorkx);
 			else
-					 xs =  calculator.TotalCoherentCrossSection(tmpqsqr, bjorkx);
+					 xs=calculator.CoherentCrossSection_dt(0, tmpqsqr, bjorkx);
+					//xs =  calculator.TotalCoherentCrossSection(tmpqsqr, bjorkx);
             //    xs = 1.0/calculator.GetAmplitude()->Bp() * calculator.ProtonCrossSection_dt(0, tmpqsqr, bjorkx);
             //else
             //{
@@ -597,7 +611,7 @@ int main(int argc, char* argv[])
             {
                 cout.precision(5);
                 cout << fixed << tmpqsqr;
-                cout.precision(8);
+                cout.precision(14);
                 cout << " " << xs << endl;
             }
         
@@ -615,10 +629,11 @@ int main(int argc, char* argv[])
         ////#pragma omp parallel for
         for (int i=0; i<=points; i++)
         {
-            //REAL tmpw = minW*pow(multiplier, i);
-            REAL tmpw = minW + (maxW-minW)/points*i;
+            REAL tmpw = minW*pow(multiplier, i);
+            //REAL tmpw = minW + (maxW-minW)/points*i;
             bjorkx = (Qsqr + SQR(M_v))/(SQR(tmpw)+Qsqr);
 			if (bjorkx < 1e-10) continue;
+			if (bjorkx > 0.1) continue;
             REAL xs=0;
 			REAL xscoh=0;
             if (A==1 and false)
@@ -998,7 +1013,7 @@ else if (mode==MODE_DIFFXS)   // dsigma/dt as a function of t
             {
                 cout.precision(5);
                 cout << fixed << tmpt;
-                cout.precision(8);
+                cout.precision(12);
                 cout << " " << result*NBGEVSQR << endl;
             }
         }
@@ -1015,10 +1030,11 @@ else if (mode==MODE_DIFFXS)   // dsigma/dt as a function of t
             tmpnuke.SetGDist(gdist);
             amplitude->SetNucleus(tmpnuke);
             
-            REAL result = calculator.CoherentCrossSection_dt(t, Qsqr, bjorkx); 
+            //REAL result =  calculator.CoherentCrossSection_dt(0,Qsqr, bjorkx); 
+			REAL result = 	calculator.TotalCoherentCrossSection(Qsqr, bjorkx);
             cout.precision(3);
             cout << fixed << tmpA;
-            cout.precision(8);
+            cout.precision(14);
             cout << " " << result*NBGEVSQR << endl;
             
         }

@@ -16,17 +16,17 @@
 #include <iostream>
 
 // Integration settings
-const REAL MAXR=20*5.068;//20;
-const REAL MINR=0.0000001;   // r=0 doesn't work, K_{0,1}(0)=inf
-const REAL RINTACCURACY=0.01;
+const REAL MAXR=30*5.068;//20;
+const REAL MINR=0.00000001;   // r=0 doesn't work, K_{0,1}(0)=inf
+const REAL RINTACCURACY=0.0001;
 const REAL TINTACCURACY=0.001;
 const REAL DEFAULTACCURACY=0.001;
 const REAL TOTXS_MAXT=1;  // Max |t| in GeV^2 when calculating total xs
 const REAL epsfact = 50.0;   // eps = x_pom/epsfact
 const REAL TOTXS_COHERENT_MINT  = 0.0;  // Min t for total cohernet xs integral
-const REAL TOTXS_COHERENT_MAXT = 0.2;
+const REAL TOTXS_COHERENT_MAXT = 0.5;
 
-const double eps_y = 0.13  ;	// when computing corrections amplitude
+const double eps_y = 0.03  ;	// when computing corrections amplitude
 							// is evaluated at y and y+eps_y
 
 using std::cout; using std::cerr; using std::endl;
