@@ -578,7 +578,7 @@ int main(int argc, char* argv[])
         cout << "#Q^2 [GeV^2]   dsigma/dt(t=0) [nb/GeV^2] " /*, xpom=" << bjorkx << endl;*/ <<" W=" << W << " GeV"  << endl;
 
         if (minQsqr<=0) minQsqr=0.0001; // Qsqr=0 doesn't work
-		maxQsqr = 100000;
+		//maxQsqr = 100000;
         REAL multiplier = pow(maxQsqr/minQsqr, 1.0/points);
         ////#pragma omp parallel for
         for (int i=0; i<=points; i++)
@@ -593,12 +593,12 @@ int main(int argc, char* argv[])
             
             REAL xs = 0;
             if (A==1)  
-				//xs = calculator.TotalCrossSection(tmpqsqr, bjorkx);
-				xs = calculator.ProtonCrossSection_dt(0, tmpqsqr, bjorkx);
+				xs = calculator.TotalCrossSection(tmpqsqr, bjorkx);
+				//xs = calculator.ProtonCrossSection_dt(0, tmpqsqr, bjorkx);
 				//xs = /*1.0/calculator.GetAmplitude()->Bp() * */ calculator.ProtonCrossSection_dt(0, tmpqsqr, bjorkx);
 			else
-					 xs=calculator.CoherentCrossSection_dt(0, tmpqsqr, bjorkx);
-					//xs =  calculator.TotalCoherentCrossSection(tmpqsqr, bjorkx);
+					// xs=calculator.CoherentCrossSection_dt(0, tmpqsqr, bjorkx);
+					xs =  calculator.TotalCoherentCrossSection(tmpqsqr, bjorkx);
             //    xs = 1.0/calculator.GetAmplitude()->Bp() * calculator.ProtonCrossSection_dt(0, tmpqsqr, bjorkx);
             //else
             //{
@@ -636,7 +636,7 @@ int main(int argc, char* argv[])
 			if (bjorkx > 0.1) continue;
             REAL xs=0;
 			REAL xscoh=0;
-            if (A==1 and false)
+            if (A==1 )
             {
                 if (minQsqr>=0)  // average
                 {

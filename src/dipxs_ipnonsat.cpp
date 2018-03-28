@@ -12,6 +12,7 @@
 #include <gsl/gsl_sf_exp.h>
 #include <gsl/gsl_sf_bessel.h>
 #include <vector>
+#include "ipsat_mz/dipoleamplitude.hpp"
 
 
 
@@ -29,6 +30,7 @@ Dipxs_IPNonSat::Dipxs_IPNonSat(Nucleus &nucleus_) :
 {
     prevdelta=prevft=-1;
     B_p=DEFAULT_B_p;
+	Initialize();
 }
 
 Dipxs_IPNonSat::Dipxs_IPNonSat(Nucleus &nucleus_, REAL bp) :
@@ -36,6 +38,22 @@ Dipxs_IPNonSat::Dipxs_IPNonSat(Nucleus &nucleus_, REAL bp) :
 {
     prevdelta=prevft=-1;
     B_p=bp;
+	Initialize();
+}
+
+Dipxs_IPNonSat::~Dipxs_IPNonSat()
+{
+	delete ipsat_mz;
+}
+
+void Dipxs_IPNonSat::Initialize()
+{
+    //factorize=false;
+	//ipsat_mz = new IPsat_MZ::DipoleAmplitude(2.289363553168, std::sqrt(1.1), 0.08289088639946, 2.195310911936, 1.35277437092);
+	//ipsat_mz->SetSaturation(true);
+	ipsat_mz =  new IPsat_MZ::DipoleAmplitude(4.297444629517, std::sqrt(1.1), -0.006657294973805, 3.039134356321, 1.350367375905);
+    ipsat_mz->SetSaturation(false);
+	//factorize=true;
 }
 
 /* Amplitude squared averaged over nucleon configurations as a 
@@ -124,6 +142,7 @@ REAL Dipxs_IPNonSat::DipoleAmplitude_proton(REAL rsqr, REAL xbj, REAL delta)
  */
 REAL Dipxs_IPNonSat::TotalDipxsection_proton(REAL rsqr, REAL xbj)
 {
+	return 4.0 * M_PI * Bp() * ipsat_mz->N(std::sqrt(rsqr), xbj, 0);
     return 2.0*nucleus.GetGDist()->Gluedist(xbj, rsqr)*rsqr;
 }
 
@@ -163,7 +182,12 @@ REAL Dipxs_IPNonSat::Dipxsection(REAL rsqr, REAL xbjork, Vec b,
  */
 REAL Dipxs_IPNonSat::Sigmap(REAL rsqr, REAL xbjork)
 {
-    return 2*rsqr*nucleus.GetGDist()->Gluedist(xbjork,rsqr);
+	// MZ fit
+	double n = ipsat_mz->N(std::sqrt(rsqr), xbjork, 0);
+	// Total dipole-proton xs = 2 * int d^2b  N(b)  = 2 * 2pi*B*N(b=0)
+	return 4.0*M_PI*Bp()*n;
+
+    ////return 2*rsqr*nucleus.GetGDist()->Gluedist(xbjork,rsqr);
 }
 
 /*

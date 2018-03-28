@@ -38,8 +38,8 @@ extern "C" {
 //double Dipxs_IPSat2012::DipoleAmplitude(double r, double xBj, double b=0, int param=2, double Bp=4)
 double Dipxs_IPSat2012::DipoleAmplitude(double r, double xBj, double b, int param )
 {
-		if (r==0) return 0;
-		return ipsat_mz->N(r, xBj, b);
+	//	if (r==0) return 0;
+	//	return ipsat_mz->N(r, xBj, b);
 	//	return 0.5*dipole_amplitude_(&xBj, &r, &b, &param);
 		// param 2: m_c=1.4
 	double n = 0.5*dipole_amplitude_(&xBj, &r, &b, &param);
@@ -60,12 +60,12 @@ Dipxs_IPSat2012::Dipxs_IPSat2012(Nucleus &n) : Dipxs(n)
 
 void Dipxs_IPSat2012::Intialize()
 {
-    //factorize=false;
+    factorize=false;
 	ipsat_mz = new IPsat_MZ::DipoleAmplitude(2.289363553168, std::sqrt(1.1), 0.08289088639946, 2.195310911936, 1.35277437092);
 	ipsat_mz->SetSaturation(true);
-	//ipsat_mz =  new IPsat_MZ::DipoleAmplitude(4.297444629517, std::sqrt(1.1), -0.006657294973805, 3.039134356321, 1.350367375905);
-    //ipsat_mz->SetSaturation(false);
-	//factorize=true;
+//	ipsat_mz =  new IPsat_MZ::DipoleAmplitude(4.297444629517, std::sqrt(1.1), -0.006657294973805, 3.039134356321, 1.350367375905);
+//    ipsat_mz->SetSaturation(false);
+//	factorize=true;
 	//factorize=true;
 }
 
